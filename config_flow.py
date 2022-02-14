@@ -26,6 +26,7 @@ class RinnaiTouchConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input=None):
         """Handle a flow initialized by the user."""
+        _LOGGER.error("are we getting here?")
         errors = {}
         if user_input is not None:
             system = RinnaiSystem.getInstance(user_input[CONF_HOST])
@@ -43,7 +44,6 @@ class RinnaiTouchConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(
                     title=user_input[CONF_NAME], data=user_input
                 )
-        _LOGGER.error("are we getting here?")
         return self.async_show_form(
             step_id="user", data_schema=STEP_USER_DATA_SCHEMA, errors=errors
         )
