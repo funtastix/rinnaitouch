@@ -1,6 +1,6 @@
 # pylint: skip-file
 import logging
-from dataclasses import dataclass
+#from dataclasses import dataclass
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.exceptions import ConfigEntryNotReady
