@@ -1,5 +1,5 @@
 # pylint: skip-file
-import logging
+#import logging
 #from dataclasses import dataclass
 
 from homeassistant.config_entries import ConfigEntry
@@ -10,7 +10,7 @@ from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
 
 from .const import DOMAIN
 
-_LOGGER = logging.getLogger(__name__)
+#_LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = ["climate"]
 
