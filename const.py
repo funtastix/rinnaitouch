@@ -1,0 +1,12 @@
+"""Constants used by the rinnai touch component."""
+
+RINNAI = "rinnai"
+ICON = "mdi:fan"
+DOMAIN = "rinnaitouch"
+DEFAULT_NAME = "Rinnai Touch"
+UNIT_FAN_SPEED = "ø"
+UNIT_COMFORT_LEVEL = "±"
+PRESET_HEAT = "Heating"
+PRESET_COOL = "Cooling"
+PRESET_EVAP = "Evap"
+FAN_ONLY = "Fan Only"

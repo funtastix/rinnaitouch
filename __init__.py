@@ -1,0 +1,51 @@
+# pylint: skip-file
+import logging
+from dataclasses import dataclass
+
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.const import CONF_HOST
+from homeassistant.core import HomeAssistant
+from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
+
+from .const import DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
+
+PLATFORMS = ["climate"]
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+    """Set up the rinnaitouch integration from a config entry."""
+
+    ip_address = entry.data.get(CONF_HOST)
+    _LOGGER.debug("Get controller with IP: %s", ip_address)
+
+    try:
+        system = RinnaiSystem.getInstance(ip_address)
+        #scenes = await system.getSupportedScenes()
+        scenes = []
+        await system.GetStatus()
+    except (
+        Exception,
+        ConnectionError,
+        ConnectionRefusedError,
+    ) as err:
+        raise ConfigEntryNotReady from err
+
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = RinnaiData(system=system, scenes=scenes)
+    hass.config_entries.async_setup_platforms(entry, PLATFORMS)
+    return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
+    """Unload a config entry."""
+    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        hass.data[DOMAIN].pop(entry.entry_id)
+    return unload_ok
+
+@dataclass
+class RinnaiData:
+    """Data for the Rinnai Touch integration."""
+
+    system: RinnaiSystem
+    scenes: list
