@@ -6,6 +6,7 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_NAME
+from homeassistant.data_entry_flow import AbortFlow
 
 from .const import DEFAULT_NAME, DOMAIN
 from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
