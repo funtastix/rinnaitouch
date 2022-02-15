@@ -51,6 +51,10 @@ from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 
 SUPPORT_FLAGS = SUPPORT_TARGET_TEMPERATURE + SUPPORT_FAN_MODE + SUPPORT_PRESET_MODE
 
+PRESET_HEAT = "preset_heat"
+PRESET_COOL = "preset_cool"
+PRESET_EVAP = "preset_evap"
+
 _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -351,6 +355,19 @@ class RinnaiTouch(ClimateEntity):
             return PRESET_HEAT
         elif self._system._status.coolingMode :
             return PRESET_COOL
+        else:
+            return PRESET_EVAP
+
+    @property
+    def preset_modes(self):
+        """Return the list of available HVAC modes."""
+        return [PRESET_HEAT, PRESET_COOL, PRESET_EVAP ]
+
+    @property
+    def preset_mode(self):
+        """Return current HVAC mode, ie Heat or Off."""
+        if self._system._status.heaterMode :
+            return PRESET_HEAT
         else:
             return PRESET_EVAP
 
