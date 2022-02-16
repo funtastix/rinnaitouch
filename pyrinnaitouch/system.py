@@ -180,6 +180,7 @@ class RinnaiSystem:
         self._client.shutdown(socket.SHUT_RDWR)
         self._client.close()
         _LOGGER.error("Client Variable: %s", self._client)
+        resp = SendToTouch(self._client, cmd)
 
     async def validate_and_send(self, cmd):
         if self.validateCmd(cmd):
