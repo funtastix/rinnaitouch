@@ -177,8 +177,9 @@ class RinnaiSystem:
         if res:
             self._status = status
 
-        #self._client.shutdown(socket.SHUT_RDWR)
-        #self._client.close()
+        self._client.shutdown(socket.SHUT_RDWR)
+        self._client.close()
+        _LOGGER.error("Client Variable: %s", self._client)
 
     async def validate_and_send(self, cmd):
         if self.validateCmd(cmd):
