@@ -152,6 +152,10 @@ class RinnaiSystem:
             return False
         except Exception as err:
             _LOGGER.error("Couldn't decode JSON, skipping (%s)", repr(err))
+            _LOGGER.debug("Client shutting down")
+            self._client.shutdown(socket.SHUT_RDWR)
+            self._client.close()
+            self._lastclosed = time.time()
             return False
 
     def GetOfflineStatus(self):
