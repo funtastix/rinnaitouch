@@ -8,7 +8,7 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_NAME
 from homeassistant.data_entry_flow import AbortFlow
 
-from .const import DEFAULT_NAME, DOMAIN
+from .const import DEFAULT_NAME, DOMAIN, CONF_TEMP_SENSOR
 from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
 
 _LOGGER = logging.getLogger(__name__)
@@ -16,7 +16,8 @@ _LOGGER = logging.getLogger(__name__)
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_HOST): str,
-        vol.Optional(CONF_NAME, default=DEFAULT_NAME): str
+        vol.Optional(CONF_NAME, default=DEFAULT_NAME): str,
+        vol.Optional(CONF_TEMP_SENSOR): str
     }
 )
 
