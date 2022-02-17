@@ -72,6 +72,7 @@ class RinnaiTouch(ClimateEntity):
 
         self._hass = hass
         self._temerature_entity_name = temperature_entity
+        self._sensor_temperature = 0
 
         self._support_flags = SUPPORT_FLAGS
         
@@ -279,8 +280,8 @@ class RinnaiTouch(ClimateEntity):
         """Return the current temperature."""
         #NC7 returns temp in XXX -> ZXS -> MT
         #Implement later, as I have the NC6 that doesn't return a temperature
-        #likely best to implement the temp as a separate sensor entity?
-        return 0
+        #implemented use of an external sensor (optional) which return 0 if none selected
+        return self._sensor_temperature
 
     @property
     def hvac_mode(self):
@@ -377,4 +378,5 @@ class RinnaiTouch(ClimateEntity):
             temperature_entity = self._hass.states.get(self._temerature_entity_name)
             if temperature_entity is not None:
                 _LOGGER.debug("External temperature sensor reports: %s", temperature_entity.state)
+                self._sensor_temperature = int(round(temperature_entity.state))
                     
