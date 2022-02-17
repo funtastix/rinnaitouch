@@ -55,12 +55,13 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities):
     ip_address = entry.data.get(CONF_HOST)
-    async_add_entities([RinnaiTouch(ip_address)])
+    temperature_entity = entry.data.get(CONF_TEMP_SENSOR)
+    async_add_entities([RinnaiTouch(hass, ip_address, temperature_entity)])
     return True
 
 class RinnaiTouch(ClimateEntity):
 
-    def __init__(self, ip_address):
+    def __init__(self, hass, ip_address, temperature_entity = None):
         self._host = ip_address
         _LOGGER.info("Set up RinnaiTouch entity %s", ip_address)
         self._system = RinnaiSystem.getInstance(ip_address)
@@ -68,6 +69,9 @@ class RinnaiTouch(ClimateEntity):
 
         self._attr_unique_id = device_id
         self._attr_name = f"Rinnai Touch"
+
+        self._hass = hass
+        self._temerature_entity_name = temperature_entity
 
         self._support_flags = SUPPORT_FLAGS
         
@@ -369,3 +373,8 @@ class RinnaiTouch(ClimateEntity):
 
     async def async_update(self):
         await self._system.GetStatus()
+        if self._temerature_entity_name is not None:
+            temperature_entity = self._hass.states.get(self._temerature_entity_name)
+            if temperature_entity is not None:
+                _LOGGER.debug("External temperature sensor reports: %s", temperature_entity.state)
+                    
