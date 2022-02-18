@@ -131,10 +131,7 @@ class RinnaiSystem:
             _LOGGER.debug("Sequence: %s Json: %s", seq, jStr)
 
             j = json.loads(jStr)
-            _LOGGER.debug(json.dumps(j, indent = 4))
-
-            _LOGGER.debug("j[0]:", j[0])
-            _LOGGER.debug("j[1]:", j[1])
+            _LOGGER.debug(json.dumps(j[0], indent = 4))
 
             cfg = GetAttribute(j[0].get("SYST"),"CFG",None)
             if not cfg:
@@ -153,11 +150,11 @@ class RinnaiSystem:
                 _LOGGER.error("No AVM - Not happy, Jan")
 
             else:
-                if GetAttribute(avm, "HG", None) == "Y" or GetAttribute(avm, "RA", None) == "Y" or GetAttribute(avm, "RH", None) == Y:
+                if GetAttribute(avm, "HG", None) == "Y" or GetAttribute(avm, "RA", None) == "Y" or GetAttribute(avm, "RH", None) ==0 "Y":
                     brivisStatus.hasHeater = True
                 else:
                     brivisStatus.hasHeater = False
-                if GetAttribute(avm, "CG", None) == "Y" or GetAttribute(avm, "RA", None) == "Y" or GetAttribute(avm, "RC", None) == Y:
+                if GetAttribute(avm, "CG", None) == "Y" or GetAttribute(avm, "RA", None) == "Y" or GetAttribute(avm, "RC", None) == "Y":
                     brivisStatus.hasCooling = True
                 else:
                     brivisStatus.hasCooling = False
