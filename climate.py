@@ -366,7 +366,14 @@ class RinnaiTouch(ClimateEntity):
     @property
     def preset_modes(self):
         """Return the list of available HVAC modes."""
-        return [PRESET_HEAT, PRESET_COOL, PRESET_EVAP ]
+        modes = []
+        if self._system._status.hasHeater:
+            modes.append(PRESET_HEAT)
+        if self._system._status.hasCooling:
+            modes.append(PRESET_COOL)
+        if self._system._status.hasEvap:
+            modes.append(PRESET_EVAP)
+        return modes
 
     def turn_aux_heat_on(self):
         """Turn auxiliary heater on."""

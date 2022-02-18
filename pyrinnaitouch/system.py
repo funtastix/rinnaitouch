@@ -22,6 +22,9 @@ class BrivisStatus():
     heaterMode = False
     systemOn = False
     tempUnit = None
+    hasHeater = True
+    hasCooling = True
+    hasEvap = True
     heaterStatus = HeaterStatus()
     coolingStatus = CoolingStatus()
     evapStatus = EvapStatus()
@@ -140,6 +143,25 @@ class RinnaiSystem:
                     brivisStatus.tempUnit = TEMP_FAHRENHEIT
                 else:
                     brivisStatus.tempUnit = TEMP_CELSIUS
+
+            avm = GetAttribute(j[1].get("SYST"),"AVM",None)
+            if not avm:
+                # Probably an error
+                _LOGGER.error("No AVM - Not happy, Jan")
+
+            else:
+                if GetAttribute(avm, "HG", None) == "Y" or GetAttribute(avm, "RA", None) == "Y" or GetAttribute(avm, "RH", None) == Y:
+                    brivisStatus.hasHeater = True
+                else:
+                    brivisStatus.hasHeater = False
+                if GetAttribute(avm, "CG", None) == "Y" or GetAttribute(avm, "RA", None) == "Y" or GetAttribute(avm, "RC", None) == Y:
+                    brivisStatus.hasCooling = True
+                else:
+                    brivisStatus.hasCooling = False
+                if GetAttribute(avm, "EC", None) == "Y":
+                    brivisStatus.hasEvap = True
+                else:
+                    brivisStatus.hasEvap = False
 
             if 'HGOM' in j[1]:
                 HandleHeatingMode(client,j,brivisStatus)
