@@ -40,6 +40,7 @@ from homeassistant.const import (
     CONF_HOST,
     PRECISION_WHOLE,
     TEMP_CELSIUS,
+    TEMP_FAHRENHEIT,
     ATTR_TEMPERATURE,
     STATE_UNAVAILABLE
 )
@@ -133,6 +134,8 @@ class RinnaiTouch(ClimateEntity):
     @property
     def temperature_unit(self):
         """Return the unit of measurement."""
+        if self._system._status.tempUnit == RinnaiSystem.TEMP_FAHRENHEIT:
+            return TEMP_FAHRENHEIT
         return TEMP_CELSIUS
 
     @property
@@ -363,7 +366,14 @@ class RinnaiTouch(ClimateEntity):
     @property
     def preset_modes(self):
         """Return the list of available HVAC modes."""
-        return [PRESET_HEAT, PRESET_COOL, PRESET_EVAP ]
+        modes = []
+        if self._system._status.hasHeater:
+            modes.append(PRESET_HEAT)
+        if self._system._status.hasCooling:
+            modes.append(PRESET_COOL)
+        if self._system._status.hasEvap:
+            modes.append(PRESET_EVAP)
+        return modes
 
     def turn_aux_heat_on(self):
         """Turn auxiliary heater on."""
@@ -381,7 +391,7 @@ class RinnaiTouch(ClimateEntity):
         _LOGGER.debug("External temperature sensor entity name: %s", self._temerature_entity_name)
         if self._temerature_entity_name is not None:
             temperature_entity = self._hass.states.get(self._temerature_entity_name)
-            _LOGGER.debug("External temperature sensor entity: %s", temperature_entity)
+            #_LOGGER.debug("External temperature sensor entity: %s", temperature_entity)
             if temperature_entity is not None:
                 _LOGGER.debug("External temperature sensor reports: %s", temperature_entity.state)
                 self._sensor_temperature = int(round(float(temperature_entity.state)))

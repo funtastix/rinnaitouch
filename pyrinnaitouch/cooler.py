@@ -9,6 +9,21 @@ import logging
 _LOGGER = logging.getLogger(__name__)
 
 def HandleCoolingMode(client,j,brivisStatus):
+    cfg = GetAttribute(j[1].get("CGOM"),"CFG",None)
+    if not cfg:
+        # Probably an error
+        _LOGGER.error("No CFG - Not happy, Jan")
+
+    else:
+        if YNtoBool(GetAttribute(cfg, "ZAIS", None)):
+            brivisStatus.heaterStatus.zones.append("A")
+        if YNtoBool(GetAttribute(cfg, "ZBIS", None)):
+            brivisStatus.heaterStatus.zones.append("B")
+        if YNtoBool(GetAttribute(cfg, "ZCIS", None)):
+            brivisStatus.heaterStatus.zones.append("C")
+        if YNtoBool(GetAttribute(cfg, "ZDIS", None)):
+            brivisStatus.heaterStatus.zones.append("D")
+
     gss = GetAttribute(j[1].get("CGOM"),"GSS",None)
     if not gss:
         _LOGGER.error("No GSO here")
@@ -74,6 +89,8 @@ class CoolingStatus():
     zoneB = False
     zoneC = False
     zoneD = False
+
+    zones = []
 
     def SetMode(self,mode):
         # A = Auto Mode and M = Manual Mode

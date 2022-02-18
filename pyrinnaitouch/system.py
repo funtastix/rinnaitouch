@@ -8,6 +8,7 @@ from .cooler import HandleCoolingMode, CoolingStatus
 from .evap import HandleEvapMode, EvapStatus
 from .commands import *
 import logging
+from .util import *
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -17,10 +18,14 @@ class BrivisStatus():
     coolingMode = False
     heaterMode = False
     systemOn = False
+    tempUnit = None
+    hasHeater = True
+    hasCooling = True
+    hasEvap = True
     heaterStatus = HeaterStatus()
     coolingStatus = CoolingStatus()
     evapStatus = EvapStatus()
-    
+
     def setMode(self,mode):
         if mode == Mode.HEATING:
             self.heaterMode = True
@@ -60,6 +65,9 @@ class RinnaiSystem:
 
     clients = {}
     instances = {}
+
+    TEMP_CELSIUS = "°C"
+    TEMP_FAHRENHEIT = "°F"
 
     def __init__(self, ip_address):
         self._touchIP = ip_address
@@ -123,7 +131,37 @@ class RinnaiSystem:
             _LOGGER.debug("Sequence: %s Json: %s", seq, jStr)
 
             j = json.loads(jStr)
-            #_LOGGER.debug(json.dumps(j, indent = 4))
+            #_LOGGER.debug(json.dumps(j[0], indent = 4))
+
+            cfg = GetAttribute(j[0].get("SYST"),"CFG",None)
+            if not cfg:
+                # Probably an error
+                _LOGGER.error("No CFG - Not happy, Jan")
+
+            else:
+                if GetAttribute(cfg, "TU", None) == "F":
+                    brivisStatus.tempUnit = RinnaiSystem.TEMP_FAHRENHEIT
+                else:
+                    brivisStatus.tempUnit = RinnaiSystem.TEMP_CELSIUS
+
+            avm = GetAttribute(j[0].get("SYST"),"AVM",None)
+            if not avm:
+                # Probably an error
+                _LOGGER.error("No AVM - Not happy, Jan")
+
+            else:
+                if GetAttribute(avm, "HG", None) == "Y" or GetAttribute(avm, "RA", None) == "Y" or GetAttribute(avm, "RH", None) == "Y":
+                    brivisStatus.hasHeater = True
+                else:
+                    brivisStatus.hasHeater = False
+                if GetAttribute(avm, "CG", None) == "Y" or GetAttribute(avm, "RA", None) == "Y" or GetAttribute(avm, "RC", None) == "Y":
+                    brivisStatus.hasCooling = True
+                else:
+                    brivisStatus.hasCooling = False
+                if GetAttribute(avm, "EC", None) == "Y":
+                    brivisStatus.hasEvap = True
+                else:
+                    brivisStatus.hasEvap = False
 
             if 'HGOM' in j[1]:
                 HandleHeatingMode(client,j,brivisStatus)
