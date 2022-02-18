@@ -131,7 +131,7 @@ class RinnaiSystem:
             _LOGGER.debug("Sequence: %s Json: %s", seq, jStr)
 
             j = json.loads(jStr)
-            _LOGGER.debug(json.dumps(j[0], indent = 4))
+            #_LOGGER.debug(json.dumps(j[0], indent = 4))
 
             cfg = GetAttribute(j[0].get("SYST"),"CFG",None)
             if not cfg:
