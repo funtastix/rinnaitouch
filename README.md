@@ -19,12 +19,36 @@ Thanks to all the above for the groundwork on this!
 
 This component has a dependency on `pyrinnaitouch` which currently resides in a subdirectory but in the future will be installed automatically by Home Assistant.
 
+## Capabilities
+
+To support the controller and make it work with the HA climate entity,these are the mappings:
+
+HVAC modes:
+HVAC_MODE_HEAT_COOL → Manual Mode (all operating modes)
+HVAC_MODE_AUTO → Auto Mode (all operating modes)
+HVAC_MODE_OFF → Unit Off (any operating mode)
+
+PRESET modes:
+PRESET_COOL → Cooling mode
+PRESET_HEAT → Heater mode
+PRESET_EVAP → Evap mode
+
+You can manipulate the Fan as required. Fan Only mode in Evap will turn off the pump.
+
+I have added support for an external temperature sensor, as it bothered me to have 0 degrees in the UI all the time. NC-6 Controllers do not report their temperature. (NC-7s do, but I have not implemented that yet)
+
+Basically, it supports the full functionality of the network controller. I have mapped these via HVAC states and PRESETS:
+
+I have not tested the Cooling mode, as I do not have cooling
+
 ## Further Plans
 
 1. <del>Work on stability. Sending commands is not fully reliable. The above documentation, page 16 indicates how to properly deal with that.</del>
-2. Filter HVAC modes by system ability
-3. Break out the library `pyrinnaitouch` and upload to PyPi
-4. Make component HACS compatible
+2. <del>Filter HVAC modes by system ability</del>
+3. Implement reading NC-7 temperature for when no external sensor is set up
+4. Implement zone switches (I do not think I will go to the extend of implementing other settings per zone)
+5. Break out the library `pyrinnaitouch` and upload to PyPi
+6. Make component HACS compatible
 
 ## Installation
 
