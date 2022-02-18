@@ -210,10 +210,15 @@ class RinnaiSystem:
             return True
         return False
 
-    async def sendCmd(self, cmd):
-        if self._client is None or self._client._closed:
+    async def renewConnection(self):
+        # TODO: need to also check for remote address in case the server has shut the connection down
+        if self._client is None or self._client._closed or self._client.getpeername() is None:
             self._client = await self.ConnectToTouch(self._touchIP,self._touchPort)
             RinnaiSystem.clients[self._touchIP] = self._client
+
+
+    async def sendCmd(self, cmd):
+        await self.renewConnection()
 
         _LOGGER.debug("Client Variable: %s / %s", self._client, self._client._closed)
 
@@ -375,9 +380,7 @@ class RinnaiSystem:
         #update only every 10 seconds max
         if self._lastupdated + 10 > time.time() :
             return self.GetOfflineStatus()
-        if self._client is None or self._client._closed:
-            self._client = await self.ConnectToTouch(self._touchIP,self._touchPort)
-            RinnaiSystem.clients[self._touchIP] = self._client
+        await self.renewConnection()
 
         status = BrivisStatus()
         _LOGGER.debug("Client Variable: %s / %s", self._client, self._client._closed)
