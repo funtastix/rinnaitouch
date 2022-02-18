@@ -19,7 +19,7 @@ from __future__ import annotations
 from collections.abc import Callable, Coroutine
 import logging
 
-from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
+from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem, TEMP_CELSIUS as SYSTEM_TEMP_CELSIUS, TEMP_FAHRENHEIT as SYSTEM_TEMP_FAHRENHEIT
 
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
@@ -40,6 +40,7 @@ from homeassistant.const import (
     CONF_HOST,
     PRECISION_WHOLE,
     TEMP_CELSIUS,
+    TEMP_FAHRENHEIT,
     ATTR_TEMPERATURE,
     STATE_UNAVAILABLE
 )
@@ -133,6 +134,8 @@ class RinnaiTouch(ClimateEntity):
     @property
     def temperature_unit(self):
         """Return the unit of measurement."""
+        if self._system._status.tempUnit == SYSTEM_TEMP_FAHRENHEIT:
+            return TEMP_FAHRENHEIT
         return TEMP_CELSIUS
 
     @property

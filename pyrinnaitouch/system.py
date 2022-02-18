@@ -9,6 +9,9 @@ from .evap import HandleEvapMode, EvapStatus
 from .commands import *
 import logging
 
+TEMP_CELSIUS = "°C"
+TEMP_FAHRENHEIT = "°F"
+
 _LOGGER = logging.getLogger(__name__)
 
 class BrivisStatus():
@@ -17,10 +20,11 @@ class BrivisStatus():
     coolingMode = False
     heaterMode = False
     systemOn = False
+    tempUnit = None
     heaterStatus = HeaterStatus()
     coolingStatus = CoolingStatus()
     evapStatus = EvapStatus()
-    
+
     def setMode(self,mode):
         if mode == Mode.HEATING:
             self.heaterMode = True
@@ -124,6 +128,17 @@ class RinnaiSystem:
 
             j = json.loads(jStr)
             #_LOGGER.debug(json.dumps(j, indent = 4))
+
+            cfg = GetAttribute(j[1].get("SYST"),"CFG",None)
+            if not cfg:
+                # Probably an error
+                _LOGGER.error("No CFG - Not happy, Jan")
+
+            else:
+                if GetAttribute(cfg, "TU", None) == "F":
+                    brivisStatus.tempUnit = TEMP_FAHRENHEIT
+                else:
+                    brivisStatus.tempUnit = TEMP_CELSIUS
 
             if 'HGOM' in j[1]:
                 HandleHeatingMode(client,j,brivisStatus)
