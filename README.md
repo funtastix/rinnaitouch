@@ -24,14 +24,14 @@ This component has a dependency on `pyrinnaitouch` which currently resides in a 
 To support the controller and make it work with the HA climate entity,these are the mappings:
 
 HVAC modes:
-HVAC_MODE_HEAT_COOL → Manual Mode (all operating modes)
-HVAC_MODE_AUTO → Auto Mode (all operating modes)
-HVAC_MODE_OFF → Unit Off (any operating mode)
+- HVAC_MODE_HEAT_COOL → Manual Mode (all operating modes)
+- HVAC_MODE_AUTO → Auto Mode (all operating modes)
+- HVAC_MODE_OFF → Unit Off (any operating mode)
 
 PRESET modes:
-PRESET_COOL → Cooling mode
-PRESET_HEAT → Heater mode
-PRESET_EVAP → Evap mode
+- PRESET_COOL → Cooling mode
+- PRESET_HEAT → Heater mode
+- PRESET_EVAP → Evap mode
 
 You can manipulate the Fan as required. Fan Only mode in Evap will turn off the pump.
 
