@@ -73,7 +73,7 @@ class RinnaiTouch(ClimateEntity):
         self._hass = hass
         self._temerature_entity_name = temperature_entity
         self._sensor_temperature = 0
-        self.update_external_temperature
+        self.update_external_temperature()
 
         self._support_flags = SUPPORT_FLAGS
         
@@ -375,7 +375,7 @@ class RinnaiTouch(ClimateEntity):
 
     async def async_update(self):
         await self._system.GetStatus()
-        self.update_external_temperature
+        self.update_external_temperature()
 
     def update_external_temperature():
         _LOGGER.debug("External temperature sensor entity name: %s", self._temerature_entity_name)
