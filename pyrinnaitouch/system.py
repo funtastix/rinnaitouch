@@ -140,9 +140,9 @@ class RinnaiSystem:
 
             else:
                 if GetAttribute(cfg, "TU", None) == "F":
-                    brivisStatus.tempUnit = TEMP_FAHRENHEIT
+                    brivisStatus.tempUnit = RinnaiSystem.TEMP_FAHRENHEIT
                 else:
-                    brivisStatus.tempUnit = TEMP_CELSIUS
+                    brivisStatus.tempUnit = RinnaiSystem.TEMP_CELSIUS
 
             avm = GetAttribute(j[0].get("SYST"),"AVM",None)
             if not avm:
