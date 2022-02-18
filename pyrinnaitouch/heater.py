@@ -9,6 +9,21 @@ import logging
 _LOGGER = logging.getLogger(__name__)
 
 def HandleHeatingMode(client,j,brivisStatus):
+    cfg = GetAttribute(j[1].get("HGOM"),"CFG",None)
+    if not cfg:
+        # Probably an error
+        _LOGGER.error("No CFG - Not happy, Jan")
+
+    else:
+        if YNtoBool(GetAttribute(cfg, "ZAIS", None)):
+            brivisStatus.heaterStatus.zones.append("A")
+        if YNtoBool(GetAttribute(cfg, "ZBIS", None)):
+            brivisStatus.heaterStatus.zones.append("B")
+        if YNtoBool(GetAttribute(cfg, "ZCIS", None)):
+            brivisStatus.heaterStatus.zones.append("C")
+        if YNtoBool(GetAttribute(cfg, "ZDIS", None)):
+            brivisStatus.heaterStatus.zones.append("D")
+
     oop = GetAttribute(j[1].get("HGOM"),"OOP",None)
     if not oop:
         # Probably an error
@@ -76,6 +91,7 @@ class HeaterStatus():
     manualMode = False
     autoMode = False
     setTemp = 0
+    zones = []
     zoneA = False
     zoneB = False
     zoneC = False
