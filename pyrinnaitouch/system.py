@@ -10,9 +10,6 @@ from .commands import *
 import logging
 from .util import *
 
-TEMP_CELSIUS = "°C"
-TEMP_FAHRENHEIT = "°F"
-
 _LOGGER = logging.getLogger(__name__)
 
 class BrivisStatus():
@@ -68,6 +65,9 @@ class RinnaiSystem:
 
     clients = {}
     instances = {}
+
+    TEMP_CELSIUS = "°C"
+    TEMP_FAHRENHEIT = "°F"
 
     def __init__(self, ip_address):
         self._touchIP = ip_address
