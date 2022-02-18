@@ -8,6 +8,7 @@ from .cooler import HandleCoolingMode, CoolingStatus
 from .evap import HandleEvapMode, EvapStatus
 from .commands import *
 import logging
+from .util import *
 
 TEMP_CELSIUS = "°C"
 TEMP_FAHRENHEIT = "°F"
