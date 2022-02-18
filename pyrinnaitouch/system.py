@@ -131,9 +131,12 @@ class RinnaiSystem:
             _LOGGER.debug("Sequence: %s Json: %s", seq, jStr)
 
             j = json.loads(jStr)
-            #_LOGGER.debug(json.dumps(j, indent = 4))
+            _LOGGER.debug(json.dumps(j, indent = 4))
 
-            cfg = GetAttribute(j[1].get("SYST"),"CFG",None)
+            _LOGGER.debug("j[0]:", j[0])
+            _LOGGER.debug("j[1]:", j[1])
+
+            cfg = GetAttribute(j[0].get("SYST"),"CFG",None)
             if not cfg:
                 # Probably an error
                 _LOGGER.error("No CFG - Not happy, Jan")
@@ -144,7 +147,7 @@ class RinnaiSystem:
                 else:
                     brivisStatus.tempUnit = TEMP_CELSIUS
 
-            avm = GetAttribute(j[1].get("SYST"),"AVM",None)
+            avm = GetAttribute(j[0].get("SYST"),"AVM",None)
             if not avm:
                 # Probably an error
                 _LOGGER.error("No AVM - Not happy, Jan")
