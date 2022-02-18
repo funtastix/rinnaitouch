@@ -377,7 +377,7 @@ class RinnaiTouch(ClimateEntity):
         await self._system.GetStatus()
         self.update_external_temperature()
 
-    def update_external_temperature():
+    def update_external_temperature(self):
         _LOGGER.debug("External temperature sensor entity name: %s", self._temerature_entity_name)
         if self._temerature_entity_name is not None:
             temperature_entity = self._hass.states.get(self._temerature_entity_name)
