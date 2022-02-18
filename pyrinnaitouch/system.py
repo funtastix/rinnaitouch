@@ -150,7 +150,7 @@ class RinnaiSystem:
                 _LOGGER.error("No AVM - Not happy, Jan")
 
             else:
-                if GetAttribute(avm, "HG", None) == "Y" or GetAttribute(avm, "RA", None) == "Y" or GetAttribute(avm, "RH", None) ==0 "Y":
+                if GetAttribute(avm, "HG", None) == "Y" or GetAttribute(avm, "RA", None) == "Y" or GetAttribute(avm, "RH", None) == "Y":
                     brivisStatus.hasHeater = True
                 else:
                     brivisStatus.hasHeater = False
