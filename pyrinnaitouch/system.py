@@ -211,8 +211,13 @@ class RinnaiSystem:
         return False
 
     async def renewConnection(self):
+        connection_error = False
+        try:
+            self._client.getpeername()
+        except (OSError, ConnectionError):
+            connection_error = True
         # TODO: need to also check for remote address in case the server has shut the connection down
-        if self._client is None or self._client._closed or self._client.getpeername() is None:
+        if self._client is None or self._client._closed or connection_error:
             self._client = await self.ConnectToTouch(self._touchIP,self._touchPort)
             RinnaiSystem.clients[self._touchIP] = self._client
 
