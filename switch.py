@@ -84,7 +84,7 @@ class RinnaiCoolingModeSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def icon(self):
         """Return the icon to use in the frontend for this device."""
-        if self.is_on():
+        if self.is_on:
             return "mdi:snowflake"
         else:
             return "mdi:snowflake-off"
@@ -110,7 +110,7 @@ class RinnaiHeaterModeSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def icon(self):
         """Return the icon to use in the frontend for this device."""
-        if self.is_on():
+        if self.is_on:
             return "mdi:fire"
         else:
             return "mdi:fire-off"
@@ -136,7 +136,7 @@ class RinnaiEvapModeSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def icon(self):
         """Return the icon to use in the frontend for this device."""
-        if self.is_on():
+        if self.is_on:
             return "mdi:water-outline"
         else:
             return "mdi:water-off-outline"
@@ -166,7 +166,7 @@ class RinnaiZoneSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def icon(self):
         """Return the icon to use in the frontend for this device."""
-        if self.is_on():
+        if self.is_on:
             return "mdi:home-thermometer"
         else:
             return "mdi:home-thermometer-outline"
