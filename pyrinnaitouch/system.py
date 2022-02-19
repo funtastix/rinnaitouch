@@ -213,8 +213,9 @@ class RinnaiSystem:
     async def renewConnection(self):
         connection_error = False
         try:
-            if self._client.getpeername and self._client.getpeername():
-                pass
+            if self._client is not None:
+                if self._client.getpeername and self._client.getpeername() is not None:
+                    pass
         except (OSError, ConnectionError):
             connection_error = True
             pass
