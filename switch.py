@@ -177,7 +177,7 @@ class RinnaiZoneSwitch(RinnaiExtraEntity, SwitchEntity):
             return self._attr_zone in self._system._status.heaterStatus.zones
         elif self._system._status.coolingMode:
             return self._attr_zone in self._system._status.coolingStatus.zones
-        return false
+        return False
 
     @property
     def is_on(self):
@@ -185,7 +185,7 @@ class RinnaiZoneSwitch(RinnaiExtraEntity, SwitchEntity):
             return getattr(self._system._status.heaterStatus, "zone" + self._attr_zone)
         elif self._system._status.coolingMode:
             return getattr(self._system._status.coolingStatus, "zone" + self._attr_zone)
-        return false
+        return False
 
     async def async_turn_on(self, **kwargs):
         if self._system._status.heaterMode:
