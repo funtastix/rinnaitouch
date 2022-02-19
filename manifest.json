@@ -2,9 +2,10 @@
   "domain": "rinnaitouch",
   "name": "Rinnai Touch",
   "documentation": "https://github.com/funtastix/rinnaitouch",
+  "issue_tracker": "https://github.com/funtastix/rinnaitouch/issues",
   "codeowners": ["@funtastix"],
   "requirements": [],
   "config_flow": true,
-  "version": "0.2.2",
+  "version": "0.3.0",
   "iot_class": "local_polling"
 }
