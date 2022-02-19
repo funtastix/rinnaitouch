@@ -9,10 +9,11 @@ from homeassistant.core import HomeAssistant
 from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
 
 from .const import DOMAIN
+from homeassistant.const import Platform
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = ["climate"]
+PLATFORMS = [Platform.CLIMATE, Platform.SWITCH]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up the rinnaitouch integration from a config entry."""
@@ -49,3 +50,8 @@ class RinnaiData:
 
     system: RinnaiSystem
     scenes: list
+
+class RinnaiEntity(Entity):
+
+    def __init__(self):
+        pass
