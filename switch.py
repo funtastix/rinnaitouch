@@ -93,6 +93,10 @@ class RinnaiCoolingModeSwitch(RinnaiExtraEntity, SwitchEntity):
     def is_on(self):
         return self._system._status.coolingMode
 
+    @property
+    def available(self):
+        return self._system._status.hasCooling
+
     async def async_turn_on(self, **kwargs):
         if not self._system._status.coolingMode:
             await self._system.set_cooling_mode()
@@ -119,9 +123,13 @@ class RinnaiHeaterModeSwitch(RinnaiExtraEntity, SwitchEntity):
     def is_on(self):
         return self._system._status.heaterMode
 
+    @property
+    def available(self):
+        return self._system._status.hasHeater
+
     async def async_turn_on(self, **kwargs):
         if not self._system._status.heaterMode:
-            await self._system.set_heating_mode()
+            await self._system.set_heater_mode()
 
     async def async_turn_off(self, **kwargs):
         """Turning it off does nothing"""
@@ -144,6 +152,10 @@ class RinnaiEvapModeSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def is_on(self):
         return self._system._status.evapMode
+
+    @property
+    def available(self):
+        return self._system._status.hasEvap
 
     async def async_turn_on(self, **kwargs):
         if not self._system._status.evapMode:
