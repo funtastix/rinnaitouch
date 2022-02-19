@@ -1,6 +1,8 @@
 from homeassistant.components.switch import SwitchEntity
 from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
 
+import logging
+
 _LOGGER = logging.getLogger(__name__)
 
 
