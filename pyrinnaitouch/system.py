@@ -211,8 +211,16 @@ class RinnaiSystem:
         return False
 
     async def renewConnection(self):
+        connection_error = False
+        try:
+            if self._client is not None:
+                if self._client.getpeername and self._client.getpeername() is not None:
+                    pass
+        except (OSError, ConnectionError):
+            connection_error = True
+            pass
         # TODO: need to also check for remote address in case the server has shut the connection down
-        if self._client is None or self._client._closed or self._client.getpeername() is None:
+        if self._client is None or self._client._closed or connection_error:
             self._client = await self.ConnectToTouch(self._touchIP,self._touchPort)
             RinnaiSystem.clients[self._touchIP] = self._client
 
@@ -377,9 +385,9 @@ class RinnaiSystem:
             return False
 
     async def GetStatus(self):
-        #update only every 10 seconds max
-        if self._lastupdated + 10 > time.time() :
-            return self.GetOfflineStatus()
+        #update only every 1.5 seconds max
+        #if self._lastupdated + 1.5 > time.time() :
+        #    return self.GetOfflineStatus()
         await self.renewConnection()
 
         status = BrivisStatus()
