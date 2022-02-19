@@ -385,9 +385,9 @@ class RinnaiSystem:
             return False
 
     async def GetStatus(self):
-        #update only every 10 seconds max
-        if self._lastupdated + 10 > time.time() :
-            return self.GetOfflineStatus()
+        #update only every 1.5 seconds max
+        #if self._lastupdated + 1.5 > time.time() :
+        #    return self.GetOfflineStatus()
         await self.renewConnection()
 
         status = BrivisStatus()
