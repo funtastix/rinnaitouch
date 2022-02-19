@@ -1,4 +1,8 @@
 from homeassistant.components.switch import SwitchEntity
+from homeassistant.const import (
+    CONF_HOST
+)
+
 from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
 
 import logging
