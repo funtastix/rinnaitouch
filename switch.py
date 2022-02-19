@@ -1,5 +1,5 @@
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.helpers import Entity
+from homeassistant.helpers.entity import Entity
 from homeassistant.const import (
     CONF_HOST
 )
@@ -10,7 +10,7 @@ import logging
 
 _LOGGER = logging.getLogger(__name__)
 
-#TODO: Manual/Auto, Advance Period, CircFan
+#TODO: Manual/Auto, Advance Period, CircFan, inc/dec temp, inc/dec comfort, inc/dec fan, water pump, fan switch
 async def async_setup_entry(hass, entry, async_add_entities):
     ip_address = entry.data.get(CONF_HOST)
     async_add_entities([
