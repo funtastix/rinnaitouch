@@ -21,7 +21,6 @@ import logging
 
 from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
 
-from homeassistant.helpers.entity import Entity
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     FAN_ON,

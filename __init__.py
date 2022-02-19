@@ -6,6 +6,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import Entity
+
 from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
 
 from .const import DOMAIN
