@@ -93,7 +93,7 @@ def HandleHeatingMode(client,j,brivisStatus):
             brivisStatus.heaterStatus.zoneAtemp = GetAttribute(z,"MT", 999)
         z = GetAttribute(j[1].get("HGOM"),"ZBS",None)
         if z:
-            brivisStatus.heaterStatus.zoneBAuto = YNtoBoolGetAttribute(z,"AE",None))
+            brivisStatus.heaterStatus.zoneBAuto = YNtoBool(GetAttribute(z,"AE",None))
             brivisStatus.heaterStatus.zoneBtemp = GetAttribute(z,"MT", 999)
         z = GetAttribute(j[1].get("HGOM"),"ZCS",None)
         if z:
