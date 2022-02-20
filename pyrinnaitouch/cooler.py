@@ -87,7 +87,7 @@ def HandleCoolingMode(client,j,brivisStatus):
             brivisStatus.coolingStatus.zoneAtemp = GetAttribute(z,"MT", 999)
         z = GetAttribute(j[1].get("CGOM"),"ZBS",None)
         if z:
-            brivisStatus.coolingStatus.zoneBAuto = YNtoBoolGetAttribute(z,"AE",None))
+            brivisStatus.coolingStatus.zoneBAuto = YNtoBool(GetAttribute(z,"AE",None))
             brivisStatus.coolingStatus.zoneBtemp = GetAttribute(z,"MT", 999)
         z = GetAttribute(j[1].get("CGOM"),"ZCS",None)
         if z:
