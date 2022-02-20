@@ -13,14 +13,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, entry, async_add_entities):
     ip_address = entry.data.get(CONF_HOST)
     async_add_entities([
-        RinnaiOnOffSwitch(ip_address, "Rinnai Touch On Off Switch"),
-        RinnaiCoolingModeSwitch(ip_address, "Rinnai Touch Cooling Mode Switch"),
-        RinnaiHeaterModeSwitch(ip_address, "Rinnai Touch Heater Mode Switch"),
-        RinnaiEvapModeSwitch(ip_address, "Rinnai Touch Evap Mode Switch"),
-        RinnaiZoneSwitch(ip_address, "A", "Rinnai Touch Zone A Switch"),
-        RinnaiZoneSwitch(ip_address, "B", "Rinnai Touch Zone B Switch"),
-        RinnaiZoneSwitch(ip_address, "C", "Rinnai Touch Zone C Switch"),
-        RinnaiZoneSwitch(ip_address, "D", "Rinnai Touch Zone D Switch")
+        RinnaiPrewetBinarySensorEntity(ip_address, "Rinnai Touch Evap Prewetting Sensor")
     ])
     return True
 
@@ -43,3 +36,20 @@ class RinnaiBinarySensorEntity(BinarySensorEntity):
     def is_on(self):
         return False
 
+class RinnaiPrewetBinarySensorEntity(RinnaiBinarySensorEntity):
+
+    def __init__(self, ip_address, name):
+        super().__init__(ip_address, name)
+
+    @property
+    def icon(self):
+        """Return the icon to use in the frontend for this device."""
+        return "mdi:snowflake-melt"
+
+    @property
+    def is_on(self):
+        """If the switch is currently on or off."""
+        if self._system._status.evapMode:
+            return self._system._status.evapStatus.prewetting
+        else:
+            return False
