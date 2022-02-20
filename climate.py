@@ -412,7 +412,7 @@ class RinnaiTouch(ClimateEntity):
 
     @property
     def available(self):
-        if self._system._status.heaterMode or self._system._status.coolingMode or self._system._status.evapMode
+        if self._system._status.heaterMode or self._system._status.coolingMode or self._system._status.evapMode:
             return True
         return False
 
