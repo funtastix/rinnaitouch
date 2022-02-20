@@ -286,11 +286,11 @@ class RinnaiAutoSwitch(RinnaiExtraEntity, SwitchEntity):
     def is_on(self):
         if self.available:
             if self.preset_mode == PRESET_COOL:
-                return self._system._status.coolingStatus.autoMode:
+                return self._system._status.coolingStatus.autoMode
             if self.preset_mode == PRESET_HEAT:
-                return self._system._status.heaterStatus.autoMode:
+                return self._system._status.heaterStatus.autoMode
             if self.preset_mode == PRESET_EVAP:
-                return self._system._status.evapStatus.autoMode:
+                return self._system._status.evapStatus.autoMode
         return False
 
     async def async_turn_on(self, **kwargs):
@@ -333,11 +333,11 @@ class RinnaiZoneAutoSwitch(RinnaiExtraEntity, SwitchEntity):
     def available(self):
         if self._system._status.sytemOn:
             if self.preset_mode == PRESET_COOL:
-                return self._system._status.coolingStatus.autoMode:
+                return self._system._status.coolingStatus.autoMode
             if self.preset_mode == PRESET_HEAT:
-                return self._system._status.heaterStatus.autoMode:
+                return self._system._status.heaterStatus.autoMode
             if self.preset_mode == PRESET_EVAP:
-                return self._system._status.evapStatus.autoMode:
+                return self._system._status.evapStatus.autoMode
             return True
         else:
             return False
