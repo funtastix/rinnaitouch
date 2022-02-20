@@ -356,6 +356,14 @@ class RinnaiSystem:
         else:
             return False
 
+    async def set_heater_zone_advance(self, zone):
+        cmd=heatZoneAdvance
+        if self.validateCmd(cmd):
+            await self.sendCmd(cmd.format(zone=zone))
+            return True
+        else:
+            return False
+
     async def turn_cooling_on(self):
         return await self.validate_and_send(coolOnCmd)
 
@@ -416,6 +424,14 @@ class RinnaiSystem:
 
     async def set_cooling_zone_manual(self, zone):
         cmd=coolZoneSetManual
+        if self.validateCmd(cmd):
+            await self.sendCmd(cmd.format(zone=zone))
+            return True
+        else:
+            return False
+
+    async def set_cooling_zone_advance(self, zone):
+        cmd=coolZoneAdvance
         if self.validateCmd(cmd):
             await self.sendCmd(cmd.format(zone=zone))
             return True

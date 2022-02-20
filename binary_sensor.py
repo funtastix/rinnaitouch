@@ -1,5 +1,4 @@
 from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.helpers.entity import Entity
 from homeassistant.const import (
     CONF_HOST
 )

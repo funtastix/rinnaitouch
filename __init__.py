@@ -15,7 +15,7 @@ from homeassistant.const import Platform
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = [Platform.CLIMATE, Platform.SWITCH, Platform.BINARY_SENSOR, Platform.SENSOR]
+PLATFORMS = [Platform.CLIMATE, Platform.SWITCH, Platform.BINARY_SENSOR, Platform.SENSOR, Platform.BUTTON]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up the rinnaitouch integration from a config entry."""
