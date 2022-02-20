@@ -242,7 +242,7 @@ class RinnaiWaterpumpSwitch(RinnaiExtraEntity, SwitchEntity):
 
     @property
     def available(self):
-        if self._system._status.evapMode and brivisStatus.evapStatus.evapOn:
+        if self._system._status.evapMode and self._system._status.evapStatus.evapOn:
             return True
         return False
 
