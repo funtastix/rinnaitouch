@@ -83,7 +83,7 @@ class RinnaiMainTemperatureSensor(RinnaiTemperatureSensor):
             self._attr_native_value = int(round(float(getattr(self._system._status.coolingStatus,self._temp_attr))/10))
         elif self._system._status.heaterMode:
             self._attr_native_value = int(round(float(getattr(self._system._status.heaterStatus,self._temp_attr))/10))
-        elif self._system._status.evapMode:
+        elif self._system._status.evapMode and self._temp_attr == "temperature":
             self._attr_native_value = int(round(float(getattr(self._system._status.evapStatus,self._temp_attr))/10))
         self._attr_native_value = 0
 
@@ -93,7 +93,7 @@ class RinnaiMainTemperatureSensor(RinnaiTemperatureSensor):
             return not getattr(self._system._status.coolingStatus,self._temp_attr) == 999
         elif self._system._status.coolingMode:
             return not getattr(self._system._status.heaterStatus,self._temp_attr) == 999
-        elif self._system._status.evapMode:
+        elif self._system._status.evapMode and self._temp_attr == "temperature":
             return not getattr(self._system._status.evapStatus,self._temp_attr) == 999
         return False
 
@@ -115,7 +115,7 @@ class RinnaiZoneTemperatureSensor(RinnaiTemperatureSensor):
             self._attr_native_value = int(round(float(getattr(self._system._status.coolingStatus,"zone" + self._attr_zone + self._temp_attr))/10))
         elif self._system._status.heaterMode and self._attr_zone in self._system._status.heaterStatus.zones:
             self._attr_native_value = int(round(float(getattr(self._system._status.heaterStatus,"zone" + self._attr_zone + self._temp_attr))/10))
-        elif self._system._status.evapMode and self._attr_zone in self._system._status.evapStatus.zones:
+        elif self._system._status.evapMode and self._attr_zone in self._system._status.evapStatus.zones and self._temp_attr == "temp":
             self._attr_native_value = int(round(float(getattr(self._system._status.evapStatus,"zone" + self._attr_zone + self._temp_attr))/10))
         self._attr_native_value = 0
 
@@ -125,6 +125,6 @@ class RinnaiZoneTemperatureSensor(RinnaiTemperatureSensor):
             return not getattr(self._system._status.heaterStatus,"zone" + self._attr_zone + self._temp_attr) == 999
         elif self._system._status.coolingMode and self._attr_zone in self._system._status.coolingStatus.zones:
             return not getattr(self._system._status.coolingStatus,"zone" + self._attr_zone + self._temp_attr) == 999
-        elif self._system._status.evapMode and self._attr_zone in self._system._status.evapStatus.zones:
+        elif self._system._status.evapMode and self._attr_zone in self._system._status.evapStatus.zones and self._temp_attr == "temp":
             return not getattr(self._system._status.evapStatus,"zone" + self._attr_zone + self._temp_attr) == 999
         return False
