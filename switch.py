@@ -277,7 +277,7 @@ class RinnaiAutoSwitch(RinnaiExtraEntity, SwitchEntity):
 
     @property
     def available(self):
-        if self._system._status.sytemOn:
+        if self._system._status.systemOn:
             return True
         else:
             return False
@@ -331,7 +331,7 @@ class RinnaiZoneAutoSwitch(RinnaiExtraEntity, SwitchEntity):
 
     @property
     def available(self):
-        if self._system._status.sytemOn:
+        if self._system._status.systemOn:
             if self.preset_mode == PRESET_COOL:
                 return self._system._status.coolingStatus.autoMode
             if self.preset_mode == PRESET_HEAT:
