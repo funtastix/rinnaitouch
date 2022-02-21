@@ -87,6 +87,10 @@ class RinnaiTouch(ClimateEntity):
         self._TEMPERATURE_LIMITS = {"min": 8, "max": 30}
         self._COMFORT_LIMITS = {"min": 19, "max": 34}
         self._FAN_LIMITS = {"min": 0, "max": 16}
+        self._system.SubscribeUpdates(self.system_updated)
+
+    def system_updated(self):
+        self.async_write_ha_state()
 
     @property
     def supported_features(self):
@@ -439,6 +443,10 @@ class RinnaiTouchZone(ClimateEntity):
         
         self._TEMPERATURE_STEP = 1
         self._TEMPERATURE_LIMITS = {"min": 8, "max": 30}
+        self._system.SubscribeUpdates(self.system_updated)
+
+    def system_updated(self):
+        self.async_write_ha_state()
 
     @property
     def supported_features(self):

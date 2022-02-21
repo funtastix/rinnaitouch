@@ -12,6 +12,24 @@ from .util import *
 
 _LOGGER = logging.getLogger(__name__)
 
+class Event(object):
+
+    def __init__(self):
+        self.__eventhandlers = []
+
+    def __iadd__(self, handler):
+        self.__eventhandlers.append(handler)
+        return self
+
+    def __isub__(self, handler):
+        self.__eventhandlers.remove(handler)
+        return self
+
+    def __call__(self, *args, **keywargs):
+        for eventhandler in self.__eventhandlers:
+            if eventhandler is not None:
+                eventhandler(*args, **keywargs)
+
 class BrivisStatus():
     """Overall Class for describing status"""
     #modes
@@ -98,6 +116,7 @@ class RinnaiSystem:
         else:
             self._client = RinnaiSystem.clients[ip_address]
         RinnaiSystem.instances[ip_address] = self
+        self.OnUpdated = Event()
 
     @staticmethod
     def getInstance(ip_address):
@@ -105,6 +124,12 @@ class RinnaiSystem:
             return RinnaiSystem.instances[ip_address]
         else:
             return RinnaiSystem(ip_address)
+
+    def SubscribeUpdates(self,objMethod):
+        self.OnUpdated += objMethod
+
+    def UnsubscribeUpdates(self,objMethod):
+        self.OnUpdated -= objMethod
 
     async def ReceiveData(self, client, timeout=5):
         total_data = []
@@ -269,6 +294,7 @@ class RinnaiSystem:
         res = await self.HandleStatus(self._client, status)
         if res:
             self._status = status
+            self.OnUpdated()
 
         #self._client.shutdown(socket.SHUT_RDWR)
         #self._client.close()
@@ -521,6 +547,7 @@ class RinnaiSystem:
         res = await self.HandleStatus(self._client, status)
         if res:
             self._status = status
+            self.OnUpdated()
 
         # don't shut down unless last shutdown is 1 hour ago
         if self._lastclosed == 0:

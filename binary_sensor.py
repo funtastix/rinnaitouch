@@ -39,6 +39,10 @@ class RinnaiPrewetBinarySensorEntity(RinnaiBinarySensorEntity):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._system.SubscribeUpdates(self.system_updated)
+
+    def system_updated(self):
+        self.async_write_ha_state()
 
     @property
     def icon(self):
