@@ -547,6 +547,7 @@ class RinnaiSystem:
         res = await self.HandleStatus(self._client, status)
         if res:
             self._status = status
+            self.OnUpdated()
 
         # don't shut down unless last shutdown is 1 hour ago
         if self._lastclosed == 0:
