@@ -66,17 +66,41 @@ def HandleCoolingMode(client,j,brivisStatus):
         z = GetAttribute(j[1].get("CGOM"),"ZAO",None)
         if z:
             za = GetAttribute(z,"UE",None)
+            brivisStatus.coolingStatus.zoneAsetTemp = GetAttribute(z,"SP", 999)
         z = GetAttribute(j[1].get("CGOM"),"ZBO",None)
         if z:
             zb = GetAttribute(z,"UE",None)
+            brivisStatus.coolingStatus.zoneBsetTemp = GetAttribute(z,"SP", 999)
         z = GetAttribute(j[1].get("CGOM"),"ZCO",None)
         if z:
             zc = GetAttribute(z,"UE",None)
+            brivisStatus.coolingStatus.zoneCsetTemp = GetAttribute(z,"SP", 999)
         z = GetAttribute(j[1].get("CGOM"),"ZDO",None)
         if z:
             zd = GetAttribute(z,"UE",None)
+            brivisStatus.coolingStatus.zoneDsetTemp = GetAttribute(z,"SP", 999)
         brivisStatus.coolingStatus.SetZones(za,zb,zc,zd)
 
+        z = GetAttribute(j[1].get("CGOM"),"ZAS",None)
+        if z:
+            brivisStatus.coolingStatus.zoneAAuto = YNtoBool(GetAttribute(z,"AE",None))
+            brivisStatus.coolingStatus.zoneAtemp = GetAttribute(z,"MT", 999)
+        z = GetAttribute(j[1].get("CGOM"),"ZBS",None)
+        if z:
+            brivisStatus.coolingStatus.zoneBAuto = YNtoBool(GetAttribute(z,"AE",None))
+            brivisStatus.coolingStatus.zoneBtemp = GetAttribute(z,"MT", 999)
+        z = GetAttribute(j[1].get("CGOM"),"ZCS",None)
+        if z:
+            brivisStatus.coolingStatus.zoneCAuto = YNtoBool(GetAttribute(z,"AE",None))
+            brivisStatus.coolingStatus.zoneCtemp = GetAttribute(z,"MT", 999)
+        z = GetAttribute(j[1].get("CGOM"),"ZDS",None)
+        if z:
+            brivisStatus.coolingStatus.zoneDAuto = YNtoBool(GetAttribute(z,"AE",None))
+            brivisStatus.coolingStatus.zoneDtemp = GetAttribute(z,"MT", 999)
+        z = GetAttribute(j[1].get("CGOM"),"ZUS",None)
+        if z:
+            brivisStatus.coolingStatus.commonAuto = YNtoBool(GetAttribute(z,"AE",None))
+            brivisStatus.coolingStatus.temperature = GetAttribute(z,"MT", 999)
 
 class CoolingStatus():
     """Cooling function status"""
@@ -85,12 +109,27 @@ class CoolingStatus():
     manualMode = False
     autoMode = False
     setTemp = 0
-    zoneA = False
-    zoneB = False
-    zoneC = False
-    zoneD = False
+    commonAuto = False
+    temperature = 999
 
+    #zones
     zones = []
+    zoneA = False
+    zoneAAuto = False
+    zoneAtemp = 999
+    zoneAsetTemp = 999
+    zoneB = False
+    zoneBAuto = False
+    zoneBtemp = 999
+    zoneBsetTemp = 999
+    zoneC = False
+    zoneCAuto = False
+    zoneCtemp = 999
+    zoneCsetTemp = 999
+    zoneD = False
+    zoneDAuto = False
+    zoneDtemp = 999
+    zoneDsetTemp = 999
 
     def SetMode(self,mode):
         # A = Auto Mode and M = Manual Mode

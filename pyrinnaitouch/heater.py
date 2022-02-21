@@ -72,16 +72,41 @@ def HandleHeatingMode(client,j,brivisStatus):
         z = GetAttribute(j[1].get("HGOM"),"ZAO",None)
         if z:
             za = GetAttribute(z,"UE",None)
+            brivisStatus.heaterStatus.zoneAsetTemp = GetAttribute(z,"SP", 999)
         z = GetAttribute(j[1].get("HGOM"),"ZBO",None)
         if z:
             zb = GetAttribute(z,"UE",None)
+            brivisStatus.heaterStatus.zoneBsetTemp = GetAttribute(z,"SP", 999)
         z = GetAttribute(j[1].get("HGOM"),"ZCO",None)
         if z:
             zc = GetAttribute(z,"UE",None)
+            brivisStatus.heaterStatus.zoneCsetTemp = GetAttribute(z,"SP", 999)
         z = GetAttribute(j[1].get("HGOM"),"ZDO",None)
         if z:
             zd = GetAttribute(z,"UE",None)
+            brivisStatus.heaterStatus.zoneDsetTemp = GetAttribute(z,"SP", 999)
         brivisStatus.heaterStatus.SetZones(za,zb,zc,zd)
+
+        z = GetAttribute(j[1].get("HGOM"),"ZAS",None)
+        if z:
+            brivisStatus.heaterStatus.zoneAAuto = YNtoBool(GetAttribute(z,"AE",None))
+            brivisStatus.heaterStatus.zoneAtemp = GetAttribute(z,"MT", 999)
+        z = GetAttribute(j[1].get("HGOM"),"ZBS",None)
+        if z:
+            brivisStatus.heaterStatus.zoneBAuto = YNtoBool(GetAttribute(z,"AE",None))
+            brivisStatus.heaterStatus.zoneBtemp = GetAttribute(z,"MT", 999)
+        z = GetAttribute(j[1].get("HGOM"),"ZCS",None)
+        if z:
+            brivisStatus.heaterStatus.zoneCAuto = YNtoBool(GetAttribute(z,"AE",None))
+            brivisStatus.heaterStatus.zoneCtemp = GetAttribute(z,"MT", 999)
+        z = GetAttribute(j[1].get("HGOM"),"ZDS",None)
+        if z:
+            brivisStatus.heaterStatus.zoneDAuto = YNtoBool(GetAttribute(z,"AE",None))
+            brivisStatus.heaterStatus.zoneDtemp = GetAttribute(z,"MT", 999)
+        z = GetAttribute(j[1].get("HGOM"),"ZUS",None)
+        if z:
+            brivisStatus.heaterStatus.commonAuto = YNtoBool(GetAttribute(z,"AE",None))
+            brivisStatus.heaterStatus.temperature = GetAttribute(z,"MT", 999)
 
 class HeaterStatus():
     """Heater function status"""
@@ -91,11 +116,27 @@ class HeaterStatus():
     manualMode = False
     autoMode = False
     setTemp = 0
+    commonAuto = False
+    temperature = 999
+
+    #zones
     zones = []
     zoneA = False
+    zoneAAuto = False
+    zoneAtemp = 999
+    zoneAsetTemp = 999
     zoneB = False
+    zoneBAuto = False
+    zoneBtemp = 999
+    zoneBsetTemp = 999
     zoneC = False
+    zoneCAuto = False
+    zoneCtemp = 999
+    zoneCsetTemp = 999
     zoneD = False
+    zoneDAuto = False
+    zoneDtemp = 999
+    zoneDsetTemp = 999
 
     def SetMode(self,mode):
         # A = Auto Mode and M = Manual Mode

@@ -12,8 +12,27 @@ from .util import *
 
 _LOGGER = logging.getLogger(__name__)
 
+class Event(object):
+
+    def __init__(self):
+        self.__eventhandlers = []
+
+    def __iadd__(self, handler):
+        self.__eventhandlers.append(handler)
+        return self
+
+    def __isub__(self, handler):
+        self.__eventhandlers.remove(handler)
+        return self
+
+    def __call__(self, *args, **keywargs):
+        for eventhandler in self.__eventhandlers:
+            if eventhandler is not None:
+                eventhandler(*args, **keywargs)
+
 class BrivisStatus():
     """Overall Class for describing status"""
+    #modes
     evapMode = False
     coolingMode = False
     heaterMode = False
@@ -22,6 +41,21 @@ class BrivisStatus():
     hasHeater = True
     hasCooling = True
     hasEvap = True
+
+    #system info
+    firmwareVersion = None
+    wifiModuleVersion = None
+
+    #zones
+    zoneAdesc = None
+    zoneBdesc = None
+    zoneCdesc = None
+    zoneDdesc = None
+    isMultiSetPoint = False
+
+    #faults
+    hasFault = False
+
     heaterStatus = HeaterStatus()
     coolingStatus = CoolingStatus()
     evapStatus = EvapStatus()
@@ -82,6 +116,7 @@ class RinnaiSystem:
         else:
             self._client = RinnaiSystem.clients[ip_address]
         RinnaiSystem.instances[ip_address] = self
+        self.OnUpdated = Event()
 
     @staticmethod
     def getInstance(ip_address):
@@ -89,6 +124,12 @@ class RinnaiSystem:
             return RinnaiSystem.instances[ip_address]
         else:
             return RinnaiSystem(ip_address)
+
+    def SubscribeUpdates(self,objMethod):
+        self.OnUpdated += objMethod
+
+    def UnsubscribeUpdates(self,objMethod):
+        self.OnUpdated -= objMethod
 
     async def ReceiveData(self, client, timeout=5):
         total_data = []
@@ -144,17 +185,25 @@ class RinnaiSystem:
                 else:
                     brivisStatus.tempUnit = RinnaiSystem.TEMP_CELSIUS
 
+                brivisStatus.isMultiSetPoint = YNtoBool(GetAttribute(cfg, "MTSP", None))
+                brivisStatus.zoneAdesc = GetAttribute(cfg, "ZA", None).strip()
+                brivisStatus.zoneBdesc = GetAttribute(cfg, "ZB", None).strip()
+                brivisStatus.zoneCdesc = GetAttribute(cfg, "ZC", None).strip()
+                brivisStatus.zoneDdesc = GetAttribute(cfg, "ZD", None).strip()
+                brivisStatus.firmwareVersion = GetAttribute(cfg, "ZD", None).strip()
+                brivisStatus.wifiModuleVersion = GetAttribute(cfg, "ZD", None).strip()
+
             avm = GetAttribute(j[0].get("SYST"),"AVM",None)
             if not avm:
                 # Probably an error
                 _LOGGER.error("No AVM - Not happy, Jan")
 
             else:
-                if GetAttribute(avm, "HG", None) == "Y" or GetAttribute(avm, "RA", None) == "Y" or GetAttribute(avm, "RH", None) == "Y":
+                if GetAttribute(avm, "HG", None) == "Y": # or GetAttribute(avm, "RA", None) == "Y" or GetAttribute(avm, "RH", None) == "Y":
                     brivisStatus.hasHeater = True
                 else:
                     brivisStatus.hasHeater = False
-                if GetAttribute(avm, "CG", None) == "Y" or GetAttribute(avm, "RA", None) == "Y" or GetAttribute(avm, "RC", None) == "Y":
+                if GetAttribute(avm, "CG", None) == "Y": # or GetAttribute(avm, "RA", None) == "Y" or GetAttribute(avm, "RC", None) == "Y":
                     brivisStatus.hasCooling = True
                 else:
                     brivisStatus.hasCooling = False
@@ -162,6 +211,14 @@ class RinnaiSystem:
                     brivisStatus.hasEvap = True
                 else:
                     brivisStatus.hasEvap = False
+
+            flt = GetAttribute(j[0].get("SYST"), "FLT", None)
+            if not avm:
+                # Probably an error
+                _LOGGER.error("No FLT - Not happy, Jan")
+
+            else:
+                brivisStatus.isMultiSetPoint = YNtoBool(GetAttribute(flt, "AV", None))
 
             if 'HGOM' in j[1]:
                 HandleHeatingMode(client,j,brivisStatus)
@@ -224,7 +281,6 @@ class RinnaiSystem:
             self._client = await self.ConnectToTouch(self._touchIP,self._touchPort)
             RinnaiSystem.clients[self._touchIP] = self._client
 
-
     async def sendCmd(self, cmd):
         await self.renewConnection()
 
@@ -238,6 +294,7 @@ class RinnaiSystem:
         res = await self.HandleStatus(self._client, status)
         if res:
             self._status = status
+            self.OnUpdated()
 
         #self._client.shutdown(socket.SHUT_RDWR)
         #self._client.close()
@@ -282,10 +339,12 @@ class RinnaiSystem:
     async def set_heater_manual(self):
         return await self.validate_and_send(heatSetManual)
 
+    async def heater_advance(self):
+        return await self.validate_and_send(heatAdvance)
+
     async def turn_heater_zone_on(self, zone):
         cmd=heatZoneOn
         if self.validateCmd(cmd):
-            seq = str(self._sendSequence).zfill(6)
             await self.sendCmd(cmd.format(zone=zone))
             return True
         else:
@@ -294,7 +353,38 @@ class RinnaiSystem:
     async def turn_heater_zone_off(self, zone):
         cmd=heatZoneOff
         if self.validateCmd(cmd):
-            seq = str(self._sendSequence).zfill(6)
+            await self.sendCmd(cmd.format(zone=zone))
+            return True
+        else:
+            return False
+
+    async def set_heater_zone_temp(self, zone, temp):
+        cmd=heatZoneSetTemp
+        if self.validateCmd(cmd):
+            await self.sendCmd(cmd.format(zone=zone, temp=temp))
+            return True
+        else:
+            return False
+
+    async def set_heater_zone_auto(self, zone):
+        cmd=heatZoneSetAuto
+        if self.validateCmd(cmd):
+            await self.sendCmd(cmd.format(zone=zone))
+            return True
+        else:
+            return False
+
+    async def set_heater_zone_manual(self, zone):
+        cmd=heatZoneSetManual
+        if self.validateCmd(cmd):
+            await self.sendCmd(cmd.format(zone=zone))
+            return True
+        else:
+            return False
+
+    async def set_heater_zone_advance(self, zone):
+        cmd=heatZoneAdvance
+        if self.validateCmd(cmd):
             await self.sendCmd(cmd.format(zone=zone))
             return True
         else:
@@ -312,7 +402,6 @@ class RinnaiSystem:
     async def set_cooling_temp(self, temp):
         cmd=coolSetTemp
         if self.validateCmd(cmd):
-            seq = str(self._sendSequence).zfill(6)
             await self.sendCmd(cmd.format(temp=temp))
             return True
         else:
@@ -324,10 +413,12 @@ class RinnaiSystem:
     async def set_cooling_manual(self):
         return await self.validate_and_send(coolSetManual)
 
+    async def cooling_advance(self):
+        return await self.validate_and_send(coolAdvance)
+
     async def turn_cooling_zone_on(self, zone):
         cmd=coolZoneOn
         if self.validateCmd(cmd):
-            seq = str(self._sendSequence).zfill(6)
             await self.sendCmd(cmd.format(zone=zone))
             return True
         else:
@@ -336,7 +427,38 @@ class RinnaiSystem:
     async def turn_cooling_zone_off(self, zone):
         cmd=coolZoneOff
         if self.validateCmd(cmd):
-            seq = str(self._sendSequence).zfill(6)
+            await self.sendCmd(cmd.format(zone=zone))
+            return True
+        else:
+            return False
+
+    async def set_cooling_zone_temp(self, zone, temp):
+        cmd=coolZoneSetTemp
+        if self.validateCmd(cmd):
+            await self.sendCmd(cmd.format(zone=zone, temp=temp))
+            return True
+        else:
+            return False
+
+    async def set_cooling_zone_auto(self, zone):
+        cmd=coolZoneSetAuto
+        if self.validateCmd(cmd):
+            await self.sendCmd(cmd.format(zone=zone))
+            return True
+        else:
+            return False
+
+    async def set_cooling_zone_manual(self, zone):
+        cmd=coolZoneSetManual
+        if self.validateCmd(cmd):
+            await self.sendCmd(cmd.format(zone=zone))
+            return True
+        else:
+            return False
+
+    async def set_cooling_zone_advance(self, zone):
+        cmd=coolZoneAdvance
+        if self.validateCmd(cmd):
             await self.sendCmd(cmd.format(zone=zone))
             return True
         else:
@@ -369,7 +491,6 @@ class RinnaiSystem:
     async def set_evap_fanspeed(self, speed):
         cmd=evapFanSpeed
         if self.validateCmd(cmd):
-            seq = str(self._sendSequence).zfill(6)
             await self.sendCmd(cmd.format(speed=speed))
             return True
         else:
@@ -378,8 +499,39 @@ class RinnaiSystem:
     async def set_evap_comfort(self, comfort):
         cmd=evapSetComfort
         if self.validateCmd(cmd):
-            seq = str(self._sendSequence).zfill(6)
             await self.sendCmd(cmd.format(comfort=comfort))
+            return True
+        else:
+            return False
+
+    async def turn_evap_zone_on(self, zone):
+        cmd=evapZoneOn
+        if self.validateCmd(cmd):
+            await self.sendCmd(cmd.format(zone=zone))
+            return True
+        else:
+            return False
+
+    async def turn_evap_zone_off(self, zone):
+        cmd=evapZoneOff
+        if self.validateCmd(cmd):
+            await self.sendCmd(cmd.format(zone=zone))
+            return True
+        else:
+            return False
+
+    async def set_evap_zone_auto(self, zone):
+        cmd=evapZoneSetAuto
+        if self.validateCmd(cmd):
+            await self.sendCmd(cmd.format(zone=zone))
+            return True
+        else:
+            return False
+
+    async def set_evap_zone_manual(self, zone):
+        cmd=evapZoneSetManual
+        if self.validateCmd(cmd):
+            await self.sendCmd(cmd.format(zone=zone))
             return True
         else:
             return False
@@ -395,6 +547,7 @@ class RinnaiSystem:
         res = await self.HandleStatus(self._client, status)
         if res:
             self._status = status
+            self.OnUpdated()
 
         # don't shut down unless last shutdown is 1 hour ago
         if self._lastclosed == 0:
