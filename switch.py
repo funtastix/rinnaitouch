@@ -39,6 +39,10 @@ class RinnaiExtraEntity(Entity):
 
         self._attr_unique_id = device_id
         self._attr_name = name
+        self._system.SubscribeUpdates(self.system_updated)
+
+    def system_updated(self):
+        self.async_write_ha_state()
 
     @property
     def name(self):
