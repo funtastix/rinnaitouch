@@ -45,10 +45,11 @@ I have not tested the Cooling mode, as I do not have cooling
 
 1. <del>Work on stability. Sending commands is not fully reliable. The above documentation, page 16 indicates how to properly deal with that.</del>
 2. <del>Filter HVAC modes by system ability</del>
-3. Implement reading NC-7 temperature for when no external sensor is set up
-4. Implement zone switches (I do not think I will go to the extend of implementing other settings per zone)
-5. Break out the library `pyrinnaitouch` and upload to PyPi
-6. Make component HACS compatible
+3. <del>Implement reading NC-7 temperature for when no external sensor is set up</del>
+4. <del>Implement zone switches</del>
+5. All items in the [project list](https://github.com/funtastix/rinnaitouch/projects/1)
+6. Break out the library `pyrinnaitouch` and upload to PyPi
+7. Make component HACS compatible
 
 ## Installation
 
