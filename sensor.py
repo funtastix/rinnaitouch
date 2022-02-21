@@ -78,17 +78,20 @@ class RinnaiMainTemperatureSensor(RinnaiTemperatureSensor):
         device_id = str.lower(self.__class__.__name__) + "_" + temp_attr + "_" + str.replace(ip_address, ".", "_")
 
         self._attr_unique_id = device_id
+        self.multiplier = 10
+        if self._temp_attr == "setTemp":
+            self.multiplier = 1
 
     def update(self) -> None:
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
         if self._system._status.coolingMode:
-            self._attr_native_value = int(round(float(getattr(self._system._status.coolingStatus,self._temp_attr))/10))
+            self._attr_native_value = int(round(float(getattr(self._system._status.coolingStatus,self._temp_attr))/self.multiplier))
         elif self._system._status.heaterMode:
-            self._attr_native_value = int(round(float(getattr(self._system._status.heaterStatus,self._temp_attr))/10))
+            self._attr_native_value = int(round(float(getattr(self._system._status.heaterStatus,self._temp_attr))/self.multiplier))
         elif self._system._status.evapMode and self._temp_attr == "temperature":
-            self._attr_native_value = int(round(float(getattr(self._system._status.evapStatus,self._temp_attr))/10))
+            self._attr_native_value = int(round(float(getattr(self._system._status.evapStatus,self._temp_attr))/self.multiplier))
         else:
             self._attr_native_value = 0
 
@@ -111,17 +114,20 @@ class RinnaiZoneTemperatureSensor(RinnaiTemperatureSensor):
         device_id = str.lower(self.__class__.__name__) + "_" + temp_attr + "_" + zone + str.replace(ip_address, ".", "_")
 
         self._attr_unique_id = device_id
+        self.multiplier = 10
+        if self._temp_attr == "setTemp":
+            self.multiplier = 1
 
     def update(self) -> None:
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
         if self._system._status.coolingMode and self._attr_zone in self._system._status.coolingStatus.zones:
-            self._attr_native_value = int(round(float(getattr(self._system._status.coolingStatus,"zone" + self._attr_zone + self._temp_attr))/10))
+            self._attr_native_value = int(round(float(getattr(self._system._status.coolingStatus,"zone" + self._attr_zone + self._temp_attr))/self.multiplier))
         elif self._system._status.heaterMode and self._attr_zone in self._system._status.heaterStatus.zones:
-            self._attr_native_value = int(round(float(getattr(self._system._status.heaterStatus,"zone" + self._attr_zone + self._temp_attr))/10))
+            self._attr_native_value = int(round(float(getattr(self._system._status.heaterStatus,"zone" + self._attr_zone + self._temp_attr))/self.multiplier))
         elif self._system._status.evapMode and self._attr_zone in self._system._status.evapStatus.zones and self._temp_attr == "temp":
-            self._attr_native_value = int(round(float(getattr(self._system._status.evapStatus,"zone" + self._attr_zone + self._temp_attr))/10))
+            self._attr_native_value = int(round(float(getattr(self._system._status.evapStatus,"zone" + self._attr_zone + self._temp_attr))/self.multiplier))
         else:
             self._attr_native_value = 0
 
