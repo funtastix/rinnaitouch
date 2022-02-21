@@ -294,6 +294,7 @@ class RinnaiTouch(ClimateEntity):
             temp = self._system._status.coolingStatus.temperature
         elif self._system._status.heaterMode:
             temp = self._system._status.heaterStatus.temperature
+            _LOGGER.debug("Internal temperature sensor reports: %s", temp)
         elif self._system._status.evapMode:
             temp = self._system._status.evapStatus.temperature
 
