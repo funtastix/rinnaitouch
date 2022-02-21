@@ -299,8 +299,8 @@ class RinnaiTouch(ClimateEntity):
             temp = self._system._status.evapStatus.temperature
             _LOGGER.debug("Internal temperature sensor reports: %s", temp)
 
-        if temp < 999:
-            _LOGGER.debug("Internal temperature sensor should be reported: %s", temp < 999)
+        if temp < int(999):
+            _LOGGER.debug("Internal temperature sensor should be reported: %s", temp < int(999))
             return int(round(float(temp)/10))
         return self._sensor_temperature
 
