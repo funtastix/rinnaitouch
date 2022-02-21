@@ -99,7 +99,7 @@ class RinnaiMainTemperatureSensor(RinnaiTemperatureSensor):
 
 class RinnaiZoneTemperatureSensor(RinnaiTemperatureSensor):
 
-    def __init__(self, ip_address, zone, name, temp_attr = "temparature"):
+    def __init__(self, ip_address, zone, name, temp_attr = "temp"):
         super().__init__(ip_address, name)
         self._attr_zone = zone
         self._temp_attr = temp_attr
