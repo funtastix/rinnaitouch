@@ -237,17 +237,17 @@ class RinnaiTouch(ClimateEntity):
     async def async_set_fan_mode(self, fan_mode):
         """Set new target fan mode."""
         if not fan_mode == self.fan_mode:
-            if preset_mode == PRESET_COOL:
+            if self.preset_mode == PRESET_COOL:
                 if fan_mode == FAN_OFF:
                     await self._system.turn_cooling_off()
                 if fan_mode == FAN_ON:
                     await self._system.turn_cooling_fan_only()
-            if preset_mode == PRESET_HEAT:
+            if self.preset_mode == PRESET_HEAT:
                 if fan_mode == FAN_OFF:
                     await self._system.turn_heater_off()
                 if fan_mode == FAN_ON:
                     await self._system.turn_heater_fan_only()
-            if preset_mode == PRESET_EVAP:
+            if self.preset_mode == PRESET_EVAP:
                 if fan_mode == FAN_OFF:
                     await self._system.turn_evap_fan_off()
                     await self._system.turn_evap_pump_on()
