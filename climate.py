@@ -71,6 +71,7 @@ class RinnaiTouch(ClimateEntity):
         self._host = ip_address
         _LOGGER.info("Set up RinnaiTouch entity %s", ip_address)
         self._system = RinnaiSystem.getInstance(ip_address)
+        self._system.SubscribeUpdates(self.system_updated)
         device_id = "rinnaitouch_" + str.replace(ip_address, ".", "_")
 
         self._attr_unique_id = device_id
@@ -184,6 +185,9 @@ class RinnaiTouch(ClimateEntity):
             return self._COMFORT_LIMITS["max"]
         else:
             return self._FAN_LIMITS["max"]
+
+    def system_updated(self):
+        self.async_write_ha_state()
 
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
