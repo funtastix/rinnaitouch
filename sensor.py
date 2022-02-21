@@ -72,7 +72,7 @@ class RinnaiTemperatureSensor(SensorEntity):
 
 class RinnaiMainTemperatureSensor(RinnaiTemperatureSensor):
 
-    def __init__(self, ip_address, name, temp_attr = "temparature"):
+    def __init__(self, ip_address, name, temp_attr):
         super().__init__(ip_address, name)
         self._temp_attr = temp_attr
         device_id = str.lower(self.__class__.__name__) + "_" + temp_attr + "_" + str.replace(ip_address, ".", "_")
@@ -89,7 +89,8 @@ class RinnaiMainTemperatureSensor(RinnaiTemperatureSensor):
             self._attr_native_value = int(round(float(getattr(self._system._status.heaterStatus,self._temp_attr))/10))
         elif self._system._status.evapMode and self._temp_attr == "temperature":
             self._attr_native_value = int(round(float(getattr(self._system._status.evapStatus,self._temp_attr))/10))
-        self._attr_native_value = 0
+        else:
+            self._attr_native_value = 0
 
     @property
     def available(self):
@@ -121,7 +122,8 @@ class RinnaiZoneTemperatureSensor(RinnaiTemperatureSensor):
             self._attr_native_value = int(round(float(getattr(self._system._status.heaterStatus,"zone" + self._attr_zone + self._temp_attr))/10))
         elif self._system._status.evapMode and self._attr_zone in self._system._status.evapStatus.zones and self._temp_attr == "temp":
             self._attr_native_value = int(round(float(getattr(self._system._status.evapStatus,"zone" + self._attr_zone + self._temp_attr))/10))
-        self._attr_native_value = 0
+        else:
+            self._attr_native_value = 0
 
     @property
     def available(self):
