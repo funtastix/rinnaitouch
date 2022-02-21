@@ -39,6 +39,7 @@ class RinnaiPrewetBinarySensorEntity(RinnaiBinarySensorEntity):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._system.SubscribeUpdates(self.system_updated)
 
     @property
     def icon(self):
@@ -52,3 +53,6 @@ class RinnaiPrewetBinarySensorEntity(RinnaiBinarySensorEntity):
             return self._system._status.evapStatus.prewetting
         else:
             return False
+
+    def system_updated(self):
+        self.async_write_ha_state()
