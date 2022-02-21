@@ -49,6 +49,10 @@ class RinnaiTemperatureSensor(SensorEntity):
         self._attr_native_unit_of_measurement = TEMP_CELSIUS
         self._attr_device_class = SensorDeviceClass.TEMPERATURE
         self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._system.SubscribeUpdates(self.system_updated)
+
+    def system_updated(self):
+        self.async_write_ha_state()
 
     @property
     def name(self):
