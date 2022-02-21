@@ -298,18 +298,18 @@ class RinnaiAutoSwitch(RinnaiExtraEntity, SwitchEntity):
             if self._system._status.coolingMode:
                 await self._system.set_cooling_auto()
             if self._system._status.heaterMode:
-                await self._system.set_cooling_auto()
+                await self._system.set_heater_auto()
             if self._system._status.evapMode:
-                await self._system.set_cooling_auto()
+                await self._system.set_evap_auto()
 
     async def async_turn_off(self, **kwargs):
         if self.available:
             if self._system._status.coolingMode:
                 await self._system.set_cooling_manual()
             if self._system._status.heaterMode:
-                await self._system.set_cooling_manual()
+                await self._system.set_heater_manual()
             if self._system._status.evapMode:
-                await self._system.set_cooling_manual()
+                await self._system.set_evap_manual()
 
 class RinnaiZoneAutoSwitch(RinnaiExtraEntity, SwitchEntity):
 
