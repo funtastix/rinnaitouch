@@ -285,30 +285,30 @@ class RinnaiAutoSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def is_on(self):
         if self.available:
-            if self.preset_mode == PRESET_COOL:
+            if self._system._status.coolingMode:
                 return self._system._status.coolingStatus.autoMode
-            if self.preset_mode == PRESET_HEAT:
+            if self._system._status.heaterMode:
                 return self._system._status.heaterStatus.autoMode
-            if self.preset_mode == PRESET_EVAP:
+            if self._system._status.evapMode:
                 return self._system._status.evapStatus.autoMode
         return False
 
     async def async_turn_on(self, **kwargs):
         if self.available:
-            if self.preset_mode == PRESET_COOL:
+            if self._system._status.coolingMode:
                 await self._system.set_cooling_auto()
-            if self.preset_mode == PRESET_HEAT:
+            if self._system._status.heaterMode:
                 await self._system.set_cooling_auto()
-            if self.preset_mode == PRESET_EVAP:
+            if self._system._status.evapMode:
                 await self._system.set_cooling_auto()
 
     async def async_turn_off(self, **kwargs):
         if self.available:
-            if self.preset_mode == PRESET_COOL:
+            if self._system._status.coolingMode:
                 await self._system.set_cooling_manual()
-            if self.preset_mode == PRESET_HEAT:
+            if self._system._status.heaterMode:
                 await self._system.set_cooling_manual()
-            if self.preset_mode == PRESET_EVAP:
+            if self._system._status.evapMode:
                 await self._system.set_cooling_manual()
 
 class RinnaiZoneAutoSwitch(RinnaiExtraEntity, SwitchEntity):
@@ -332,11 +332,11 @@ class RinnaiZoneAutoSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def available(self):
         if self._system._status.systemOn:
-            if self.preset_mode == PRESET_COOL:
+            if self._system._status.coolingMode:
                 return self._system._status.coolingStatus.autoMode
-            if self.preset_mode == PRESET_HEAT:
+            if self._system._status.heaterMode:
                 return self._system._status.heaterStatus.autoMode
-            if self.preset_mode == PRESET_EVAP:
+            if self._system._status.evapMode:
                 return self._system._status.evapStatus.autoMode
             return True
         else:
