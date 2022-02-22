@@ -548,7 +548,7 @@ class RinnaiSystem:
         #if res:
         #    self._status = status
         #    self.OnUpdated()
-        self.sendCmd("")
+        await self.sendCmd("")
 
         # don't shut down unless last shutdown is 1 hour ago
         if self._lastclosed == 0:
