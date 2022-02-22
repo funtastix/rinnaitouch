@@ -561,7 +561,7 @@ class RinnaiSystem:
 
         self._lastupdated = time.time()
 
-        return status
+        return self._status
 
     async def async_will_remove_from_hass():
         try:
