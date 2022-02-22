@@ -62,6 +62,12 @@ def HandleHeatingMode(client,j,brivisStatus):
                 _LOGGER.debug("Heat set temp is: {}".format(setTemp))
                 brivisStatus.heaterStatus.setTemp = int(setTemp)
 
+                gss = GetAttribute(j[1].get("HGOM"),"GSS",None)
+                if not gss:
+                    _LOGGER.error("No GSS here")
+                else:
+                    brivisStatus.heaterStatus.preheating = YNtoBool(GetAttribute(gss,"PH",False))
+
         elif switch == "F":
             # Heater is off
             _LOGGER.debug("Heater is OFF")
@@ -118,6 +124,7 @@ class HeaterStatus():
     setTemp = 0
     commonAuto = False
     temperature = 999
+    preheating = False
 
     #zones
     zones = []

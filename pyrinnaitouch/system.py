@@ -253,60 +253,6 @@ class RinnaiSystem:
             self._lastclosed = time.time()
             return False
 
-    def GetOfflineStatus(self):
-        return self._status
-
-    def validateCmd(self, cmd):
-        if cmd in MODE_COMMANDS:
-            return True
-        if cmd in HEAT_COMMANDS and self._status.heaterMode:
-            return True
-        if cmd in COOL_COMMANDS and self._status.coolingMode:
-            return True
-        if cmd in EVAP_COMMANDS and self._status.evapMode:
-            return True
-        return False
-
-    async def renewConnection(self):
-        connection_error = False
-        try:
-            if self._client is not None:
-                if self._client.getpeername and self._client.getpeername() is not None:
-                    pass
-        except (OSError, ConnectionError):
-            connection_error = True
-            pass
-        # TODO: need to also check for remote address in case the server has shut the connection down
-        if self._client is None or self._client._closed or connection_error:
-            self._client = await self.ConnectToTouch(self._touchIP,self._touchPort)
-            RinnaiSystem.clients[self._touchIP] = self._client
-
-    async def sendCmd(self, cmd):
-        await self.renewConnection()
-
-        _LOGGER.debug("Client Variable: %s / %s", self._client, self._client._closed)
-
-        seq = str(self._sendSequence).zfill(6)
-        #self._sendSequence = self._sendSequence + 1
-        _LOGGER.debug("Sending command: %s", "N" + seq + cmd)
-        await self.SendToTouch(self._client, "N" + seq + cmd)
-        status = BrivisStatus()
-        res = await self.HandleStatus(self._client, status)
-        if res:
-            self._status = status
-            self.OnUpdated()
-
-        #self._client.shutdown(socket.SHUT_RDWR)
-        #self._client.close()
-
-    async def validate_and_send(self, cmd):
-        if self.validateCmd(cmd):
-            await self.sendCmd(cmd)
-            return True
-        else:
-            _LOGGER.error("Validation of command failed. Not sending")
-            return False
-
     async def set_cooling_mode(self):
         return await self.validate_and_send(modeCoolCmd)
 
@@ -536,18 +482,73 @@ class RinnaiSystem:
         else:
             return False
 
-    async def GetStatus(self):
-        #update only every 1.5 seconds max
-        #if self._lastupdated + 1.5 > time.time() :
-        #    return self.GetOfflineStatus()
+    def GetOfflineStatus(self):
+        return self._status
+
+    def validateCmd(self, cmd):
+        if cmd in MODE_COMMANDS:
+            return True
+        if cmd in HEAT_COMMANDS and self._status.heaterMode:
+            return True
+        if cmd in COOL_COMMANDS and self._status.coolingMode:
+            return True
+        if cmd in EVAP_COMMANDS and self._status.evapMode:
+            return True
+        return False
+
+    async def renewConnection(self):
+        connection_error = False
+        try:
+            if self._client is not None:
+                if self._client.getpeername and self._client.getpeername() is not None:
+                    pass
+        except (OSError, ConnectionError):
+            connection_error = True
+            pass
+        # TODO: need to also check for remote address in case the server has shut the connection down
+        if self._client is None or self._client._closed or connection_error:
+            self._client = await self.ConnectToTouch(self._touchIP,self._touchPort)
+            RinnaiSystem.clients[self._touchIP] = self._client
+
+    async def sendCmd(self, cmd):
         await self.renewConnection()
 
-        status = BrivisStatus()
         _LOGGER.debug("Client Variable: %s / %s", self._client, self._client._closed)
+
+        seq = str(self._sendSequence).zfill(6)
+        #self._sendSequence = self._sendSequence + 1
+        _LOGGER.debug("Sending command: %s", "N" + seq + cmd)
+        await self.SendToTouch(self._client, "N" + seq + cmd)
+        status = BrivisStatus()
         res = await self.HandleStatus(self._client, status)
         if res:
             self._status = status
             self.OnUpdated()
+
+        #self._client.shutdown(socket.SHUT_RDWR)
+        #self._client.close()
+
+    async def validate_and_send(self, cmd):
+        if self.validateCmd(cmd):
+            await self.sendCmd(cmd)
+            return True
+        else:
+            _LOGGER.error("Validation of command failed. Not sending")
+            return False
+
+    async def GetStatus(self):
+        #update only every 1.5 seconds max
+        #if self._lastupdated + 1.5 > time.time() :
+        #    return self.GetOfflineStatus()
+        #await self.renewConnection()
+
+        #status = BrivisStatus()
+        #_LOGGER.debug("Client Variable: %s / %s", self._client, self._client._closed)
+        #res = await self.HandleStatus(self._client, status)
+        #if res:
+        #    self._status = status
+        #    self.OnUpdated()
+        await self.sendCmd("")
 
         # don't shut down unless last shutdown is 1 hour ago
         if self._lastclosed == 0:
@@ -560,7 +561,7 @@ class RinnaiSystem:
 
         self._lastupdated = time.time()
 
-        return status
+        return self._status
 
     async def async_will_remove_from_hass():
         try:

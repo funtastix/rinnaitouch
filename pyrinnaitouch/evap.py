@@ -80,6 +80,7 @@ def HandleEvapMode(client,j,brivisStatus):
                 brivisStatus.evapStatus.zoneDAuto = YNtoBool(GetAttribute(gss,"ZDAE",False))
                 
                 brivisStatus.evapStatus.prewetting = YNtoBool(GetAttribute(gss,"PW",False))
+                brivisStatus.evapStatus.coolerBusy = YNtoBool(GetAttribute(gss,"BY",False))
 
 
         elif switch == "F":
@@ -111,6 +112,7 @@ class EvapStatus():
     commonAuto = False
     temperature = 999
     prewetting = False
+    coolerBusy = False
 
     #zones
     zones = []

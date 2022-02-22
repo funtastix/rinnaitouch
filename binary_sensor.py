@@ -12,7 +12,8 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, entry, async_add_entities):
     ip_address = entry.data.get(CONF_HOST)
     async_add_entities([
-        RinnaiPrewetBinarySensorEntity(ip_address, "Rinnai Touch Evap Prewetting Sensor")
+        RinnaiPrewetBinarySensorEntity(ip_address, "Rinnai Touch Evap Prewetting Sensor"),
+        RinnaiPreheatBinarySensorEntity(ip_address, "Rinnai Touch Evap Preheating Sensor")
     ])
     return True
 
@@ -53,6 +54,37 @@ class RinnaiPrewetBinarySensorEntity(RinnaiBinarySensorEntity):
     def is_on(self):
         """If the switch is currently on or off."""
         if self._system._status.evapMode:
-            return self._system._status.evapStatus.prewetting
+            return self._system._status.evapStatus.prewetting or self._system._status.evapStatus.coolerBusy
         else:
             return False
+
+    @property
+    def available(self):
+        return self._system._status.evapMode
+
+class RinnaiPreheatBinarySensorEntity(RinnaiBinarySensorEntity):
+
+    def __init__(self, ip_address, name):
+        super().__init__(ip_address, name)
+        self._system.SubscribeUpdates(self.system_updated)
+
+    def system_updated(self):
+        self.async_write_ha_state()
+
+    @property
+    def icon(self):
+        """Return the icon to use in the frontend for this device."""
+        return "mdi:fire-alert"
+
+    @property
+    def is_on(self):
+        """If the switch is currently on or off."""
+        if self._system._status.heaterMode:
+            return self._system._status.heaterStatus.preheating
+        else:
+            return False
+
+    @property
+    def available(self):
+        return self._system._status.heaterMode
+
