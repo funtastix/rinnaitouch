@@ -58,6 +58,10 @@ class RinnaiPrewetBinarySensorEntity(RinnaiBinarySensorEntity):
         else:
             return False
 
+    @property
+    def available(self):
+        return self._system._status.evapMode
+
 class RinnaiPreheatBinarySensorEntity(RinnaiBinarySensorEntity):
 
     def __init__(self, ip_address, name):
@@ -79,3 +83,8 @@ class RinnaiPreheatBinarySensorEntity(RinnaiBinarySensorEntity):
             return self._system._status.heaterStatus.preheating
         else:
             return False
+
+    @property
+    def available(self):
+        return self._system._status.heaterMode
+
