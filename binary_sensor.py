@@ -70,7 +70,7 @@ class RinnaiPreheatBinarySensorEntity(RinnaiBinarySensorEntity):
     @property
     def icon(self):
         """Return the icon to use in the frontend for this device."""
-        return "mdi:snowflake-melt"
+        return "mdi:fire-alert"
 
     @property
     def is_on(self):
