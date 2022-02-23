@@ -540,15 +540,15 @@ class RinnaiSystem:
         #update only every 1.5 seconds max
         #if self._lastupdated + 1.5 > time.time() :
         #    return self.GetOfflineStatus()
-        #await self.renewConnection()
+        await self.renewConnection()
 
-        #status = BrivisStatus()
-        #_LOGGER.debug("Client Variable: %s / %s", self._client, self._client._closed)
-        #res = await self.HandleStatus(self._client, status)
-        #if res:
-        #    self._status = status
-        #    self.OnUpdated()
-        await self.sendCmd("")
+        status = BrivisStatus()
+        _LOGGER.debug("Client Variable: %s / %s", self._client, self._client._closed)
+        res = await self.HandleStatus(self._client, status)
+        if res:
+            self._status = status
+            self.OnUpdated()
+        #await self.sendCmd("")
 
         # don't shut down unless last shutdown is 1 hour ago
         if self._lastclosed == 0:
