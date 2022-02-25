@@ -156,10 +156,10 @@ class RinnaiSystem:
         # Make sure enough time passed to get a status message
         await asyncio.sleep(1.5)
         #status = client.recv(4096)
-        status = await self.ReceiveData(client, 2)
         #_LOGGER.debug(status)
 
         try:
+            status = await self.ReceiveData(client, 2)
             #jStr = status[14:]
             exp = re.search('^.*([0-9]{6}).*(\[[^\[]*\])[^]]*$', str(status))
             seq = int(exp.group(1))
@@ -239,18 +239,18 @@ class RinnaiSystem:
                 _LOGGER.debug("Unknown mode")
             return True
         except ConnectionError as conerr:
-            _LOGGER.error("Couldn't decode JSON, skipping (%s)", repr(connerr))
+            _LOGGER.error("Couldn't decode JSON (connection), skipping (%s)", repr(connerr))
             _LOGGER.debug("Client shutting down")
             self._client.shutdown(socket.SHUT_RDWR)
             self._client.close()
             self._lastclosed = time.time()
             return False
         except Exception as err:
-            _LOGGER.error("Couldn't decode JSON, skipping (%s)", repr(err))
-            _LOGGER.debug("Client shutting down")
-            self._client.shutdown(socket.SHUT_RDWR)
-            self._client.close()
-            self._lastclosed = time.time()
+            _LOGGER.error("Couldn't decode JSON (exception), skipping (%s)", repr(err))
+            #_LOGGER.debug("Client shutting down")
+            #self._client.shutdown(socket.SHUT_RDWR)
+            #self._client.close()
+            #self._lastclosed = time.time()
             return False
 
     async def set_cooling_mode(self):
@@ -442,6 +442,22 @@ class RinnaiSystem:
         else:
             return False
 
+    async def set_heater_fanspeed(self, speed):
+        cmd=heatCircFanSpeed
+        if self.validateCmd(cmd):
+            await self.sendCmd(cmd.format(speed=speed))
+            return True
+        else:
+            return False
+
+    async def set_cooling_fanspeed(self, speed):
+        cmd=coolCircFanSpeed
+        if self.validateCmd(cmd):
+            await self.sendCmd(cmd.format(speed=speed))
+            return True
+        else:
+            return False
+
     async def set_evap_comfort(self, comfort):
         cmd=evapSetComfort
         if self.validateCmd(cmd):
@@ -503,27 +519,38 @@ class RinnaiSystem:
                 if self._client.getpeername and self._client.getpeername() is not None:
                     pass
         except (OSError, ConnectionError):
+            _LOGGER.debug("Error 1st phase during renewConnection %s", err)
             connection_error = True
             pass
         # TODO: need to also check for remote address in case the server has shut the connection down
         if self._client is None or self._client._closed or connection_error:
-            self._client = await self.ConnectToTouch(self._touchIP,self._touchPort)
-            RinnaiSystem.clients[self._touchIP] = self._client
+            try:
+                self._client = await self.ConnectToTouch(self._touchIP,self._touchPort)
+                RinnaiSystem.clients[self._touchIP] = self._client
+                return True
+            except ConnectionRefusedError(err):
+                _LOGGER.debug("Error during renewConnection %s", err)
+            except ConnectionError(err):
+                _LOGGER.debug("Error during renewConnection %s", err)
+            except Exception(err):
+                _LOGGER.debug("Error during renewConnection %s", err)
+        return False
 
     async def sendCmd(self, cmd):
-        await self.renewConnection()
+        if await self.renewConnection():
+            _LOGGER.debug("Client Variable: %s / %s", self._client, self._client._closed)
 
-        _LOGGER.debug("Client Variable: %s / %s", self._client, self._client._closed)
-
-        seq = str(self._sendSequence).zfill(6)
-        #self._sendSequence = self._sendSequence + 1
-        _LOGGER.debug("Sending command: %s", "N" + seq + cmd)
-        await self.SendToTouch(self._client, "N" + seq + cmd)
-        status = BrivisStatus()
-        res = await self.HandleStatus(self._client, status)
-        if res:
-            self._status = status
-            self.OnUpdated()
+            seq = str(self._sendSequence).zfill(6)
+            #self._sendSequence = self._sendSequence + 1
+            _LOGGER.debug("Sending command: %s", "N" + seq + cmd)
+            await self.SendToTouch(self._client, "N" + seq + cmd)
+            status = BrivisStatus()
+            res = await self.HandleStatus(self._client, status)
+            if res:
+                self._status = status
+                self.OnUpdated()
+        else:
+            _LOGGER.debug("renewing connection failed, not sending command")
 
         #self._client.shutdown(socket.SHUT_RDWR)
         #self._client.close()
@@ -540,26 +567,27 @@ class RinnaiSystem:
         #update only every 1.5 seconds max
         #if self._lastupdated + 1.5 > time.time() :
         #    return self.GetOfflineStatus()
-        await self.renewConnection()
+        if await self.renewConnection():
+            status = BrivisStatus()
+            _LOGGER.debug("Client Variable: %s / %s", self._client, self._client._closed)
+            res = await self.HandleStatus(self._client, status)
+            if res:
+                self._status = status
+                self.OnUpdated()
 
-        status = BrivisStatus()
-        _LOGGER.debug("Client Variable: %s / %s", self._client, self._client._closed)
-        res = await self.HandleStatus(self._client, status)
-        if res:
-            self._status = status
-            self.OnUpdated()
-        #await self.sendCmd("")
+            # don't shut down unless last shutdown is 1 hour ago
+            if self._lastclosed == 0:
+                self._lastclosed = time.time()
+            if self._lastclosed + 3600 < time.time():
+                _LOGGER.debug("Client shutting down")
+                self._client.shutdown(socket.SHUT_RDWR)
+                self._client.close()
+                self._lastclosed = time.time()
 
-        # don't shut down unless last shutdown is 1 hour ago
-        if self._lastclosed == 0:
-            self._lastclosed = time.time()
-        if self._lastclosed + 3600 < time.time():
-            _LOGGER.debug("Client shutting down")
-            self._client.shutdown(socket.SHUT_RDWR)
-            self._client.close()
-            self._lastclosed = time.time()
+            self._lastupdated = time.time()
 
-        self._lastupdated = time.time()
+        else:
+            _LOGGER.debug("renewing connection failed, not sending command")
 
         return self._status
 
@@ -574,10 +602,14 @@ class RinnaiSystem:
         # connect the client
         # create an ipv4 (AF_INET) socket object using the tcp protocol (SOCK_STREAM)
         _LOGGER.debug("Creating new client...")
-        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client.settimeout(10)
-        client.connect((touchIP, port))
-        return client
+        try:
+            client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            client.settimeout(10)
+            client.connect((touchIP, port))
+            return client
+        except ConnectionRefusedError(err):
+            raise err
+            #should really take a few hours break to recover!
 
 
     async def SendToTouch(self, client, cmd):

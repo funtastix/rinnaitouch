@@ -41,11 +41,6 @@ def HandleHeatingMode(client,j,brivisStatus):
             _LOGGER.debug("Fan Speed is: {}".format(fanSpeed))
             brivisStatus.heaterStatus.fanSpeed = int(fanSpeed) # Should catch errors!
 
-            # Heater is on - get attributes
-            circFan = GetAttribute(oop,"CF",None)
-            _LOGGER.debug("Circulation Fan is: {}".format(circFan))
-            brivisStatus.heaterStatus.CirculationFanOn(circFan)
-
             # GSO should be there
             gso = GetAttribute(j[1].get("HGOM"),"GSO",None)
             if not gso:
@@ -73,6 +68,11 @@ def HandleHeatingMode(client,j,brivisStatus):
             _LOGGER.debug("Heater is OFF")
             brivisStatus.systemOn = False
             brivisStatus.heaterStatus.heaterOn = False
+
+        elif switch == "Z":
+            _LOGGER.debug("Circulation Fan is: {}".format(switch))
+            brivisStatus.systemOn = True
+            brivisStatus.heaterStatus.CirculationFanOn(switch)
 
         za = zb = zc = zd = None
         z = GetAttribute(j[1].get("HGOM"),"ZAO",None)
@@ -162,8 +162,8 @@ class HeaterStatus():
         self.zoneD = YNtoBool(zd)
 
     def CirculationFanOn(self,statusStr):
-        # Y = On, N = Off
-        if statusStr == "Y":
+        # Z = On, N = Off
+        if statusStr == "Z":
             self.circulationFanOn = True
         else:
             self.circulationFanOn = False
