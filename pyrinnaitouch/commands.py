@@ -8,6 +8,7 @@ modeHeatCmd = '{"SYST": {"OSS": {"MD": "H" } } }'
 heatOnCmd = '{"HGOM": {"OOP": {"ST": "N" } } }'
 heatOffCmd = '{"HGOM": {"OOP": {"ST": "F" } } }'
 heatCircFanOn = '{"HGOM": {"OOP": {"ST": "Z" } } }'
+heatCircFanSpeed = '{{"HGOM": {{"OOP": {{"FL": "{speed}" }} }} }}' # 1 - 16
 
 heatSetTemp = '{{"HGOM": {{"GSO": {{"SP": "{temp}" }} }} }}'
 heatSetManual = '{{"HGOM": {{"GSO": {{"OP": "M" }} }} }}'
@@ -21,12 +22,13 @@ heatZoneSetManual = '{{"HGOM": {{"Z{zone}O": {{"OP": "M" }} }} }}'
 heatZoneSetAuto = '{{"HGOM": {{"Z{zone}O": {{"OP": "A" }} }} }}'
 heatZoneAdvance = '{{"HGOM": {{"Z{zone}O": {{"AO": "A" }} }} }}'
 
-HEAT_COMMANDS = [heatOnCmd, heatOffCmd, heatSetTemp, heatCircFanOn, heatZoneOn, heatZoneOff, heatSetManual, heatSetAuto, heatAdvance, heatZoneSetTemp, heatZoneSetManual, heatZoneSetAuto, heatZoneAdvance]
+HEAT_COMMANDS = [heatOnCmd, heatOffCmd, heatSetTemp, heatCircFanOn, heatZoneOn, heatZoneOff, heatSetManual, heatSetAuto, heatAdvance, heatZoneSetTemp, heatZoneSetManual, heatZoneSetAuto, heatZoneAdvance, heatCircFanSpeed]
 
 # Cooling Commands
 coolOnCmd = '{"CGOM": {"OOP": {"ST": "N" } } }'
 coolOffCmd = '{"CGOM": {"OOP": {"ST": "F" } } }'
 coolCircFanOn = '{"CGOM": {"OOP": {"ST": "Z" } } }'
+coolCircFanSpeed = '{{"CGOM": {{"OOP": {{"FL": "{speed}" }} }} }}' # 1 - 16
 
 coolSetTemp = '{{"CGOM": {{"GSO": {{"SP": "{temp}" }} }} }}'
 coolSetManual = '{{"CGOM": {{"GSO": {{"OP": "M" }} }} }}'
@@ -40,7 +42,7 @@ coolZoneSetManual = '{{"CGOM": {{"Z{zone}O": {{"OP": "M" }} }} }}'
 coolZoneSetAuto = '{{"CGOM": {{"Z{zone}O": {{"OP": "A" }} }} }}'
 coolZoneAdvance = '{{"CGOM": {{"Z{zone}O": {{"AO": "A" }} }} }}'
 
-COOL_COMMANDS = [coolOnCmd, coolOffCmd, coolSetTemp, coolCircFanOn, coolZoneOn, coolZoneOff, coolSetManual, coolSetAuto, coolAdvance, coolZoneSetTemp, coolZoneSetManual, coolZoneSetAuto, coolZoneAdvance]
+COOL_COMMANDS = [coolOnCmd, coolOffCmd, coolSetTemp, coolCircFanOn, coolZoneOn, coolZoneOff, coolSetManual, coolSetAuto, coolAdvance, coolZoneSetTemp, coolZoneSetManual, coolZoneSetAuto, coolZoneAdvance, coolCircFanSpeed]
 
 # Evap Cooling commands
 evapOnCmd =  '{"ECOM": {"GSO": {"SW": "N" } } }'

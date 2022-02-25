@@ -24,21 +24,17 @@ def HandleCoolingMode(client,j,brivisStatus):
         if YNtoBool(GetAttribute(cfg, "ZDIS", None)):
             brivisStatus.heaterStatus.zones.append("D")
 
-    gss = GetAttribute(j[1].get("CGOM"),"GSS",None)
-    if not gss:
-        _LOGGER.error("No GSO here")
+    oop = GetAttribute(j[1].get("HGOM"),"OOP",None)
+    if not oop:
+        # Probably an error
+        _LOGGER.error("No OOP - Not happy, Jan")
 
     else:
-        switch = GetAttribute(gss,"CC",None)
-        if switch == "Y":
+        switch = GetAttribute(oop,"ST",None)
+        if switch == "N":
             _LOGGER.debug("Cooling is ON")
             brivisStatus.systemOn = True
             brivisStatus.coolingStatus.coolingOn = True
-
-            # Cooling is on - get attributes
-            circFan = GetAttribute(gss,"FS",None)
-            _LOGGER.debug("Circulation Fan is: {}".format(circFan))
-            brivisStatus.coolingStatus.CirculationFanOn(circFan)
 
             # GSO should be there
             gso = GetAttribute(j[1].get("CGOM"),"GSO",None)
@@ -56,11 +52,16 @@ def HandleCoolingMode(client,j,brivisStatus):
                 _LOGGER.debug("Cooling set temp is: {}".format(setTemp))
                 brivisStatus.coolingStatus.setTemp = int(setTemp)
 
-        elif switch == "N":
+        elif switch == "Y":
             # Heater is off
             _LOGGER.debug("Cooling is OFF")
             brivisStatus.systemOn = False
             brivisStatus.coolingStatus.coolingOn = False
+
+        elif switch == "Z":
+            _LOGGER.debug("Circulation Fan is: {}".format(switch))
+            brivisStatus.systemOn = True
+            brivisStatus.heaterStatus.CirculationFanOn(switch)
 
         za = zb = zc = zd = None
         z = GetAttribute(j[1].get("CGOM"),"ZAO",None)
@@ -148,8 +149,8 @@ class CoolingStatus():
         self.zoneD = YNtoBool(zd)
 
     def CirculationFanOn(self,statusStr):
-        # Y = On, N = Off
-        if statusStr == "Y":
+        # Z = On, N = Off
+        if statusStr == "Z":
             self.circulationFanOn = True
         else:
             self.circulationFanOn = False
