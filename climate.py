@@ -630,7 +630,7 @@ class RinnaiTouchZone(ClimateEntity):
         elif self._system._status.evapMode:
             temp = getattr(self._system._status.evapStatus, "zone" + self._attr_zone + "temp")
 
-        if temp < 999:
+        if int(temp) < 999:
             return int(round(float(temp)/10))
         return 0
 
