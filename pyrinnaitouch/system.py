@@ -119,7 +119,7 @@ class RinnaiSystem:
         RinnaiSystem.instances[ip_address] = self
         self.OnUpdated = Event()
 
-    def setZones(zones):
+    def setZones(self, zones):
         self._zones = zones
 
     @staticmethod
