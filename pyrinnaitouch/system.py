@@ -111,12 +111,16 @@ class RinnaiSystem:
         self._status = BrivisStatus()
         self._lastclosed = 0
         self._client = None
+        self._zones = []
         if ip_address not in RinnaiSystem.clients:
             RinnaiSystem.clients[ip_address] = self._client
         else:
             self._client = RinnaiSystem.clients[ip_address]
         RinnaiSystem.instances[ip_address] = self
         self.OnUpdated = Event()
+
+    def setZones(zones):
+        self._zones = zones
 
     @staticmethod
     def getInstance(ip_address):

@@ -8,7 +8,7 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_NAME
 from homeassistant.data_entry_flow import AbortFlow
 
-from .const import DEFAULT_NAME, DOMAIN, CONF_TEMP_SENSOR
+from .const import DEFAULT_NAME, DOMAIN, CONF_TEMP_SENSOR, CONF_ZONE_A, CONF_ZONE_B, CONF_ZONE_C, CONF_ZONE_D
 from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
 
 _LOGGER = logging.getLogger(__name__)
@@ -16,6 +16,10 @@ _LOGGER = logging.getLogger(__name__)
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_HOST): str,
+        vol.Required(CONF_ZONE_A): bool,
+        vol.Required(CONF_ZONE_B): bool,
+        vol.Required(CONF_ZONE_C): bool,
+        vol.Required(CONF_ZONE_D): bool,
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): str,
         vol.Optional(CONF_TEMP_SENSOR): str
     }
@@ -30,6 +34,16 @@ class RinnaiTouchConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
         if user_input is not None:
             system = RinnaiSystem.getInstance(user_input[CONF_HOST])
+            zones = []
+            if user_input[CONF_ZONE_A]:
+                zones.append("A")
+            if user_input[CONF_ZONE_B]:
+                zones.append("B")
+            if user_input[CONF_ZONE_C]:
+                zones.append("C")
+            if user_input[CONF_ZONE_D]:
+                zones.append("D")
+            system.setZones(zones)
             device_id = "rinnaitouch_" + str.replace(user_input[CONF_HOST], ".", "_")
             try:
                status = await system.GetStatus() 
