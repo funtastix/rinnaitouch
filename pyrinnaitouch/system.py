@@ -112,6 +112,7 @@ class RinnaiSystem:
         self._lastclosed = 0
         self._client = None
         self._zones = []
+        self._jsonerrors = 0
         if ip_address not in RinnaiSystem.clients:
             RinnaiSystem.clients[ip_address] = self._client
         else:
@@ -251,6 +252,7 @@ class RinnaiSystem:
             return False
         except Exception as err:
             _LOGGER.error("Couldn't decode JSON (exception), skipping (%s)", repr(err))
+            self._jsonerrors = self._jsonerrors + 1
             #_LOGGER.debug("Client shutting down")
             #self._client.shutdown(socket.SHUT_RDWR)
             #self._client.close()
@@ -520,15 +522,16 @@ class RinnaiSystem:
         connection_error = False
         try:
             if self._client is not None:
-                if self._client.getpeername and self._client.getpeername() is not None:
+                if self._client.getpeername and self._client.getpeername() is not None and self._jsonerrors < 4:
                     return True
         except (OSError, ConnectionError) as err:
             _LOGGER.debug("Error 1st phase during renewConnection %s", err)
             connection_error = True
             pass
         # TODO: need to also check for remote address in case the server has shut the connection down
-        if self._client is None or self._client._closed or connection_error:
+        if self._client is None or self._client._closed or connection_error or (self._jsonerrors > 2):
             try:
+                self._jsonerrors = 0
                 self._client = await self.ConnectToTouch(self._touchIP,self._touchPort)
                 RinnaiSystem.clients[self._touchIP] = self._client
                 return True
