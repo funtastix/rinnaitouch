@@ -521,7 +521,7 @@ class RinnaiSystem:
         try:
             if self._client is not None:
                 if self._client.getpeername and self._client.getpeername() is not None:
-                    pass
+                    return True
         except (OSError, ConnectionError):
             _LOGGER.debug("Error 1st phase during renewConnection %s", err)
             connection_error = True
