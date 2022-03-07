@@ -1,7 +1,10 @@
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.entity import Entity
 from homeassistant.const import (
-    CONF_HOST,
+    CONF_HOST
+)
+
+from .const import (
     CONF_ZONE_A,
     CONF_ZONE_B,
     CONF_ZONE_C,

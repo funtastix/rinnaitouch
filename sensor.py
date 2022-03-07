@@ -10,7 +10,10 @@ from homeassistant.components.sensor import (
 from homeassistant.const import TEMP_CELSIUS
 from homeassistant.core import HomeAssistant
 from homeassistant.const import (
-    CONF_HOST,
+    CONF_HOST
+)
+
+from .const import (
     CONF_ZONE_A,
     CONF_ZONE_B,
     CONF_ZONE_C,
