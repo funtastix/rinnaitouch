@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "confirm": {
-        "description": "Do you want to set up an Escea fireplace?"
+        "description": "Do you want to set up a Rinnai Touch Wifi device?"
       }
     },
     "abort": {

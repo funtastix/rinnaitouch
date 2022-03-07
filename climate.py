@@ -60,10 +60,14 @@ async def async_setup_entry(hass, entry, async_add_entities):
     name = entry.data.get(CONF_NAME)
     temperature_entity = entry.data.get(CONF_TEMP_SENSOR)
     async_add_entities([RinnaiTouch(hass, ip_address, name, temperature_entity)])
-    async_add_entities([RinnaiTouchZone(hass, ip_address, name, "A")])
-    async_add_entities([RinnaiTouchZone(hass, ip_address, name, "B")])
-    async_add_entities([RinnaiTouchZone(hass, ip_address, name, "C")])
-    async_add_entities([RinnaiTouchZone(hass, ip_address, name, "D")])
+    if entry.data.get(CONF_ZONE_A):
+        async_add_entities([RinnaiTouchZone(hass, ip_address, name, "A")])
+    if entry.data.get(CONF_ZONE_B):
+        async_add_entities([RinnaiTouchZone(hass, ip_address, name, "B")])
+    if entry.data.get(CONF_ZONE_C):
+        async_add_entities([RinnaiTouchZone(hass, ip_address, name, "C")])
+    if entry.data.get(CONF_ZONE_D):
+        async_add_entities([RinnaiTouchZone(hass, ip_address, name, "D")])
     return True
 
 class RinnaiTouch(ClimateEntity):
