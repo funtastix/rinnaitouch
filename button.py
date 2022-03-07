@@ -3,6 +3,13 @@ from homeassistant.const import (
     CONF_HOST
 )
 
+from .const import (
+    CONF_ZONE_A,
+    CONF_ZONE_B,
+    CONF_ZONE_C,
+    CONF_ZONE_D
+)
+
 from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
 
 import logging
@@ -11,13 +18,15 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities):
     ip_address = entry.data.get(CONF_HOST)
-    async_add_entities([
-        RinnaiZoneAdvanceButton(ip_address, "A", "Rinnai Touch Zone A Advance Button"),
-        RinnaiZoneAdvanceButton(ip_address, "B", "Rinnai Touch Zone B Advance Button"),
-        RinnaiZoneAdvanceButton(ip_address, "C", "Rinnai Touch Zone C Advance Button"),
-        RinnaiZoneAdvanceButton(ip_address, "D", "Rinnai Touch Zone D Advance Button"),
-        RinnaiAdvanceButton(ip_address, "Rinnai Touch Advance Button")
-    ])
+    async_add_entities([RinnaiAdvanceButton(ip_address, "Rinnai Touch Advance Button")])
+    if entry.data.get(CONF_ZONE_A):
+        async_add_entities([RinnaiZoneAdvanceButton(ip_address, "A", "Rinnai Touch Zone A Advance Button")])
+    if entry.data.get(CONF_ZONE_B):
+        async_add_entities([RinnaiZoneAdvanceButton(ip_address, "B", "Rinnai Touch Zone B Advance Button")])
+    if entry.data.get(CONF_ZONE_C):
+        async_add_entities([RinnaiZoneAdvanceButton(ip_address, "C", "Rinnai Touch Zone C Advance Button")])
+    if entry.data.get(CONF_ZONE_D):
+        async_add_entities([RinnaiZoneAdvanceButton(ip_address, "D", "Rinnai Touch Zone D Advance Button")])
     return True
 
 class RinnaiButtonEntity(ButtonEntity):

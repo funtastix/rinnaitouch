@@ -13,6 +13,13 @@ from homeassistant.const import (
     CONF_HOST
 )
 
+from .const import (
+    CONF_ZONE_A,
+    CONF_ZONE_B,
+    CONF_ZONE_C,
+    CONF_ZONE_D
+)
+
 from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
 
 import logging
@@ -23,16 +30,28 @@ async def async_setup_entry(hass, entry, async_add_entities):
     ip_address = entry.data.get(CONF_HOST)
     async_add_entities([
         RinnaiMainTemperatureSensor(ip_address, "Rinnai Touch Main Temperature Sensor", "temperature"),
-        RinnaiMainTemperatureSensor(ip_address, "Rinnai Touch Main Target Temperature Sensor", "setTemp"),
-        RinnaiZoneTemperatureSensor(ip_address, "A", "Rinnai Touch Zone A Target Temperature Sensor", "setTemp"),
-        RinnaiZoneTemperatureSensor(ip_address, "B", "Rinnai Touch Zone B Target Temperature Sensor", "setTemp"),
-        RinnaiZoneTemperatureSensor(ip_address, "C", "Rinnai Touch Zone C Target Temperature Sensor", "setTemp"),
-        RinnaiZoneTemperatureSensor(ip_address, "D", "Rinnai Touch Zone D Target Temperature Sensor", "setTemp"),
-        RinnaiZoneTemperatureSensor(ip_address, "A", "Rinnai Touch Zone A Temperature Sensor", "temp"),
-        RinnaiZoneTemperatureSensor(ip_address, "B", "Rinnai Touch Zone B Temperature Sensor", "temp"),
-        RinnaiZoneTemperatureSensor(ip_address, "C", "Rinnai Touch Zone C Temperature Sensor", "temp"),
-        RinnaiZoneTemperatureSensor(ip_address, "D", "Rinnai Touch Zone D Temperature Sensor", "temp")
+        RinnaiMainTemperatureSensor(ip_address, "Rinnai Touch Main Target Temperature Sensor", "setTemp")
     ])
+    if entry.data.get(CONF_ZONE_A):
+        async_add_entities([
+            RinnaiZoneTemperatureSensor(ip_address, "A", "Rinnai Touch Zone A Target Temperature Sensor", "setTemp"),
+            RinnaiZoneTemperatureSensor(ip_address, "A", "Rinnai Touch Zone A Temperature Sensor", "temp")
+        ])
+    if entry.data.get(CONF_ZONE_B):
+        async_add_entities([
+            RinnaiZoneTemperatureSensor(ip_address, "B", "Rinnai Touch Zone B Target Temperature Sensor", "setTemp"),
+            RinnaiZoneTemperatureSensor(ip_address, "B", "Rinnai Touch Zone B Temperature Sensor", "temp")
+        ])
+    if entry.data.get(CONF_ZONE_C):
+        async_add_entities([
+            RinnaiZoneTemperatureSensor(ip_address, "C", "Rinnai Touch Zone C Target Temperature Sensor", "setTemp"),
+            RinnaiZoneTemperatureSensor(ip_address, "C", "Rinnai Touch Zone C Temperature Sensor", "temp")
+        ])
+    if entry.data.get(CONF_ZONE_D):
+        async_add_entities([
+            RinnaiZoneTemperatureSensor(ip_address, "D", "Rinnai Touch Zone C Target Temperature Sensor", "setTemp"),
+            RinnaiZoneTemperatureSensor(ip_address, "D", "Rinnai Touch Zone C Temperature Sensor", "temp")
+        ])
     return True
 
 class RinnaiTemperatureSensor(SensorEntity):

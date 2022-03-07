@@ -50,7 +50,8 @@ from .const import *
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 
-SUPPORT_FLAGS = SUPPORT_TARGET_TEMPERATURE + SUPPORT_FAN_MODE + SUPPORT_PRESET_MODE
+SUPPORT_FLAGS_MAIN = SUPPORT_TARGET_TEMPERATURE | SUPPORT_FAN_MODE | SUPPORT_PRESET_MODE
+SUPPORT_FLAGS_ZONE = SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -59,10 +60,14 @@ async def async_setup_entry(hass, entry, async_add_entities):
     name = entry.data.get(CONF_NAME)
     temperature_entity = entry.data.get(CONF_TEMP_SENSOR)
     async_add_entities([RinnaiTouch(hass, ip_address, name, temperature_entity)])
-    async_add_entities([RinnaiTouchZone(hass, ip_address, name, "A")])
-    async_add_entities([RinnaiTouchZone(hass, ip_address, name, "B")])
-    async_add_entities([RinnaiTouchZone(hass, ip_address, name, "C")])
-    async_add_entities([RinnaiTouchZone(hass, ip_address, name, "D")])
+    if entry.data.get(CONF_ZONE_A):
+        async_add_entities([RinnaiTouchZone(hass, ip_address, name, "A")])
+    if entry.data.get(CONF_ZONE_B):
+        async_add_entities([RinnaiTouchZone(hass, ip_address, name, "B")])
+    if entry.data.get(CONF_ZONE_C):
+        async_add_entities([RinnaiTouchZone(hass, ip_address, name, "C")])
+    if entry.data.get(CONF_ZONE_D):
+        async_add_entities([RinnaiTouchZone(hass, ip_address, name, "D")])
     return True
 
 class RinnaiTouch(ClimateEntity):
@@ -81,7 +86,7 @@ class RinnaiTouch(ClimateEntity):
         self._sensor_temperature = 0
         self.update_external_temperature()
 
-        self._support_flags = SUPPORT_FLAGS
+        self._support_flags = SUPPORT_FLAGS_MAIN
         
         self._TEMPERATURE_STEP = 1
         self._TEMPERATURE_LIMITS = {"min": 8, "max": 30}
@@ -250,13 +255,8 @@ class RinnaiTouch(ClimateEntity):
             if self.preset_mode == PRESET_EVAP:
                 if fan_mode == FAN_OFF:
                     await self._system.turn_evap_fan_off()
-                    await self._system.turn_evap_pump_on()
                 if fan_mode == FAN_ON:
                     await self._system.turn_evap_fan_on()
-                    await self._system.turn_evap_pump_on()
-                if fan_mode == FAN_ONLY:
-                    await self._system.turn_evap_fan_on()
-                    await self._system.turn_evap_pump_off()
 
     def set_humidity(self, humidity):
         """Set new target humidity."""
@@ -349,9 +349,7 @@ class RinnaiTouch(ClimateEntity):
     def fan_mode(self):
         """Return current HVAC mode, ie Heat or Off."""
         if self.preset_mode == PRESET_EVAP:
-            if self._system._status.evapStatus.fanOn and not self._system._status.evapStatus.waterPumpOn:
-                return FAN_ONLY
-            elif self._system._status.evapStatus.fanOn:
+            if self._system._status.evapStatus.fanOn:
                 return FAN_ON
             else:
                 return FAN_OFF
@@ -371,8 +369,15 @@ class RinnaiTouch(ClimateEntity):
     def fan_modes(self):
         """Return the list of available fan modes."""
         if self.preset_mode == PRESET_EVAP:
-            return [FAN_ON, FAN_OFF, FAN_ONLY ]
-        return [FAN_ON, FAN_OFF ]
+            if self._system._status.evapStatus.evapOn:
+                return [FAN_ON, FAN_OFF ]
+        elif self.preset_mode == PRESET_HEAT:
+            if not self._system._status.systemOn or self._system._status.heaterStatus.circulationFanOn:
+                return [FAN_ON, FAN_OFF ]
+        elif self.preset_mode == PRESET_COOL:
+            if not self._system._status.systemOn or self._system._status.coolingStatus.circulationFanOn:
+                return [FAN_ON, FAN_OFF ]
+        return [ ]
 
     @property
     def preset_mode(self):
@@ -413,7 +418,7 @@ class RinnaiTouch(ClimateEntity):
         if self._temerature_entity_name is not None:
             temperature_entity = self._hass.states.get(self._temerature_entity_name)
             #_LOGGER.debug("External temperature sensor entity: %s", temperature_entity)
-            if temperature_entity is not None:
+            if temperature_entity is not None and temperature_entity.state != "unavailable":
                 _LOGGER.debug("External temperature sensor reports: %s", temperature_entity.state)
                 self._sensor_temperature = int(round(float(temperature_entity.state)))
 
@@ -439,7 +444,7 @@ class RinnaiTouchZone(ClimateEntity):
 
         self._hass = hass
 
-        self._support_flags = SUPPORT_FLAGS
+        self._support_flags = SUPPORT_FLAGS_ZONE
         
         self._TEMPERATURE_STEP = 1
         self._TEMPERATURE_LIMITS = {"min": 8, "max": 30}
@@ -596,19 +601,6 @@ class RinnaiTouchZone(ClimateEntity):
         """Cannot change the preset per zone"""
         return False
 
-    #not common, cannot change the fan mode per zone
-    async def async_set_fan_mode(self, fan_mode):
-        """Cannot change the fan mode per zone"""
-        return False
-
-    def set_humidity(self, humidity):
-        """Set new target humidity."""
-        return False
-
-    def set_swing_mode(self, swing_mode):
-        """Set new target swing operation."""
-        return False
-
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
         if kwargs.get(ATTR_TEMPERATURE) is not None:
@@ -642,7 +634,7 @@ class RinnaiTouchZone(ClimateEntity):
         elif self._system._status.evapMode:
             temp = getattr(self._system._status.evapStatus, "zone" + self._attr_zone + "temp")
 
-        if temp < 999:
+        if int(temp) < 999:
             return int(round(float(temp)/10))
         return 0
 
@@ -677,35 +669,6 @@ class RinnaiTouchZone(ClimateEntity):
     def hvac_modes(self):
         """Return the list of available HVAC modes."""
         return [HVAC_MODE_HEAT_COOL, HVAC_MODE_AUTO, HVAC_MODE_OFF ]
-
-    @property
-    def fan_mode(self):
-        """Return current HVAC mode, ie Heat or Off."""
-        if self.preset_mode == PRESET_EVAP:
-            if self._system._status.evapStatus.fanOn and not self._system._status.evapStatus.waterPumpOn:
-                return FAN_ONLY
-            elif self._system._status.evapStatus.fanOn:
-                return FAN_ON
-            else:
-                return FAN_OFF
-        elif self.preset_mode == PRESET_COOL:
-            if self._system._status.coolingStatus.circulationFanOn:
-                return FAN_ON
-            else:
-                return FAN_OFF
-        elif self.preset_mode == PRESET_HEAT:
-            if self._system._status.heaterStatus.circulationFanOn:
-                return FAN_ON
-            else:
-                return FAN_OFF
-        return FAN_OFF
-
-    @property
-    def fan_modes(self):
-        """Return the list of available fan modes."""
-        if self.preset_mode == PRESET_EVAP:
-            return [FAN_ON, FAN_OFF, FAN_ONLY ]
-        return [FAN_ON, FAN_OFF ]
 
     @property
     def preset_mode(self):

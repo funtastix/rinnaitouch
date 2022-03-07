@@ -4,6 +4,13 @@ from homeassistant.const import (
     CONF_HOST
 )
 
+from .const import (
+    CONF_ZONE_A,
+    CONF_ZONE_B,
+    CONF_ZONE_C,
+    CONF_ZONE_D
+)
+
 from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
 
 import logging
@@ -17,17 +24,29 @@ async def async_setup_entry(hass, entry, async_add_entities):
         RinnaiCoolingModeSwitch(ip_address, "Rinnai Touch Cooling Mode Switch"),
         RinnaiHeaterModeSwitch(ip_address, "Rinnai Touch Heater Mode Switch"),
         RinnaiEvapModeSwitch(ip_address, "Rinnai Touch Evap Mode Switch"),
-        RinnaiZoneSwitch(ip_address, "A", "Rinnai Touch Zone A Switch"),
-        RinnaiZoneSwitch(ip_address, "B", "Rinnai Touch Zone B Switch"),
-        RinnaiZoneSwitch(ip_address, "C", "Rinnai Touch Zone C Switch"),
-        RinnaiZoneSwitch(ip_address, "D", "Rinnai Touch Zone D Switch"),
         RinnaiWaterpumpSwitch(ip_address, "Rinnai Touch Water Pump Switch"),
-        RinnaiAutoSwitch(ip_address, "Rinnai Touch Auto Switch"),
-        RinnaiZoneAutoSwitch(ip_address, "A", "Rinnai Touch Zone A Auto Switch"),
-        RinnaiZoneAutoSwitch(ip_address, "B", "Rinnai Touch Zone B Auto Switch"),
-        RinnaiZoneAutoSwitch(ip_address, "C", "Rinnai Touch Zone C Auto Switch"),
-        RinnaiZoneAutoSwitch(ip_address, "D", "Rinnai Touch Zone D Auto Switch")
+        RinnaiAutoSwitch(ip_address, "Rinnai Touch Auto Switch")
     ])
+    if entry.data.get(CONF_ZONE_A):
+        async_add_entities([
+            RinnaiZoneSwitch(ip_address, "A", "Rinnai Touch Zone A Switch"),
+            RinnaiZoneAutoSwitch(ip_address, "A", "Rinnai Touch Zone A Auto Switch")
+        ])
+    if entry.data.get(CONF_ZONE_B):
+        async_add_entities([
+            RinnaiZoneSwitch(ip_address, "B", "Rinnai Touch Zone B Switch"),
+            RinnaiZoneAutoSwitch(ip_address, "B", "Rinnai Touch Zone B Auto Switch")
+        ])
+    if entry.data.get(CONF_ZONE_C):
+        async_add_entities([
+            RinnaiZoneSwitch(ip_address, "C", "Rinnai Touch Zone C Switch"),
+            RinnaiZoneAutoSwitch(ip_address, "C", "Rinnai Touch Zone C Auto Switch")
+        ])
+    if entry.data.get(CONF_ZONE_D):
+        async_add_entities([
+            RinnaiZoneSwitch(ip_address, "D", "Rinnai Touch Zone D Switch"),
+            RinnaiZoneAutoSwitch(ip_address, "D", "Rinnai Touch Zone D Auto Switch")
+        ])
     return True
 
 class RinnaiExtraEntity(Entity):
