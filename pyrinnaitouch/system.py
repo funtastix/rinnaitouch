@@ -174,6 +174,7 @@ class RinnaiSystem:
                 seq = seq + 1
             self._sendSequence = seq
             jStr = exp.group(2)
+            #jStr = '[{"SYST": {"CFG": {"MTSP": "N", "NC": "00", "DF": "N", "TU": "C", "CF": "1", "VR": "0183", "CV": "0010", "CC": "043", "ZA": " ", "ZB": " ", "ZC": " ", "ZD": " " }, "AVM": {"HG": "Y", "EC": "N", "CG": "Y", "RA": "N", "RH": "N", "RC": "N" }, "OSS": {"DY": "TUE", "TM": "16:45", "BP": "Y", "RG": "Y", "ST": "N", "MD": "C", "DE": "N", "DU": "N", "AT": "999", "LO": "N" }, "FLT": {"AV": "N", "C3": "000" } } },{"CGOM": {"CFG": {"ZUIS": "N", "ZAIS": "Y", "ZBIS": "Y", "ZCIS": "N", "ZDIS": "N", "CF": "N", "PS": "Y", "DG": "W" }, "OOP": {"ST": "F", "CF": "N", "FL": "00", "SN": "Y" }, "GSS": {"CC": "N", "FS": "N", "CP": "N" }, "APS": {"AV": "N" }, "ZUS": {"AE": "N", "MT": "999" }, "ZAS": {"AE": "N", "MT": "999" }, "ZBS": {"AE": "N", "MT": "999" }, "ZCS": {"AE": "N", "MT": "999" }, "ZDS": {"AE": "N", "MT": "999" } } }]'
             _LOGGER.debug("Sequence: %s Json: %s", seq, jStr)
 
             j = json.loads(jStr)
@@ -195,8 +196,8 @@ class RinnaiSystem:
                 brivisStatus.zoneBdesc = GetAttribute(cfg, "ZB", None).strip()
                 brivisStatus.zoneCdesc = GetAttribute(cfg, "ZC", None).strip()
                 brivisStatus.zoneDdesc = GetAttribute(cfg, "ZD", None).strip()
-                brivisStatus.firmwareVersion = GetAttribute(cfg, "ZD", None).strip()
-                brivisStatus.wifiModuleVersion = GetAttribute(cfg, "ZD", None).strip()
+                brivisStatus.firmwareVersion = GetAttribute(cfg, "VR", None).strip()
+                brivisStatus.wifiModuleVersion = GetAttribute(cfg, "CV", None).strip()
 
             avm = GetAttribute(j[0].get("SYST"),"AVM",None)
             if not avm:
@@ -223,7 +224,7 @@ class RinnaiSystem:
                 _LOGGER.error("No FLT - Not happy, Jan")
 
             else:
-                brivisStatus.isMultiSetPoint = YNtoBool(GetAttribute(flt, "AV", None))
+                brivisStatus.hasFault = YNtoBool(GetAttribute(flt, "AV", None))
 
             if 'HGOM' in j[1]:
                 HandleHeatingMode(client,j,brivisStatus)

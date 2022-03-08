@@ -24,7 +24,7 @@ def HandleCoolingMode(client,j,brivisStatus):
         if YNtoBool(GetAttribute(cfg, "ZDIS", None)):
             brivisStatus.heaterStatus.zones.append("D")
 
-    oop = GetAttribute(j[1].get("HGOM"),"OOP",None)
+    oop = GetAttribute(j[1].get("CGOM"),"OOP",None)
     if not oop:
         # Probably an error
         _LOGGER.error("No OOP - Not happy, Jan")
