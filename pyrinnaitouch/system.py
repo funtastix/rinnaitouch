@@ -525,23 +525,25 @@ class RinnaiSystem:
             if self._client is not None:
                 if self._client.getpeername and self._client.getpeername() is not None and self._jsonerrors < 4:
                     return True
-        except (OSError, ConnectionError) as err:
-            _LOGGER.debug("Error 1st phase during renewConnection %s", err)
+        except (OSError, ConnectionError) as ocerr:
+            _LOGGER.debug("Error 1st phase during renewConnection %s", ocerr)
             connection_error = True
             pass
         # TODO: need to also check for remote address in case the server has shut the connection down
         if self._client is None or self._client._closed or connection_error or (self._jsonerrors > 2):
             try:
+                if connection_error or (self._jsonerrors > 2):
+                    self._client.close()
                 self._jsonerrors = 0
                 self._client = await self.ConnectToTouch(self._touchIP,self._touchPort)
                 RinnaiSystem.clients[self._touchIP] = self._client
                 return True
-            except ConnectionRefusedError(err):
-                _LOGGER.debug("Error during renewConnection %s", err)
-            except ConnectionError(err):
-                _LOGGER.debug("Error during renewConnection %s", err)
-            except Exception(err):
-                _LOGGER.debug("Error during renewConnection %s", err)
+            except ConnectionRefusedError as crerr:
+                _LOGGER.debug("Error during renewConnection %s", crerr)
+            except ConnectionError as cerr:
+                _LOGGER.debug("Error during renewConnection %s", cerr)
+            except Exception as eerr:
+                _LOGGER.debug("Error during renewConnection %s", eerr)
         return False
 
     async def sendCmd(self, cmd):
@@ -615,8 +617,8 @@ class RinnaiSystem:
             client.settimeout(10)
             client.connect((touchIP, port))
             return client
-        except ConnectionRefusedError(err):
-            raise err
+        except ConnectionRefusedError as crerr:
+            raise crerr
             #should really take a few hours break to recover!
 
 
