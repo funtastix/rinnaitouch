@@ -474,16 +474,16 @@ class RinnaiTouchZone(ClimateEntity):
         return self._attr_unique_id
 
     #not common
-    @property
-    def device_info(self):
-        """Return device information about this heater."""
-        return {
-            "connections": {(CONNECTION_NETWORK_MAC, self._host)},
-            "identifiers": {("Rinnai Touch Zone", self.unique_id)},
-            "model": "Rinnai Touch Wifi Zone",
-            "name": self.name,
-            "manufacturer": "Rinnai/Brivis",
-        }
+    #@property
+    #def device_info(self):
+    #    """Return device information about this heater."""
+    #    return {
+    #        "connections": {(CONNECTION_NETWORK_MAC, self._host)},
+    #        "identifiers": {("Rinnai Touch Zone", self.unique_id)},
+    #        "model": "Rinnai Touch Wifi Zone",
+    #        "name": self.name,
+    #        "manufacturer": "Rinnai/Brivis",
+    #    }
 
     @property
     def icon(self):

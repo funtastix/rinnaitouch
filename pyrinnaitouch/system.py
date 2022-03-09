@@ -174,6 +174,7 @@ class RinnaiSystem:
                 seq = seq + 1
             self._sendSequence = seq
             jStr = exp.group(2)
+            #jStr = '[{"SYST": {"CFG": {"MTSP": "N", "NC": "00", "DF": "N", "TU": "C", "CF": "1", "VR": "0183", "CV": "0010", "CC": "043", "ZA": " ", "ZB": " ", "ZC": " ", "ZD": " " }, "AVM": {"HG": "Y", "EC": "N", "CG": "Y", "RA": "N", "RH": "N", "RC": "N" }, "OSS": {"DY": "TUE", "TM": "16:45", "BP": "Y", "RG": "Y", "ST": "N", "MD": "C", "DE": "N", "DU": "N", "AT": "999", "LO": "N" }, "FLT": {"AV": "N", "C3": "000" } } },{"CGOM": {"CFG": {"ZUIS": "N", "ZAIS": "Y", "ZBIS": "Y", "ZCIS": "N", "ZDIS": "N", "CF": "N", "PS": "Y", "DG": "W" }, "OOP": {"ST": "F", "CF": "N", "FL": "00", "SN": "Y" }, "GSS": {"CC": "N", "FS": "N", "CP": "N" }, "APS": {"AV": "N" }, "ZUS": {"AE": "N", "MT": "999" }, "ZAS": {"AE": "N", "MT": "999" }, "ZBS": {"AE": "N", "MT": "999" }, "ZCS": {"AE": "N", "MT": "999" }, "ZDS": {"AE": "N", "MT": "999" } } }]'
             _LOGGER.debug("Sequence: %s Json: %s", seq, jStr)
 
             j = json.loads(jStr)
@@ -195,8 +196,8 @@ class RinnaiSystem:
                 brivisStatus.zoneBdesc = GetAttribute(cfg, "ZB", None).strip()
                 brivisStatus.zoneCdesc = GetAttribute(cfg, "ZC", None).strip()
                 brivisStatus.zoneDdesc = GetAttribute(cfg, "ZD", None).strip()
-                brivisStatus.firmwareVersion = GetAttribute(cfg, "ZD", None).strip()
-                brivisStatus.wifiModuleVersion = GetAttribute(cfg, "ZD", None).strip()
+                brivisStatus.firmwareVersion = GetAttribute(cfg, "VR", None).strip()
+                brivisStatus.wifiModuleVersion = GetAttribute(cfg, "CV", None).strip()
 
             avm = GetAttribute(j[0].get("SYST"),"AVM",None)
             if not avm:
@@ -223,7 +224,7 @@ class RinnaiSystem:
                 _LOGGER.error("No FLT - Not happy, Jan")
 
             else:
-                brivisStatus.isMultiSetPoint = YNtoBool(GetAttribute(flt, "AV", None))
+                brivisStatus.hasFault = YNtoBool(GetAttribute(flt, "AV", None))
 
             if 'HGOM' in j[1]:
                 HandleHeatingMode(client,j,brivisStatus)
@@ -524,23 +525,25 @@ class RinnaiSystem:
             if self._client is not None:
                 if self._client.getpeername and self._client.getpeername() is not None and self._jsonerrors < 4:
                     return True
-        except (OSError, ConnectionError) as err:
-            _LOGGER.debug("Error 1st phase during renewConnection %s", err)
+        except (OSError, ConnectionError) as ocerr:
+            _LOGGER.debug("Error 1st phase during renewConnection %s", ocerr)
             connection_error = True
             pass
         # TODO: need to also check for remote address in case the server has shut the connection down
         if self._client is None or self._client._closed or connection_error or (self._jsonerrors > 2):
             try:
+                if connection_error or (self._jsonerrors > 2):
+                    self._client.close()
                 self._jsonerrors = 0
                 self._client = await self.ConnectToTouch(self._touchIP,self._touchPort)
                 RinnaiSystem.clients[self._touchIP] = self._client
                 return True
-            except ConnectionRefusedError(err):
-                _LOGGER.debug("Error during renewConnection %s", err)
-            except ConnectionError(err):
-                _LOGGER.debug("Error during renewConnection %s", err)
-            except Exception(err):
-                _LOGGER.debug("Error during renewConnection %s", err)
+            except ConnectionRefusedError as crerr:
+                _LOGGER.debug("Error during renewConnection %s", crerr)
+            except ConnectionError as cerr:
+                _LOGGER.debug("Error during renewConnection %s", cerr)
+            except Exception as eerr:
+                _LOGGER.debug("Error during renewConnection %s", eerr)
         return False
 
     async def sendCmd(self, cmd):
@@ -614,8 +617,8 @@ class RinnaiSystem:
             client.settimeout(10)
             client.connect((touchIP, port))
             return client
-        except ConnectionRefusedError(err):
-            raise err
+        except ConnectionRefusedError as crerr:
+            raise crerr
             #should really take a few hours break to recover!
 
 
