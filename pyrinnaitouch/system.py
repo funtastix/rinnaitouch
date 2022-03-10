@@ -580,8 +580,11 @@ class RinnaiSystem:
         if self._nosendupdates > 5:
             self._nosendupdates = 0
             try:
+                _LOGGER.debug("sending empty command")
                 await self.SendToTouch("NA")
-            except:
+                _LOGGER.debug("sent empty command")
+            except Exception as err:
+                _LOGGER.debug("Empty command exception: %s", err)
                 pass
 
         if await self.renewConnection():
