@@ -580,7 +580,7 @@ class RinnaiSystem:
         if self._nosendupdates > 5:
             self._nosendupdates = 0
             try:
-                self.SendToTouch("NA")
+                await self.SendToTouch("NA")
             except:
                 pass
 
