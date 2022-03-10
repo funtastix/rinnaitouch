@@ -145,7 +145,7 @@ class RinnaiSystem:
         while 1:
             try:
                 data = client.recv(4096)
-                if data:
+                if data and (len(data) > 0):
                     total_data.append(data)
                 else:
                     nodata = True

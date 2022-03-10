@@ -15,6 +15,7 @@ PRESET_EVAP -> Evap mode
 
 """
 from __future__ import annotations
+from datetime import timedelta
 
 from collections.abc import Callable, Coroutine
 import logging
@@ -54,6 +55,8 @@ SUPPORT_FLAGS_MAIN = SUPPORT_TARGET_TEMPERATURE | SUPPORT_FAN_MODE | SUPPORT_PRE
 SUPPORT_FLAGS_ZONE = SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE
 
 _LOGGER = logging.getLogger(__name__)
+
+SCAN_INTERVAL = timedelta(seconds=5)
 
 async def async_setup_entry(hass, entry, async_add_entities):
     ip_address = entry.data.get(CONF_HOST)

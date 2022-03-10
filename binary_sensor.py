@@ -13,7 +13,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     ip_address = entry.data.get(CONF_HOST)
     async_add_entities([
         RinnaiPrewetBinarySensorEntity(ip_address, "Rinnai Touch Evap Prewetting Sensor"),
-        RinnaiPreheatBinarySensorEntity(ip_address, "Rinnai Touch Evap Preheating Sensor")
+        RinnaiPreheatBinarySensorEntity(ip_address, "Rinnai Touch Preheating Sensor")
     ])
     return True
 
