@@ -113,6 +113,7 @@ class RinnaiSystem:
         self._client = None
         self._zones = []
         self._jsonerrors = 0
+        self._nosendupdates = 0
         if ip_address not in RinnaiSystem.clients:
             RinnaiSystem.clients[ip_address] = self._client
         else:
@@ -145,7 +146,7 @@ class RinnaiSystem:
         while 1:
             try:
                 data = client.recv(4096)
-                if data:
+                if data and (len(data) > 0):
                     total_data.append(data)
                 else:
                     nodata = True
@@ -574,9 +575,18 @@ class RinnaiSystem:
             return False
 
     async def GetStatus(self):
-        #update only every 1.5 seconds max
-        #if self._lastupdated + 1.5 > time.time() :
-        #    return self.GetOfflineStatus()
+        #every 5 updates, blindly send an empty command to maintain the connection
+        self._nosendupdates = self._nosendupdates + 1
+        if self._nosendupdates > 5:
+            self._nosendupdates = 0
+            try:
+                _LOGGER.debug("sending empty command")
+                await self.SendToTouch(self._client, "NA")
+                _LOGGER.debug("sent empty command")
+            except Exception as err:
+                _LOGGER.debug("Empty command exception: %s", err)
+                pass
+
         if await self.renewConnection():
             status = BrivisStatus()
             _LOGGER.debug("Client Variable: %s / %s", self._client, self._client._closed)
