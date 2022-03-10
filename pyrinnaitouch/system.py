@@ -581,7 +581,7 @@ class RinnaiSystem:
             self._nosendupdates = 0
             try:
                 _LOGGER.debug("sending empty command")
-                await self.SendToTouch("NA")
+                await self.SendToTouch(self._client, "NA")
                 _LOGGER.debug("sent empty command")
             except Exception as err:
                 _LOGGER.debug("Empty command exception: %s", err)
