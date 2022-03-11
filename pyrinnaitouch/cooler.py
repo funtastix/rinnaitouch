@@ -35,6 +35,7 @@ def HandleCoolingMode(client,j,brivisStatus):
             _LOGGER.debug("Cooling is ON")
             brivisStatus.systemOn = True
             brivisStatus.coolingStatus.coolingOn = True
+            brivisStatus.heaterStatus.CirculationFanOn(switch)
 
             # Cooling is on - get attributes
             fanSpeed = GetAttribute(oop,"FL",None)
@@ -62,6 +63,7 @@ def HandleCoolingMode(client,j,brivisStatus):
             _LOGGER.debug("Cooling is OFF")
             brivisStatus.systemOn = False
             brivisStatus.coolingStatus.coolingOn = False
+            brivisStatus.heaterStatus.CirculationFanOn(switch)
 
         elif switch == "Z":
             _LOGGER.debug("Circulation Fan is: {}".format(switch))

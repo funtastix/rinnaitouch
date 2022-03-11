@@ -35,6 +35,7 @@ def HandleHeatingMode(client,j,brivisStatus):
             _LOGGER.debug("Heater is ON")
             brivisStatus.systemOn = True
             brivisStatus.heaterStatus.heaterOn = True
+            brivisStatus.heaterStatus.CirculationFanOn(switch)
 
             # Heater is on - get attributes
             fanSpeed = GetAttribute(oop,"FL",None)
@@ -68,6 +69,7 @@ def HandleHeatingMode(client,j,brivisStatus):
             _LOGGER.debug("Heater is OFF")
             brivisStatus.systemOn = False
             brivisStatus.heaterStatus.heaterOn = False
+            brivisStatus.heaterStatus.CirculationFanOn(switch)
 
         elif switch == "Z":
             _LOGGER.debug("Circulation Fan is: {}".format(switch))
