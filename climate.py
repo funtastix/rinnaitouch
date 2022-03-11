@@ -410,7 +410,10 @@ class RinnaiTouch(ClimateEntity):
             #_LOGGER.debug("External temperature sensor entity: %s", temperature_entity)
             if temperature_entity is not None and temperature_entity.state != "unavailable":
                 _LOGGER.debug("External temperature sensor reports: %s", temperature_entity.state)
-                self._sensor_temperature = int(round(float(temperature_entity.state)))
+                try:
+                    self._sensor_temperature = int(round(float(temperature_entity.state)))
+                except ValueError:
+                    self._sensor_temperature = 0
 
     @property
     def available(self):
