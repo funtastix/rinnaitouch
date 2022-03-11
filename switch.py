@@ -26,6 +26,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         RinnaiEvapModeSwitch(ip_address, "Rinnai Touch Evap Mode Switch"),
         RinnaiWaterpumpSwitch(ip_address, "Rinnai Touch Water Pump Switch"),
         RinnaiEvapFanSwitch(ip_address, "Rinnai Touch Evap Fan Switch"),
+        RinnaiCircFanSwitch(ip_address, "Rinnai Touch Evap Fan Switch"),
         RinnaiAutoSwitch(ip_address, "Rinnai Touch Auto Switch")
     ])
     if entry.data.get(CONF_ZONE_A):
@@ -368,6 +369,56 @@ class RinnaiAutoSwitch(RinnaiExtraEntity, SwitchEntity):
                 await self._system.set_heater_manual()
             if self._system._status.evapMode:
                 await self._system.set_evap_manual()
+
+class RinnaiCircFanSwitch(RinnaiExtraEntity, SwitchEntity):
+
+    def __init__(self, ip_address, name):
+        super().__init__(ip_address, name)
+        self._is_on = False
+
+    @property
+    def icon(self):
+        """Return the icon to use in the frontend for this device."""
+        if self.is_on:
+            return "mdi:fan"
+        else:
+            return "mdi:fan-off"
+
+    @property
+    def available(self):
+        if (
+            self._system._status.systemOn 
+            and (
+                (self._system._status.coolingMode and not self._system._status.coolingStatus.coolingOn)
+                or (self._system._status.heaterMode and not self._system._status.heaterStatus.heaterOn)
+            )
+        ):
+            return True
+        else:
+            return False
+
+    @property
+    def is_on(self):
+        if self.available:
+            if self._system._status.coolingMode:
+                return self._system._status.heaterStatus.circulationFanOn
+            if self._system._status.heaterMode:
+                return self._system._status.coolingStatus.circulationFanOn
+        return False
+
+    async def async_turn_on(self, **kwargs):
+        if self.available:
+            if self._system._status.coolingMode:
+                await self._system.turn_cooling_fan_only()
+            if self._system._status.heaterMode:
+                await self._system.turn_heater_fan_only()
+
+    async def async_turn_off(self, **kwargs):
+        if self.available:
+            if self._system._status.coolingMode:
+                await self._system.turn_cooling_off()
+            if self._system._status.heaterMode:
+                await self._system.turn_heater_off()
 
 class RinnaiZoneAutoSwitch(RinnaiExtraEntity, SwitchEntity):
 

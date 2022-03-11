@@ -72,7 +72,12 @@ def HandleHeatingMode(client,j,brivisStatus):
         elif switch == "Z":
             _LOGGER.debug("Circulation Fan is: {}".format(switch))
             brivisStatus.systemOn = True
+            brivisStatus.heaterStatus.heaterOn = False
             brivisStatus.heaterStatus.CirculationFanOn(switch)
+
+            fanSpeed = GetAttribute(oop,"FL",None)
+            _LOGGER.debug("Fan Speed is: {}".format(fanSpeed))
+            brivisStatus.heaterStatus.fanSpeed = int(fanSpeed) # Should catch errors!
 
         za = zb = zc = zd = None
         z = GetAttribute(j[1].get("HGOM"),"ZAO",None)
