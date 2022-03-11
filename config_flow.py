@@ -8,7 +8,7 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_NAME
 from homeassistant.data_entry_flow import AbortFlow
 
-from .const import DEFAULT_NAME, DOMAIN, CONF_TEMP_SENSOR, CONF_ZONE_A, CONF_ZONE_B, CONF_ZONE_C, CONF_ZONE_D
+from .const import *
 from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
 
 _LOGGER = logging.getLogger(__name__)
