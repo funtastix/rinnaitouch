@@ -401,9 +401,9 @@ class RinnaiCircFanSwitch(RinnaiExtraEntity, SwitchEntity):
     def is_on(self):
         if self.available:
             if self._system._status.coolingMode:
-                return self._system._status.heaterStatus.circulationFanOn
-            if self._system._status.heaterMode:
                 return self._system._status.coolingStatus.circulationFanOn
+            if self._system._status.heaterMode:
+                return self._system._status.heaterStatus.circulationFanOn
         return False
 
     async def async_turn_on(self, **kwargs):
