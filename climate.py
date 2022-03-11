@@ -56,6 +56,7 @@ from .const import *
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.const import PRECISION_HALVES, PRECISION_TENTHS
+from numbers import Number
 
 SUPPORT_FLAGS_MAIN = SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE
 SUPPORT_FLAGS_ZONE = SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE
