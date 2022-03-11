@@ -38,6 +38,7 @@ from homeassistant.components.climate.const import (
     ATTR_MIN_TEMP,
     ATTR_MAX_TEMP,
     ATTR_TARGET_TEMP_STEP,
+    ATTR_HVAC_ACTION,
     SUPPORT_TARGET_TEMPERATURE,
     SUPPORT_PRESET_MODE
 )
@@ -155,6 +156,49 @@ class RinnaiTouch(ClimateEntity):
 
         if supported_features & SUPPORT_PRESET_MODE:
             data[ATTR_PRESET_MODES] = self.preset_modes
+
+        return data
+
+    @property
+    def state_attributes(self) -> dict[str, Any]:
+        """Return the optional state attributes."""
+        supported_features = self.supported_features
+        data: dict[str, str | float | None] = {
+            ATTR_CURRENT_TEMPERATURE: display_temp(
+                self.hass,
+                self.current_temperature,
+                self.temperature_unit,
+                self.precision,
+            ),
+        }
+
+        if supported_features & SUPPORT_TARGET_TEMPERATURE:
+            data[ATTR_TEMPERATURE] = display_temp(
+                self.hass,
+                self.target_temperature,
+                self.temperature_unit,
+                self.precision,
+            )
+
+        if supported_features & SUPPORT_TARGET_TEMPERATURE_RANGE:
+            data[ATTR_TARGET_TEMP_HIGH] = display_temp(
+                self.hass,
+                self.target_temperature_high,
+                self.temperature_unit,
+                self.precision,
+            )
+            data[ATTR_TARGET_TEMP_LOW] = display_temp(
+                self.hass,
+                self.target_temperature_low,
+                self.temperature_unit,
+                self.precision,
+            )
+
+        if self.hvac_action:
+            data[ATTR_HVAC_ACTION] = self.hvac_action
+
+        if supported_features & SUPPORT_PRESET_MODE:
+            data[ATTR_PRESET_MODE] = self.preset_mode
 
         return data
 
