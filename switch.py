@@ -26,7 +26,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         RinnaiEvapModeSwitch(ip_address, "Rinnai Touch Evap Mode Switch"),
         RinnaiWaterpumpSwitch(ip_address, "Rinnai Touch Water Pump Switch"),
         RinnaiEvapFanSwitch(ip_address, "Rinnai Touch Evap Fan Switch"),
-        RinnaiCircFanSwitch(ip_address, "Rinnai Touch Evap Fan Switch"),
+        RinnaiCircFanSwitch(ip_address, "Rinnai Touch Circulation Fan Switch"),
         RinnaiAutoSwitch(ip_address, "Rinnai Touch Auto Switch")
     ])
     if entry.data.get(CONF_ZONE_A):
