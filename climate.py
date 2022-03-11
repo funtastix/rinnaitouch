@@ -58,6 +58,35 @@ _LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL = timedelta(seconds=5)
 
+def display_temp(
+    hass: HomeAssistant, temperature: float | None, unit: str, precision: float
+) -> float | None:
+    """Convert temperature into preferred units/precision for display."""
+    temperature_unit = unit
+    ha_unit = hass.config.units.temperature_unit
+
+    if temperature is None:
+        return temperature
+
+    # If the temperature is not a number this can cause issues
+    # with Polymer components, so bail early there.
+    if not isinstance(temperature, Number):
+        raise TypeError(f"Temperature is not a number: {temperature}")
+
+    if temperature_unit != ha_unit and temperature_unit in (TEMP_CELSIUS, TEMP_FAHRENHEIT):
+        temperature = convert_temperature(temperature, temperature_unit, ha_unit)
+
+    # Round in the units appropriate
+    if precision == PRECISION_HALVES:
+        temperature = round(temperature * 2) / 2.0
+    elif precision == PRECISION_TENTHS:
+        temperature = round(temperature, 1)
+    # Integer as a fall back (PRECISION_WHOLE)
+    else:
+        temperature = round(temperature)
+
+    return temperature
+
 async def async_setup_entry(hass, entry, async_add_entities):
     ip_address = entry.data.get(CONF_HOST)
     name = entry.data.get(CONF_NAME)
@@ -99,6 +128,38 @@ class RinnaiTouch(ClimateEntity):
 
     def system_updated(self):
         self.async_write_ha_state()
+
+    @property
+    def capability_attributes(self) -> dict[str, Any] | None:
+        """Return the capability attributes."""
+        supported_features = self.supported_features
+        data = {
+            ATTR_HVAC_MODES: self.hvac_modes,
+            ATTR_MIN_TEMP: display_temp(
+                self.hass, self.min_temp, self.temperature_unit, self.precision
+            ),
+            ATTR_MAX_TEMP: display_temp(
+                self.hass, self.max_temp, self.temperature_unit, self.precision
+            ),
+        }
+
+        if self.target_temperature_step:
+            data[ATTR_TARGET_TEMP_STEP] = self.target_temperature_step
+
+        if supported_features & SUPPORT_TARGET_HUMIDITY:
+            data[ATTR_MIN_HUMIDITY] = self.min_humidity
+            data[ATTR_MAX_HUMIDITY] = self.max_humidity
+
+        if supported_features & SUPPORT_FAN_MODE:
+            data[ATTR_FAN_MODES] = self.fan_modes
+
+        if supported_features & SUPPORT_PRESET_MODE:
+            data[ATTR_PRESET_MODES] = self.preset_modes
+
+        if supported_features & SUPPORT_SWING_MODE:
+            data[ATTR_SWING_MODES] = self.swing_modes
+
+        return data
 
     @property
     def supported_features(self):
@@ -154,6 +215,13 @@ class RinnaiTouch(ClimateEntity):
     @property
     def temperature_unit(self):
         """Return the unit of measurement."""
+        if self.hvac_mode == HVAC_MODE_FAN_ONLY:
+            return UNIT_FAN_SPEED
+        if self.preset_mode == PRESET_EVAP:
+            if self.hvac_mode == HVAC_MODE_AUTO:
+                return UNIT_COMFORT_LEVEL
+            else:
+                return UNIT_FAN_SPEED
         if self._system._status.tempUnit == RinnaiSystem.TEMP_FAHRENHEIT:
             return TEMP_FAHRENHEIT
         return TEMP_CELSIUS
