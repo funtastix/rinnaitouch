@@ -21,7 +21,7 @@ from datetime import timedelta
 from collections.abc import Callable, Coroutine
 import logging
 
-from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
+from pyrinnaitouch import RinnaiSystem
 
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
