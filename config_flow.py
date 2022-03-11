@@ -17,9 +17,13 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_HOST): str,
         vol.Required(CONF_ZONE_A): bool,
+        vol.Optional(CONF_TEMP_SENSOR_A): str,
         vol.Required(CONF_ZONE_B): bool,
+        vol.Optional(CONF_TEMP_SENSOR_B): str,
         vol.Required(CONF_ZONE_C): bool,
+        vol.Optional(CONF_TEMP_SENSOR_C): str,
         vol.Required(CONF_ZONE_D): bool,
+        vol.Optional(CONF_TEMP_SENSOR_D): str,
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): str,
         vol.Optional(CONF_TEMP_SENSOR): str
     }
