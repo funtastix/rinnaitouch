@@ -8,7 +8,7 @@ from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
 
-from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
+from pyrinnaitouch import RinnaiSystem
 
 from .const import DOMAIN
 from homeassistant.const import Platform

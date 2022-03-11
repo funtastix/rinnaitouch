@@ -9,7 +9,7 @@ from homeassistant.const import CONF_HOST, CONF_NAME
 from homeassistant.data_entry_flow import AbortFlow
 
 from .const import *
-from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
+from pyrinnaitouch import RinnaiSystem
 
 _LOGGER = logging.getLogger(__name__)
 
