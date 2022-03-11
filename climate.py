@@ -40,7 +40,6 @@ from homeassistant.components.climate.const import (
     ATTR_TARGET_TEMP_STEP,
     ATTR_CURRENT_TEMPERATURE,
     ATTR_HVAC_ACTION,
-    ATTR_TEMPERATURE,
     SUPPORT_TARGET_TEMPERATURE,
     SUPPORT_PRESET_MODE
 )
