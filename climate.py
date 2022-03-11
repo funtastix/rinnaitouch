@@ -33,6 +33,11 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_OFF,
     HVAC_MODES,
     ATTR_HVAC_MODE,
+    ATTR_HVAC_MODES,
+    ATTR_PRESET_MODES,
+    ATTR_MIN_TEMP,
+    ATTR_MAX_TEMP,
+    ATTR_TARGET_TEMP_STEP,
     SUPPORT_TARGET_TEMPERATURE,
     SUPPORT_PRESET_MODE
 )
@@ -146,18 +151,8 @@ class RinnaiTouch(ClimateEntity):
         if self.target_temperature_step:
             data[ATTR_TARGET_TEMP_STEP] = self.target_temperature_step
 
-        if supported_features & SUPPORT_TARGET_HUMIDITY:
-            data[ATTR_MIN_HUMIDITY] = self.min_humidity
-            data[ATTR_MAX_HUMIDITY] = self.max_humidity
-
-        if supported_features & SUPPORT_FAN_MODE:
-            data[ATTR_FAN_MODES] = self.fan_modes
-
         if supported_features & SUPPORT_PRESET_MODE:
             data[ATTR_PRESET_MODES] = self.preset_modes
-
-        if supported_features & SUPPORT_SWING_MODE:
-            data[ATTR_SWING_MODES] = self.swing_modes
 
         return data
 
