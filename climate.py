@@ -7,6 +7,7 @@ HVAC modes:
 HVAC_MODE_HEAT_COOL -> Manual Mode (all operating modes)
 HVAC_MODE_AUTO -> Auto Mode (all operating modes)
 HVAC_MODE_OFF -> Unit Off (any operating mode)
+HVAC_MODE_FAN_ONLY - Only circulation fan is on while in heating or cooling mode
 
 PRESET modes:
 PRESET_COOL -> Cooling mode
@@ -32,7 +33,6 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_OFF,
     HVAC_MODES,
     ATTR_HVAC_MODE,
-    SUPPORT_FAN_MODE,
     SUPPORT_TARGET_TEMPERATURE,
     SUPPORT_PRESET_MODE
 )
@@ -51,7 +51,7 @@ from .const import *
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 
-SUPPORT_FLAGS_MAIN = SUPPORT_TARGET_TEMPERATURE | SUPPORT_FAN_MODE | SUPPORT_PRESET_MODE
+SUPPORT_FLAGS_MAIN = SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE
 SUPPORT_FLAGS_ZONE = SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE
 
 _LOGGER = logging.getLogger(__name__)
@@ -139,6 +139,9 @@ class RinnaiTouch(ClimateEntity):
         if hvac_mode == HVAC_MODE_OFF:
             return "mdi:hvac-off"
 
+        if hvac_mode == HVAC_MODE_FAN_ONLY:
+            return "mdi:fan"
+
         preset_mode = self.preset_mode
 
         if preset_mode == PRESET_COOL:
@@ -162,14 +165,20 @@ class RinnaiTouch(ClimateEntity):
             return 0
         else:
             if self.preset_mode == PRESET_COOL:
-                return self._system._status.coolingStatus.setTemp
+                if self.hvac_mode == HVAC_MODE_FAN_ONLY:
+                    return self._system._status.coolingStatus.fanSpeed
+                else:
+                    return self._system._status.coolingStatus.setTemp
             if self.preset_mode == PRESET_EVAP:
                 if self.hvac_mode == HVAC_MODE_AUTO:
                     return int(self._system._status.evapStatus.comfort)
                 elif self.hvac_mode == HVAC_MODE_HEAT_COOL:
                     return int(self._system._status.evapStatus.fanSpeed)
             if self.preset_mode == PRESET_HEAT:
-                return self._system._status.heaterStatus.setTemp
+                if self.hvac_mode == HVAC_MODE_FAN_ONLY:
+                    return self._system._status.heaterStatus.fanSpeed
+                else:
+                    return self._system._status.heaterStatus.setTemp
         return 999
 
     @property
@@ -181,7 +190,10 @@ class RinnaiTouch(ClimateEntity):
     def min_temp(self):
         """Return the minimum temperature."""
         if self.preset_mode == PRESET_COOL or self.preset_mode == PRESET_HEAT:
-            return self._TEMPERATURE_LIMITS["min"]
+            if self.hvac_mode == HVAC_MODE_FAN_ONLY:
+                return self._FAN_LIMITS["min"]
+            else:
+                return self._TEMPERATURE_LIMITS["min"]
         elif self.preset_mode == PRESET_EVAP and self.hvac_mode == HVAC_MODE_AUTO:
             return self._COMFORT_LIMITS["min"]
         else:
@@ -191,7 +203,10 @@ class RinnaiTouch(ClimateEntity):
     def max_temp(self):
         """Return the maximum temperature."""
         if self.preset_mode == PRESET_COOL or self.preset_mode == PRESET_HEAT:
-            return self._TEMPERATURE_LIMITS["max"]
+            if self.hvac_mode == HVAC_MODE_FAN_ONLY:
+                return self._FAN_LIMITS["max"]
+            else:
+                return self._TEMPERATURE_LIMITS["max"]
         elif self.preset_mode == PRESET_EVAP and self.hvac_mode == HVAC_MODE_AUTO:
             return self._COMFORT_LIMITS["max"]
         else:
@@ -231,6 +246,14 @@ class RinnaiTouch(ClimateEntity):
                     await self._system.turn_heater_off()
                 if self.preset_mode == PRESET_EVAP:
                     await self._system.turn_evap_off()
+            elif hvac_mode == HVAC_MODE_FAN_ONLY:
+                #turn whatever the preset is off
+                if self.preset_mode == PRESET_COOL:
+                    await self._system.turn_cooling_off()
+                    await self._system.turn_cooling_fan_only()
+                if self.preset_mode == PRESET_HEAT:
+                    await self._system.turn_heater_off()
+                    await self._system.turn_heater_fan_only()
 
     async def async_set_preset_mode(self, preset_mode):
         """Set new target preset mode."""
@@ -241,25 +264,6 @@ class RinnaiTouch(ClimateEntity):
                 await self._system.set_heater_mode()
             if preset_mode == PRESET_EVAP:
                 await self._system.set_evap_mode()
-
-    async def async_set_fan_mode(self, fan_mode):
-        """Set new target fan mode."""
-        if not fan_mode == self.fan_mode:
-            if self.preset_mode == PRESET_COOL:
-                if fan_mode == FAN_OFF:
-                    await self._system.turn_cooling_off()
-                if fan_mode == FAN_ON:
-                    await self._system.turn_cooling_fan_only()
-            if self.preset_mode == PRESET_HEAT:
-                if fan_mode == FAN_OFF:
-                    await self._system.turn_heater_off()
-                if fan_mode == FAN_ON:
-                    await self._system.turn_heater_fan_only()
-            if self.preset_mode == PRESET_EVAP:
-                if fan_mode == FAN_OFF:
-                    await self._system.turn_evap_fan_off()
-                if fan_mode == FAN_ON:
-                    await self._system.turn_evap_fan_on()
 
     def set_humidity(self, humidity):
         """Set new target humidity."""
@@ -283,9 +287,15 @@ class RinnaiTouch(ClimateEntity):
                 f'{self.min_temp} and {self.max_temp}.'
             )
         if self.preset_mode == PRESET_COOL:
-            await self._system.set_cooling_temp(target_temperature)
+            if self.hvac_mode == HVAC_MODE_FAN_ONLY:
+                await self._system.set_cooling_fanspeed(target_temperature)
+            else:
+                await self._system.set_cooling_temp(target_temperature)
         if self.preset_mode == PRESET_HEAT:
-            await self._system.set_heater_temp(target_temperature)
+            if self.hvac_mode == HVAC_MODE_FAN_ONLY:
+                await self._system.set_heater_fanspeed(target_temperature)
+            else:
+                await self._system.set_heater_temp(target_temperature)
         if self.preset_mode == PRESET_EVAP and self.hvac_mode == HVAC_MODE_AUTO :
             await self._system.set_evap_comfort(target_temperature)
         if self.preset_mode == PRESET_EVAP and self.hvac_mode == HVAC_MODE_HEAT_COOL :
@@ -327,15 +337,23 @@ class RinnaiTouch(ClimateEntity):
         if not self._system._status.systemOn:
             return HVAC_MODE_OFF
         if self.preset_mode == PRESET_COOL:
-            if self._system._status.coolingStatus.manualMode:
-                return HVAC_MODE_HEAT_COOL
-            elif self._system._status.coolingStatus.autoMode:
-                return HVAC_MODE_AUTO
+            if self._system._status.coolingStatus.coolingOn:
+                if self._system._status.coolingStatus.manualMode:
+                    return HVAC_MODE_HEAT_COOL
+                elif self._system._status.coolingStatus.autoMode:
+                    return HVAC_MODE_AUTO
+            else:
+                #system on, cooling mode, but cooling off indicates fan only
+                return HVAC_MODE_FAN_ONLY
         if self.preset_mode == PRESET_HEAT:
-            if self._system._status.heaterStatus.manualMode:
-                return HVAC_MODE_HEAT_COOL
-            elif self._system._status.heaterStatus.autoMode:
-                return HVAC_MODE_AUTO
+            if self._system._status.heaterStatus.heaterOn:
+                if self._system._status.heaterStatus.manualMode:
+                    return HVAC_MODE_HEAT_COOL
+                elif self._system._status.heaterStatus.autoMode:
+                    return HVAC_MODE_AUTO
+            else:
+                #system on, heater mode, but heater off indicates fan only
+                return HVAC_MODE_FAN_ONLY
         if self.preset_mode == PRESET_EVAP:
             if self._system._status.evapStatus.manualMode:
                 return HVAC_MODE_HEAT_COOL
@@ -346,41 +364,10 @@ class RinnaiTouch(ClimateEntity):
     @property
     def hvac_modes(self):
         """Return the list of available HVAC modes."""
-        return [HVAC_MODE_HEAT_COOL, HVAC_MODE_AUTO, HVAC_MODE_OFF ]
-
-    @property
-    def fan_mode(self):
-        """Return current HVAC mode, ie Heat or Off."""
         if self.preset_mode == PRESET_EVAP:
-            if self._system._status.evapStatus.fanOn:
-                return FAN_ON
-            else:
-                return FAN_OFF
-        elif self.preset_mode == PRESET_COOL:
-            if self._system._status.coolingStatus.circulationFanOn:
-                return FAN_ON
-            else:
-                return FAN_OFF
-        elif self.preset_mode == PRESET_HEAT:
-            if self._system._status.heaterStatus.circulationFanOn:
-                return FAN_ON
-            else:
-                return FAN_OFF
-        return FAN_OFF
-
-    @property
-    def fan_modes(self):
-        """Return the list of available fan modes."""
-        if self.preset_mode == PRESET_EVAP:
-            if self._system._status.evapStatus.evapOn:
-                return [FAN_ON, FAN_OFF ]
-        elif self.preset_mode == PRESET_HEAT:
-            if not self._system._status.systemOn or self._system._status.heaterStatus.circulationFanOn:
-                return [FAN_ON, FAN_OFF ]
-        elif self.preset_mode == PRESET_COOL:
-            if not self._system._status.systemOn or self._system._status.coolingStatus.circulationFanOn:
-                return [FAN_ON, FAN_OFF ]
-        return [ ]
+            return [HVAC_MODE_HEAT_COOL, HVAC_MODE_AUTO, HVAC_MODE_OFF ]
+        else:
+            return [HVAC_MODE_HEAT_COOL, HVAC_MODE_AUTO, HVAC_MODE_FAN_ONLY, HVAC_MODE_OFF ]
 
     @property
     def preset_mode(self):
@@ -488,6 +475,8 @@ class RinnaiTouchZone(ClimateEntity):
     #        "manufacturer": "Rinnai/Brivis",
     #    }
 
+
+    #TODO: add Multi-Set Point Fan Only mode for zones
     @property
     def icon(self):
         """Return the icon to use in the frontend for this device."""

@@ -445,7 +445,7 @@ class RinnaiSystem:
     async def set_evap_fanspeed(self, speed):
         cmd=evapFanSpeed
         if self.validateCmd(cmd):
-            await self.sendCmd(cmd.format(speed=speed))
+            await self.sendCmd(cmd.format(speed=f'{speed:02d}'))
             return True
         else:
             return False
@@ -453,7 +453,7 @@ class RinnaiSystem:
     async def set_heater_fanspeed(self, speed):
         cmd=heatCircFanSpeed
         if self.validateCmd(cmd):
-            await self.sendCmd(cmd.format(speed=speed))
+            await self.sendCmd(cmd.format(speed=f'{speed:02d}'))
             return True
         else:
             return False
@@ -461,7 +461,7 @@ class RinnaiSystem:
     async def set_cooling_fanspeed(self, speed):
         cmd=coolCircFanSpeed
         if self.validateCmd(cmd):
-            await self.sendCmd(cmd.format(speed=speed))
+            await self.sendCmd(cmd.format(speed=f'{speed:02d}'))
             return True
         else:
             return False

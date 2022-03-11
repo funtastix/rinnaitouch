@@ -36,6 +36,11 @@ def HandleCoolingMode(client,j,brivisStatus):
             brivisStatus.systemOn = True
             brivisStatus.coolingStatus.coolingOn = True
 
+            # Cooling is on - get attributes
+            fanSpeed = GetAttribute(oop,"FL",None)
+            _LOGGER.debug("Fan Speed is: {}".format(fanSpeed))
+            brivisStatus.heaterStatus.fanSpeed = int(fanSpeed) # Should catch errors!
+
             # GSO should be there
             gso = GetAttribute(j[1].get("CGOM"),"GSO",None)
             if not gso:
@@ -62,6 +67,10 @@ def HandleCoolingMode(client,j,brivisStatus):
             _LOGGER.debug("Circulation Fan is: {}".format(switch))
             brivisStatus.systemOn = True
             brivisStatus.heaterStatus.CirculationFanOn(switch)
+
+            fanSpeed = GetAttribute(oop,"FL",None)
+            _LOGGER.debug("Fan Speed is: {}".format(fanSpeed))
+            brivisStatus.heaterStatus.fanSpeed = int(fanSpeed) # Should catch errors!
 
         za = zb = zc = zd = None
         z = GetAttribute(j[1].get("CGOM"),"ZAO",None)
@@ -106,6 +115,7 @@ def HandleCoolingMode(client,j,brivisStatus):
 class CoolingStatus():
     """Cooling function status"""
     coolingOn = False
+    fanSpeed = 0
     circulationFanOn = False
     manualMode = False
     autoMode = False
