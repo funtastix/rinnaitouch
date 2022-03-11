@@ -391,7 +391,7 @@ class RinnaiCircFanSwitch(RinnaiExtraEntity, SwitchEntity):
             and (
                 (self._system._status.coolingMode and not self._system._status.coolingStatus.coolingOn)
                 or (self._system._status.heaterMode and not self._system._status.heaterStatus.heaterOn)
-            )
+            ) or not self._system._status.systemOn
         ):
             return True
         else:
