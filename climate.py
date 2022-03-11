@@ -34,6 +34,7 @@ from homeassistant.components.climate.const import (
     HVAC_MODES,
     ATTR_HVAC_MODE,
     ATTR_HVAC_MODES,
+    ATTR_PRESET_MODE,
     ATTR_PRESET_MODES,
     ATTR_MIN_TEMP,
     ATTR_MAX_TEMP,
