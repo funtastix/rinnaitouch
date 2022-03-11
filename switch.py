@@ -11,7 +11,7 @@ from .const import (
     CONF_ZONE_D
 )
 
-from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
+from pyrinnaitouch import RinnaiSystem
 
 import logging
 

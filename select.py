@@ -8,7 +8,7 @@ from .const import (
     PRESET_COOL,
     PRESET_EVAP
 )
-from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
+from pyrinnaitouch import RinnaiSystem
 
 import logging
 

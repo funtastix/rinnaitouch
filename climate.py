@@ -21,7 +21,7 @@ from datetime import timedelta
 from collections.abc import Callable, Coroutine
 import logging
 
-from custom_components.rinnaitouch.pyrinnaitouch import RinnaiSystem
+from pyrinnaitouch import RinnaiSystem
 
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
@@ -62,15 +62,19 @@ async def async_setup_entry(hass, entry, async_add_entities):
     ip_address = entry.data.get(CONF_HOST)
     name = entry.data.get(CONF_NAME)
     temperature_entity = entry.data.get(CONF_TEMP_SENSOR)
+    temperature_entity_a = entry.data.get(CONF_TEMP_SENSOR_A)
+    temperature_entity_b = entry.data.get(CONF_TEMP_SENSOR_B)
+    temperature_entity_c = entry.data.get(CONF_TEMP_SENSOR_C)
+    temperature_entity_d = entry.data.get(CONF_TEMP_SENSOR_D)
     async_add_entities([RinnaiTouch(hass, ip_address, name, temperature_entity)])
     if entry.data.get(CONF_ZONE_A):
-        async_add_entities([RinnaiTouchZone(hass, ip_address, name, "A")])
+        async_add_entities([RinnaiTouchZone(hass, ip_address, name, "A", temperature_entity_a)])
     if entry.data.get(CONF_ZONE_B):
-        async_add_entities([RinnaiTouchZone(hass, ip_address, name, "B")])
+        async_add_entities([RinnaiTouchZone(hass, ip_address, name, "B", temperature_entity_b)])
     if entry.data.get(CONF_ZONE_C):
-        async_add_entities([RinnaiTouchZone(hass, ip_address, name, "C")])
+        async_add_entities([RinnaiTouchZone(hass, ip_address, name, "C", temperature_entity_c)])
     if entry.data.get(CONF_ZONE_D):
-        async_add_entities([RinnaiTouchZone(hass, ip_address, name, "D")])
+        async_add_entities([RinnaiTouchZone(hass, ip_address, name, "D", temperature_entity_d)])
     return True
 
 class RinnaiTouch(ClimateEntity):
@@ -410,7 +414,10 @@ class RinnaiTouch(ClimateEntity):
             #_LOGGER.debug("External temperature sensor entity: %s", temperature_entity)
             if temperature_entity is not None and temperature_entity.state != "unavailable":
                 _LOGGER.debug("External temperature sensor reports: %s", temperature_entity.state)
-                self._sensor_temperature = int(round(float(temperature_entity.state)))
+                try:
+                    self._sensor_temperature = int(round(float(temperature_entity.state)))
+                except ValueError:
+                    self._sensor_temperature = 0
 
     @property
     def available(self):
@@ -422,7 +429,7 @@ class RinnaiTouch(ClimateEntity):
 class RinnaiTouchZone(ClimateEntity):
 
     #some common
-    def __init__(self, hass, ip_address, name, zone):
+    def __init__(self, hass, ip_address, name, zone, temperature_entity = None):
         self._host = ip_address
         _LOGGER.debug("Set up RinnaiTouch zone %s entity %s", zone, ip_address)
         self._system = RinnaiSystem.getInstance(ip_address)
@@ -431,6 +438,10 @@ class RinnaiTouchZone(ClimateEntity):
         self._attr_unique_id = device_id
         self._attr_name = name + " Zone " + zone
         self._attr_zone = zone
+
+        self._temerature_entity_name = temperature_entity
+        self._sensor_temperature = 0
+        self.update_external_temperature()
 
         self._hass = hass
 
@@ -628,7 +639,7 @@ class RinnaiTouchZone(ClimateEntity):
 
         if int(temp) < 999:
             return int(round(float(temp)/10))
-        return 0
+        return self._sensor_temperature
 
     #not common
     @property
@@ -703,3 +714,16 @@ class RinnaiTouchZone(ClimateEntity):
         elif self._system._status.coolingMode:
             return self._attr_zone in self._system._status.coolingStatus.zones
         return False
+
+    def update_external_temperature(self):
+        _LOGGER.debug("External temperature sensor entity name (zone %s): %s", self._attr_zone, self._temerature_entity_name)
+        if self._temerature_entity_name is not None:
+            temperature_entity = self._hass.states.get(self._temerature_entity_name)
+            #_LOGGER.debug("External temperature sensor entity: %s", temperature_entity)
+            if temperature_entity is not None and temperature_entity.state != "unavailable":
+                _LOGGER.debug("External temperature sensor reports: %s", temperature_entity.state)
+                try:
+                    self._sensor_temperature = int(round(float(temperature_entity.state)))
+                except ValueError:
+                    self._sensor_temperature = 0
+
