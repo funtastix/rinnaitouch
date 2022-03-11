@@ -38,7 +38,9 @@ from homeassistant.components.climate.const import (
     ATTR_MIN_TEMP,
     ATTR_MAX_TEMP,
     ATTR_TARGET_TEMP_STEP,
+    ATTR_CURRENT_TEMPERATURE,
     ATTR_HVAC_ACTION,
+    ATTR_TEMPERATURE,
     SUPPORT_TARGET_TEMPERATURE,
     SUPPORT_PRESET_MODE
 )
@@ -176,20 +178,6 @@ class RinnaiTouch(ClimateEntity):
             data[ATTR_TEMPERATURE] = display_temp(
                 self.hass,
                 self.target_temperature,
-                self.temperature_unit,
-                self.precision,
-            )
-
-        if supported_features & SUPPORT_TARGET_TEMPERATURE_RANGE:
-            data[ATTR_TARGET_TEMP_HIGH] = display_temp(
-                self.hass,
-                self.target_temperature_high,
-                self.temperature_unit,
-                self.precision,
-            )
-            data[ATTR_TARGET_TEMP_LOW] = display_temp(
-                self.hass,
-                self.target_temperature_low,
                 self.temperature_unit,
                 self.precision,
             )
