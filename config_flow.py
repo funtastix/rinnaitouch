@@ -1,4 +1,3 @@
-# pylint: skip-file
 """Config flow for rinnai-brivis-wifi."""
 import logging
 
@@ -8,8 +7,21 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_NAME
 from homeassistant.data_entry_flow import AbortFlow
 
-from .const import *
 from pyrinnaitouch import RinnaiSystem
+
+from .const import (
+    DOMAIN,
+    CONF_ZONE_A,
+    CONF_ZONE_B,
+    CONF_ZONE_C,
+    CONF_ZONE_D,
+    CONF_TEMP_SENSOR,
+    CONF_TEMP_SENSOR_A,
+    CONF_TEMP_SENSOR_B,
+    CONF_TEMP_SENSOR_C,
+    CONF_TEMP_SENSOR_D,
+    DEFAULT_NAME
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,7 +62,7 @@ class RinnaiTouchConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             system.setZones(zones)
             device_id = "rinnaitouch_" + str.replace(user_input[CONF_HOST], ".", "_")
             try:
-               status = await system.GetStatus() 
+                status = await system.GetStatus() # pylint: disable=unused-variable
             except AbortFlow:
                 return self.async_abort(reason="single_instance_allowed")
             except Exception:  # pylint: disable=broad-except

@@ -1,4 +1,4 @@
-# pylint: skip-file
+"""Set up main entity."""
 import logging
 from dataclasses import dataclass
 
@@ -7,15 +7,22 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
+from homeassistant.const import Platform
 
 from pyrinnaitouch import RinnaiSystem
 
 from .const import DOMAIN
-from homeassistant.const import Platform
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = [Platform.CLIMATE, Platform.SWITCH, Platform.BINARY_SENSOR, Platform.SENSOR, Platform.BUTTON, Platform.SELECT]
+PLATFORMS = [
+    Platform.CLIMATE,
+    Platform.SWITCH,
+    Platform.BINARY_SENSOR,
+    Platform.SENSOR,
+    Platform.BUTTON,
+    Platform.SELECT
+]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up the rinnaitouch integration from a config entry."""
@@ -54,6 +61,7 @@ class RinnaiData:
     scenes: list
 
 class RinnaiEntity(Entity):
+    """Base entity."""
 
     def __init__(self):
         pass
