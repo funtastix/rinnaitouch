@@ -1,20 +1,23 @@
+"""Select to choose preset"""
+import logging
+
 from homeassistant.components.select import SelectEntity
 from homeassistant.const import (
     CONF_HOST
 )
+
+from pyrinnaitouch import RinnaiSystem
 
 from .const import (
     PRESET_HEAT,
     PRESET_COOL,
     PRESET_EVAP
 )
-from pyrinnaitouch import RinnaiSystem
-
-import logging
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass, entry, async_add_entities):
+async def async_setup_entry(hass, entry, async_add_entities): # pylint: disable=unused-argument
+    """Set up the preset select entities."""
     ip_address = entry.data.get(CONF_HOST)
     async_add_entities([
         RinnaiSelectPresetEntity(ip_address, "Rinnai Touch Preset Select")
@@ -22,6 +25,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     return True
 
 class RinnaiSelectPresetEntity(SelectEntity):
+    """A preset select entity."""
 
     def __init__(self, ip_address, name):
         self._host = ip_address
@@ -33,6 +37,7 @@ class RinnaiSelectPresetEntity(SelectEntity):
         self._system.SubscribeUpdates(self.system_updated)
 
     def system_updated(self):
+        """After system is updated write the new state to HA."""
         self.async_write_ha_state()
 
     @property
@@ -48,22 +53,21 @@ class RinnaiSelectPresetEntity(SelectEntity):
     @property
     def current_option(self):
         """If the switch is currently on or off."""
-        if self._system._status.heaterMode :
+        if self._system.GetOfflineStatus().heaterMode :
             return PRESET_HEAT
-        elif self._system._status.coolingMode :
+        if self._system.GetOfflineStatus().coolingMode :
             return PRESET_COOL
-        else:
-            return PRESET_EVAP
+        return PRESET_EVAP
 
     @property
     def options(self):
         """If the switch is currently on or off."""
         modes = []
-        if self._system._status.hasHeater:
+        if self._system.GetOfflineStatus().hasHeater:
             modes.append(PRESET_HEAT)
-        if self._system._status.hasCooling:
+        if self._system.GetOfflineStatus().hasCooling:
             modes.append(PRESET_COOL)
-        if self._system._status.hasEvap:
+        if self._system.GetOfflineStatus().hasEvap:
             modes.append(PRESET_EVAP)
         return modes
 

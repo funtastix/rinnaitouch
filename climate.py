@@ -1,4 +1,3 @@
-# pylint: skip-file
 """Support for the Rinnai Touch Controller.
 
 To support the controller and make it work with the HA climate entity,these are the mappings:
@@ -18,38 +17,42 @@ PRESET_EVAP -> Evap mode
 from __future__ import annotations
 from datetime import timedelta
 
-from collections.abc import Callable, Coroutine
 import logging
 
 from pyrinnaitouch import RinnaiSystem
 
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
-    FAN_ON,
-    FAN_OFF,
     HVAC_MODE_AUTO,
     HVAC_MODE_HEAT_COOL,
     HVAC_MODE_FAN_ONLY,
     HVAC_MODE_OFF,
-    HVAC_MODES,
-    ATTR_HVAC_MODE,
     SUPPORT_TARGET_TEMPERATURE,
     SUPPORT_PRESET_MODE
 )
 from homeassistant.const import (
     CONF_NAME,
     CONF_HOST,
-    PRECISION_WHOLE,
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
-    ATTR_TEMPERATURE,
-    STATE_UNAVAILABLE
+    ATTR_TEMPERATURE
 )
-
-from .const import *
-
-from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
+
+from .const import (
+    PRESET_HEAT,
+    PRESET_COOL,
+    PRESET_EVAP,
+    CONF_TEMP_SENSOR,
+    CONF_TEMP_SENSOR_A,
+    CONF_TEMP_SENSOR_B,
+    CONF_TEMP_SENSOR_C,
+    CONF_TEMP_SENSOR_D,
+    CONF_ZONE_A,
+    CONF_ZONE_B,
+    CONF_ZONE_C,
+    CONF_ZONE_D
+)
 
 SUPPORT_FLAGS_MAIN = SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE
 SUPPORT_FLAGS_ZONE = SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE
@@ -59,6 +62,7 @@ _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(seconds=5)
 
 async def async_setup_entry(hass, entry, async_add_entities):
+    """Set up climate entities."""
     ip_address = entry.data.get(CONF_HOST)
     name = entry.data.get(CONF_NAME)
     temperature_entity = entry.data.get(CONF_TEMP_SENSOR)
@@ -78,7 +82,9 @@ async def async_setup_entry(hass, entry, async_add_entities):
     return True
 
 class RinnaiTouch(ClimateEntity):
+    """Main climate entity for the unit."""
 
+    # pylint: disable=too-many-instance-attributes,too-many-public-methods
     def __init__(self, hass, ip_address, name = "Rinnai Touch", temperature_entity = None):
         self._host = ip_address
         _LOGGER.info("Set up RinnaiTouch entity %s", ip_address)
@@ -94,7 +100,7 @@ class RinnaiTouch(ClimateEntity):
         self.update_external_temperature()
 
         self._support_flags = SUPPORT_FLAGS_MAIN
-        
+
         self._TEMPERATURE_STEP = 1
         self._TEMPERATURE_LIMITS = {"min": 8, "max": 30}
         self._COMFORT_LIMITS = {"min": 19, "max": 34}
@@ -102,6 +108,7 @@ class RinnaiTouch(ClimateEntity):
         self._system.SubscribeUpdates(self.system_updated)
 
     def system_updated(self):
+        """After system is updated write the new state to HA."""
         self.async_write_ha_state()
 
     @property
@@ -155,34 +162,36 @@ class RinnaiTouch(ClimateEntity):
         if preset_mode == PRESET_HEAT:
             return "mdi:fire"
 
+        return "mdi:hvac"
+
     @property
     def temperature_unit(self):
         """Return the unit of measurement."""
-        if self._system._status.tempUnit == RinnaiSystem.TEMP_FAHRENHEIT:
+        if self._system.GetOfflineStatus().tempUnit == RinnaiSystem.TEMP_FAHRENHEIT:
             return TEMP_FAHRENHEIT
         return TEMP_CELSIUS
 
     @property
     def target_temperature(self):
         """Return the temperature we try to reach."""
+        # pylint: disable=too-many-return-statements
         if self.hvac_mode == HVAC_MODE_OFF:
             return 0
-        else:
-            if self.preset_mode == PRESET_COOL:
-                if self.hvac_mode == HVAC_MODE_FAN_ONLY:
-                    return self._system._status.coolingStatus.fanSpeed
-                else:
-                    return self._system._status.coolingStatus.setTemp
-            if self.preset_mode == PRESET_EVAP:
-                if self.hvac_mode == HVAC_MODE_AUTO:
-                    return int(self._system._status.evapStatus.comfort)
-                elif self.hvac_mode == HVAC_MODE_HEAT_COOL:
-                    return int(self._system._status.evapStatus.fanSpeed)
-            if self.preset_mode == PRESET_HEAT:
-                if self.hvac_mode == HVAC_MODE_FAN_ONLY:
-                    return self._system._status.heaterStatus.fanSpeed
-                else:
-                    return self._system._status.heaterStatus.setTemp
+
+        if self.preset_mode == PRESET_COOL:
+            if self.hvac_mode == HVAC_MODE_FAN_ONLY:
+                return self._system.GetOfflineStatus().coolingStatus.fanSpeed
+            return self._system.GetOfflineStatus().coolingStatus.setTemp
+        if self.preset_mode == PRESET_EVAP:
+            if self.hvac_mode == HVAC_MODE_AUTO:
+                return int(self._system.GetOfflineStatus().evapStatus.comfort)
+            if self.hvac_mode == HVAC_MODE_HEAT_COOL:
+                return int(self._system.GetOfflineStatus().evapStatus.fanSpeed)
+        if self.preset_mode == PRESET_HEAT:
+            if self.hvac_mode == HVAC_MODE_FAN_ONLY:
+                return self._system.GetOfflineStatus().heaterStatus.fanSpeed
+            return self._system.GetOfflineStatus().heaterStatus.setTemp
+
         return 999
 
     @property
@@ -193,31 +202,28 @@ class RinnaiTouch(ClimateEntity):
     @property
     def min_temp(self):
         """Return the minimum temperature."""
-        if self.preset_mode == PRESET_COOL or self.preset_mode == PRESET_HEAT:
+        if self.preset_mode in (PRESET_COOL, PRESET_HEAT):
             if self.hvac_mode == HVAC_MODE_FAN_ONLY:
                 return self._FAN_LIMITS["min"]
-            else:
-                return self._TEMPERATURE_LIMITS["min"]
-        elif self.preset_mode == PRESET_EVAP and self.hvac_mode == HVAC_MODE_AUTO:
+            return self._TEMPERATURE_LIMITS["min"]
+        if self.preset_mode == PRESET_EVAP and self.hvac_mode == HVAC_MODE_AUTO:
             return self._COMFORT_LIMITS["min"]
-        else:
-            return self._FAN_LIMITS["min"]
+        return self._FAN_LIMITS["min"]
 
     @property
     def max_temp(self):
         """Return the maximum temperature."""
-        if self.preset_mode == PRESET_COOL or self.preset_mode == PRESET_HEAT:
+        if self.preset_mode in (PRESET_COOL, PRESET_HEAT):
             if self.hvac_mode == HVAC_MODE_FAN_ONLY:
                 return self._FAN_LIMITS["max"]
-            else:
-                return self._TEMPERATURE_LIMITS["max"]
-        elif self.preset_mode == PRESET_EVAP and self.hvac_mode == HVAC_MODE_AUTO:
+            return self._TEMPERATURE_LIMITS["max"]
+        if self.preset_mode == PRESET_EVAP and self.hvac_mode == HVAC_MODE_AUTO:
             return self._COMFORT_LIMITS["max"]
-        else:
-            return self._FAN_LIMITS["max"]
+        return self._FAN_LIMITS["max"]
 
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
+        # pylint: disable=too-many-branches
         #_LOGGER.debug("Setting new HVAC mode from %s to %s", self.hvac_mode, hvac_mode)
         if not hvac_mode == self.hvac_mode:
             if hvac_mode == HVAC_MODE_HEAT_COOL:
@@ -283,6 +289,7 @@ class RinnaiTouch(ClimateEntity):
             await self.async_set_target_temperature(kwargs.get(ATTR_TEMPERATURE))
 
     async def async_set_target_temperature(self, target_temperature):
+        """Set the target temperature, fan speed or comfort level."""
         target_temperature = int(round(target_temperature))
 
         if not self.min_temp <= target_temperature <= self.max_temp:
@@ -311,13 +318,13 @@ class RinnaiTouch(ClimateEntity):
         #NC7 returns temp in XXX -> ZXS -> MT
         #Implement later, as I have the NC6 that doesn't return a temperature
         #implemented use of an external sensor (optional) which returns 0 if none selected
-        if self._system._status.coolingMode:
-            temp = self._system._status.coolingStatus.temperature
-        elif self._system._status.heaterMode:
-            temp = self._system._status.heaterStatus.temperature
+        if self._system.GetOfflineStatus().coolingMode:
+            temp = self._system.GetOfflineStatus().coolingStatus.temperature
+        elif self._system.GetOfflineStatus().heaterMode:
+            temp = self._system.GetOfflineStatus().heaterStatus.temperature
             _LOGGER.debug("Internal temperature sensor reports: %s", temp)
-        elif self._system._status.evapMode:
-            temp = self._system._status.evapStatus.temperature
+        elif self._system.GetOfflineStatus().evapMode:
+            temp = self._system.GetOfflineStatus().evapStatus.temperature
             _LOGGER.debug("Internal temperature sensor reports: %s", temp)
 
         if int(temp) < 999:
@@ -328,40 +335,31 @@ class RinnaiTouch(ClimateEntity):
     @property
     def hvac_mode(self):
         """Return current HVAC mode, ie Heat or Off."""
-        #sysStatusJson = "{\"Status\": { \"System\": { " \
-        #    + "\"CoolingMode\":"  + str(self._system._status.coolingMode) + "," \
-        #    + "\"EvapMode\":"  + str(self._system._status.evapMode) + "," \
-        #    + "\"HeaterMode\":"  + str(self._system._status.heaterMode) + "," \
-        #    + "\"CoolingStatus\":"  + str(self._system._status.coolingStatus) + "," \
-        #    + "\"EvapStatus\":"  + str(self._system._status.evapStatus) + "," \
-        #    + "\"HeaterStatus\":"  + str(self._system._status.heaterStatus) + "," \
-        #    + "\"SystemOn\": " + str(self._system._status.systemOn) + " },"
-        #_LOGGER.debug("HVAC MODE for System: %s",self._system._status.systemOn)
-        #_LOGGER.debug("System Status: %s", sysStatusJson)
-        if not self._system._status.systemOn:
+        # pylint: disable=too-many-return-statements,too-many-branches
+        if not self._system.GetOfflineStatus().systemOn:
             return HVAC_MODE_OFF
         if self.preset_mode == PRESET_COOL:
-            if self._system._status.coolingStatus.coolingOn:
-                if self._system._status.coolingStatus.manualMode:
+            if self._system.GetOfflineStatus().coolingStatus.coolingOn:
+                if self._system.GetOfflineStatus().coolingStatus.manualMode:
                     return HVAC_MODE_HEAT_COOL
-                elif self._system._status.coolingStatus.autoMode:
+                if self._system.GetOfflineStatus().coolingStatus.autoMode:
                     return HVAC_MODE_AUTO
             else:
                 #system on, cooling mode, but cooling off indicates fan only
                 return HVAC_MODE_FAN_ONLY
         if self.preset_mode == PRESET_HEAT:
-            if self._system._status.heaterStatus.heaterOn:
-                if self._system._status.heaterStatus.manualMode:
+            if self._system.GetOfflineStatus().heaterStatus.heaterOn:
+                if self._system.GetOfflineStatus().heaterStatus.manualMode:
                     return HVAC_MODE_HEAT_COOL
-                elif self._system._status.heaterStatus.autoMode:
+                if self._system.GetOfflineStatus().heaterStatus.autoMode:
                     return HVAC_MODE_AUTO
             else:
                 #system on, heater mode, but heater off indicates fan only
                 return HVAC_MODE_FAN_ONLY
         if self.preset_mode == PRESET_EVAP:
-            if self._system._status.evapStatus.manualMode:
+            if self._system.GetOfflineStatus().evapStatus.manualMode:
                 return HVAC_MODE_HEAT_COOL
-            elif self._system._status.evapStatus.autoMode:
+            if self._system.GetOfflineStatus().evapStatus.autoMode:
                 return HVAC_MODE_AUTO
         return HVAC_MODE_OFF
 
@@ -370,28 +368,26 @@ class RinnaiTouch(ClimateEntity):
         """Return the list of available HVAC modes."""
         if self.preset_mode == PRESET_EVAP:
             return [HVAC_MODE_HEAT_COOL, HVAC_MODE_AUTO, HVAC_MODE_OFF ]
-        else:
-            return [HVAC_MODE_HEAT_COOL, HVAC_MODE_AUTO, HVAC_MODE_FAN_ONLY, HVAC_MODE_OFF ]
+        return [HVAC_MODE_HEAT_COOL, HVAC_MODE_AUTO, HVAC_MODE_FAN_ONLY, HVAC_MODE_OFF ]
 
     @property
     def preset_mode(self):
         """Return current HVAC mode, ie Heat or Off."""
-        if self._system._status.heaterMode :
+        if self._system.GetOfflineStatus().heaterMode :
             return PRESET_HEAT
-        elif self._system._status.coolingMode :
+        if self._system.GetOfflineStatus().coolingMode :
             return PRESET_COOL
-        else:
-            return PRESET_EVAP
+        return PRESET_EVAP
 
     @property
     def preset_modes(self):
         """Return the list of available HVAC modes."""
         modes = []
-        if self._system._status.hasHeater:
+        if self._system.GetOfflineStatus().hasHeater:
             modes.append(PRESET_HEAT)
-        if self._system._status.hasCooling:
+        if self._system.GetOfflineStatus().hasCooling:
             modes.append(PRESET_COOL)
-        if self._system._status.hasEvap:
+        if self._system.GetOfflineStatus().hasEvap:
             modes.append(PRESET_EVAP)
         return modes
 
@@ -404,10 +400,12 @@ class RinnaiTouch(ClimateEntity):
         return False
 
     async def async_update(self):
+        """Update system with latest status."""
         await self._system.GetStatus()
         self.update_external_temperature()
 
     def update_external_temperature(self):
+        """Update external temperature reading."""
         _LOGGER.debug("External temperature sensor entity name: %s", self._temerature_entity_name)
         if self._temerature_entity_name is not None:
             temperature_entity = self._hass.states.get(self._temerature_entity_name)
@@ -421,15 +419,22 @@ class RinnaiTouch(ClimateEntity):
 
     @property
     def available(self):
-        if self._system._status.heaterMode or self._system._status.coolingMode or self._system._status.evapMode:
+        if (
+            self._system.GetOfflineStatus().heaterMode
+            or self._system.GetOfflineStatus().coolingMode
+            or self._system.GetOfflineStatus().evapMode
+        ):
             return True
         return False
 
 
 class RinnaiTouchZone(ClimateEntity):
+    """Climate entity for a zone."""
+    # pylint: disable=too-many-instance-attributes,too-many-public-methods
 
     #some common
     def __init__(self, hass, ip_address, name, zone, temperature_entity = None):
+        # pylint: disable=too-many-arguments
         self._host = ip_address
         _LOGGER.debug("Set up RinnaiTouch zone %s entity %s", zone, ip_address)
         self._system = RinnaiSystem.getInstance(ip_address)
@@ -446,12 +451,13 @@ class RinnaiTouchZone(ClimateEntity):
         self._hass = hass
 
         self._support_flags = SUPPORT_FLAGS_ZONE
-        
+
         self._TEMPERATURE_STEP = 1
         self._TEMPERATURE_LIMITS = {"min": 8, "max": 30}
         self._system.SubscribeUpdates(self.system_updated)
 
     def system_updated(self):
+        """After system is updated write the new state to HA."""
         self.async_write_ha_state()
 
     @property
@@ -505,10 +511,12 @@ class RinnaiTouchZone(ClimateEntity):
         if preset_mode == PRESET_HEAT:
             return "mdi:fire"
 
+        return "mdi:hvac"
+
     @property
     def temperature_unit(self):
         """Return the unit of measurement."""
-        if self._system._status.tempUnit == RinnaiSystem.TEMP_FAHRENHEIT:
+        if self._system.GetOfflineStatus().tempUnit == RinnaiSystem.TEMP_FAHRENHEIT:
             return TEMP_FAHRENHEIT
         return TEMP_CELSIUS
 
@@ -516,29 +524,37 @@ class RinnaiTouchZone(ClimateEntity):
     @property
     def target_temperature(self):
         """Return the temperature we try to reach."""
+        # pylint: disable=too-many-return-statements
         if self.hvac_mode == HVAC_MODE_OFF:
             return 0
-        else:
-            if self._system._status.isMultiSetPoint:
-                if self.preset_mode == PRESET_COOL:
-                    return getattr(self._system._status.coolingStatus, "zone" + self._attr_zone + "setTemp")
-                if self.preset_mode == PRESET_EVAP:
-                    if self.hvac_mode == HVAC_MODE_AUTO:
-                        return int(self._system._status.evapStatus.comfort)
-                    elif self.hvac_mode == HVAC_MODE_HEAT_COOL:
-                        return int(self._system._status.evapStatus.fanSpeed)
-                if self.preset_mode == PRESET_HEAT:
-                    return getattr(self._system._status.heaterStatus, "zone" + self._attr_zone + "setTemp")
-            else:
-                if self.preset_mode == PRESET_COOL:
-                    return self._system._status.coolingStatus.setTemp
-                if self.preset_mode == PRESET_EVAP:
-                    if self.hvac_mode == HVAC_MODE_AUTO:
-                        return int(self._system._status.evapStatus.comfort)
-                    elif self.hvac_mode == HVAC_MODE_HEAT_COOL:
-                        return int(self._system._status.evapStatus.fanSpeed)
-                if self.preset_mode == PRESET_HEAT:
-                    return self._system._status.heaterStatus.setTemp
+
+        if self._system.GetOfflineStatus().isMultiSetPoint:
+            if self.preset_mode == PRESET_COOL:
+                return getattr(
+                        self._system.GetOfflineStatus().coolingStatus,
+                        "zone" + self._attr_zone + "setTemp"
+                    )
+            if self.preset_mode == PRESET_EVAP:
+                if self.hvac_mode == HVAC_MODE_AUTO:
+                    return int(self._system.GetOfflineStatus().evapStatus.comfort)
+                if self.hvac_mode == HVAC_MODE_HEAT_COOL:
+                    return int(self._system.GetOfflineStatus().evapStatus.fanSpeed)
+            if self.preset_mode == PRESET_HEAT:
+                return getattr(
+                        self._system.GetOfflineStatus().heaterStatus,
+                        "zone" + self._attr_zone + "setTemp"
+                    )
+
+        if self.preset_mode == PRESET_COOL:
+            return self._system.GetOfflineStatus().coolingStatus.setTemp
+        if self.preset_mode == PRESET_EVAP:
+            if self.hvac_mode == HVAC_MODE_AUTO:
+                return int(self._system.GetOfflineStatus().evapStatus.comfort)
+            if self.hvac_mode == HVAC_MODE_HEAT_COOL:
+                return int(self._system.GetOfflineStatus().evapStatus.fanSpeed)
+        if self.preset_mode == PRESET_HEAT:
+            return self._system.GetOfflineStatus().heaterStatus.setTemp
+
         return 999
 
     @property
@@ -550,8 +566,8 @@ class RinnaiTouchZone(ClimateEntity):
     @property
     def min_temp(self):
         """Return the minimum temperature."""
-        if self._system._status.isMultiSetPoint:
-            if self.preset_mode == PRESET_COOL or self.preset_mode == PRESET_HEAT:
+        if self._system.GetOfflineStatus().isMultiSetPoint:
+            if self.preset_mode in (PRESET_COOL, PRESET_HEAT):
                 return self._TEMPERATURE_LIMITS["min"]
         return self.target_temperature
 
@@ -559,14 +575,15 @@ class RinnaiTouchZone(ClimateEntity):
     @property
     def max_temp(self):
         """Return the maximum temperature."""
-        if self._system._status.isMultiSetPoint:
-            if self.preset_mode == PRESET_COOL or self.preset_mode == PRESET_HEAT:
+        if self._system.GetOfflineStatus().isMultiSetPoint:
+            if self.preset_mode in (PRESET_COOL, PRESET_HEAT):
                 return self._TEMPERATURE_LIMITS["max"]
         return self.target_temperature
-    
+
     #not common
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
+        # pylint: disable=too-many-branches
         if not hvac_mode == self.hvac_mode:
             if hvac_mode == HVAC_MODE_HEAT_COOL:
                 #turn whatever the preset is on and put it into manual mode
@@ -611,7 +628,8 @@ class RinnaiTouchZone(ClimateEntity):
 
     #not common
     async def async_set_target_temperature(self, target_temperature):
-        if self._system._status.isMultiSetPoint:
+        """Set the new target temperate in a zone."""
+        if self._system.GetOfflineStatus().isMultiSetPoint:
             target_temperature = int(round(target_temperature))
 
             if not self.min_temp <= target_temperature <= self.max_temp:
@@ -630,12 +648,21 @@ class RinnaiTouchZone(ClimateEntity):
     @property
     def current_temperature(self):
         """Return the current temperature."""
-        if self._system._status.coolingMode:
-            temp = getattr(self._system._status.coolingStatus, "zone" + self._attr_zone + "temp")
-        elif self._system._status.heaterMode:
-            temp = getattr(self._system._status.heaterStatus, "zone" + self._attr_zone + "temp")
-        elif self._system._status.evapMode:
-            temp = getattr(self._system._status.evapStatus, "zone" + self._attr_zone + "temp")
+        if self._system.GetOfflineStatus().coolingMode:
+            temp = getattr(
+                        self._system.GetOfflineStatus().coolingStatus,
+                        "zone" + self._attr_zone + "temp"
+                    )
+        elif self._system.GetOfflineStatus().heaterMode:
+            temp = getattr(
+                        self._system.GetOfflineStatus().heaterStatus,
+                        "zone" + self._attr_zone + "temp"
+                    )
+        elif self._system.GetOfflineStatus().evapMode:
+            temp = getattr(
+                        self._system.GetOfflineStatus().evapStatus,
+                        "zone" + self._attr_zone + "temp"
+                    )
 
         if int(temp) < 999:
             return int(round(float(temp)/10))
@@ -645,26 +672,54 @@ class RinnaiTouchZone(ClimateEntity):
     @property
     def hvac_mode(self):
         """Return current HVAC mode, ie Heat or Off."""
+        # pylint: disable=too-many-return-statements
         if self.preset_mode == PRESET_COOL:
-            if not getattr(self._system._status.coolingStatus, "zone" + self._attr_zone):
+            if not getattr(
+                        self._system.GetOfflineStatus().coolingStatus,
+                        "zone" + self._attr_zone
+                    ):
                 return HVAC_MODE_OFF
-            elif not getattr(self._system._status.coolingStatus, "zone" + self._attr_zone + "Auto"):
+            if not getattr(
+                        self._system.GetOfflineStatus().coolingStatus,
+                        "zone" + self._attr_zone + "Auto"
+                    ):
                 return HVAC_MODE_HEAT_COOL
-            elif getattr(self._system._status.coolingStatus, "zone" + self._attr_zone + "Auto"):
+            if getattr(
+                        self._system.GetOfflineStatus().coolingStatus,
+                        "zone" + self._attr_zone + "Auto"
+                    ):
                 return HVAC_MODE_AUTO
         if self.preset_mode == PRESET_HEAT:
-            if not getattr(self._system._status.heaterStatus, "zone" + self._attr_zone):
+            if not getattr(
+                        self._system.GetOfflineStatus().heaterStatus,
+                        "zone" + self._attr_zone
+                    ):
                 return HVAC_MODE_OFF
-            elif not getattr(self._system._status.heaterStatus, "zone" + self._attr_zone + "Auto"):
+            if not getattr(
+                        self._system.GetOfflineStatus().heaterStatus,
+                        "zone" + self._attr_zone + "Auto"
+                    ):
                 return HVAC_MODE_HEAT_COOL
-            elif getattr(self._system._status.heaterStatus, "zone" + self._attr_zone + "Auto"):
+            if getattr(
+                        self._system.GetOfflineStatus().heaterStatus,
+                        "zone" + self._attr_zone + "Auto"
+                    ):
                 return HVAC_MODE_AUTO
         if self.preset_mode == PRESET_EVAP:
-            if not getattr(self._system._status.evapStatus, "zone" + self._attr_zone):
+            if not getattr(
+                        self._system.GetOfflineStatus().evapStatus,
+                        "zone" + self._attr_zone
+                    ):
                 return HVAC_MODE_OFF
-            elif not getattr(self._system._status.evapStatus, "zone" + self._attr_zone + "Auto"):
+            if not getattr(
+                        self._system.GetOfflineStatus().evapStatus,
+                        "zone" + self._attr_zone + "Auto"
+                    ):
                 return HVAC_MODE_HEAT_COOL
-            elif getattr(self._system._status.evapStatus, "zone" + self._attr_zone + "Auto"):
+            if getattr(
+                        self._system.GetOfflineStatus().evapStatus,
+                        "zone" + self._attr_zone + "Auto"
+                    ):
                 return HVAC_MODE_AUTO
         return HVAC_MODE_OFF
 
@@ -676,23 +731,21 @@ class RinnaiTouchZone(ClimateEntity):
     @property
     def preset_mode(self):
         """Return current HVAC mode, ie Heat or Off."""
-        if self._system._status.heaterMode :
+        if self._system.GetOfflineStatus().heaterMode :
             return PRESET_HEAT
-        elif self._system._status.coolingMode :
+        if self._system.GetOfflineStatus().coolingMode :
             return PRESET_COOL
-        else:
-            return PRESET_EVAP
+        return PRESET_EVAP
 
     #not common. Only return the mode that is set on the main
     @property
     def preset_modes(self):
         """Return the list of available HVAC modes."""
-        if self._system._status.heaterMode :
+        if self._system.GetOfflineStatus().heaterMode :
             return [PRESET_HEAT]
-        elif self._system._status.coolingMode :
+        if self._system.GetOfflineStatus().coolingMode :
             return [PRESET_COOL]
-        else:
-            return [PRESET_EVAP]
+        return [PRESET_EVAP]
 
     def turn_aux_heat_on(self):
         """Turn auxiliary heater on."""
@@ -704,19 +757,23 @@ class RinnaiTouchZone(ClimateEntity):
 
     #not common
     async def async_update(self):
-        await super().async_update()
+        """Do nothing."""
+        pass # pylint: disable=unnecessary-pass
 
     #not common
     @property
     def available(self):
-        if self._system._status.heaterMode:
-            return self._attr_zone in self._system._status.heaterStatus.zones
-        elif self._system._status.coolingMode:
-            return self._attr_zone in self._system._status.coolingStatus.zones
+        if self._system.GetOfflineStatus().heaterMode:
+            return self._attr_zone in self._system.GetOfflineStatus().heaterStatus.zones
+        if self._system.GetOfflineStatus().coolingMode:
+            return self._attr_zone in self._system.GetOfflineStatus().coolingStatus.zones
         return False
 
     def update_external_temperature(self):
-        _LOGGER.debug("External temperature sensor entity name (zone %s): %s", self._attr_zone, self._temerature_entity_name)
+        """Update latest external temperature reading."""
+        _LOGGER.debug("External temperature sensor entity name (zone %s): %s",
+                      self._attr_zone,
+                      self._temerature_entity_name)
         if self._temerature_entity_name is not None:
             temperature_entity = self._hass.states.get(self._temerature_entity_name)
             #_LOGGER.debug("External temperature sensor entity: %s", temperature_entity)
@@ -726,4 +783,3 @@ class RinnaiTouchZone(ClimateEntity):
                     self._sensor_temperature = int(round(float(temperature_entity.state)))
                 except ValueError:
                     self._sensor_temperature = 0
-
