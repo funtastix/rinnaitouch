@@ -1,6 +1,6 @@
 ﻿# Rinnai/Brivis Touch Wifi HASS integration
 
-![Lint](https://github.com/funtastix/rinnaitouch/workflows/Lint/badge.svg) ![Pylint](https://github.com/funtastix/rinnaitouch/workflows/Pylint/badge.svg)
+![Pylint](https://github.com/funtastix/rinnaitouch/workflows/Pylint/badge.svg)
 
 ## :information_source: Based on python project [MyTouch](https://github.com/christhehoff/MyTouch)
 
