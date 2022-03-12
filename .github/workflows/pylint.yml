@@ -20,4 +20,4 @@ jobs:
         pip install pylint
     - name: Analysing the code with pylint
       run: |
-        pylint $(ls *.py) --fail-under=8
+        pylint $(ls *.py) --disable=duplicate-code,invalid-name,fixme
