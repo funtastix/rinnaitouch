@@ -1,4 +1,5 @@
 """Set up main entity."""
+# pylint: disable=duplicate-code
 import logging
 from dataclasses import dataclass
 
