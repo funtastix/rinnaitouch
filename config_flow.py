@@ -16,10 +16,10 @@ from .const import (
     CONF_ZONE_C,
     CONF_ZONE_D,
     CONF_TEMP_SENSOR,
-#    CONF_TEMP_SENSOR_A,
-#    CONF_TEMP_SENSOR_B,
-#    CONF_TEMP_SENSOR_C,
-#    CONF_TEMP_SENSOR_D,
+    CONF_TEMP_SENSOR_A,
+    CONF_TEMP_SENSOR_B,
+    CONF_TEMP_SENSOR_C,
+    CONF_TEMP_SENSOR_D,
     DEFAULT_NAME
 )
 
@@ -29,13 +29,13 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_HOST): str,
         vol.Required(CONF_ZONE_A): bool,
-        #vol.Optional(CONF_TEMP_SENSOR_A): str,
+        vol.Optional(CONF_TEMP_SENSOR_A): str,
         vol.Required(CONF_ZONE_B): bool,
-        #vol.Optional(CONF_TEMP_SENSOR_B): str,
+        vol.Optional(CONF_TEMP_SENSOR_B): str,
         vol.Required(CONF_ZONE_C): bool,
-        #vol.Optional(CONF_TEMP_SENSOR_C): str,
+        vol.Optional(CONF_TEMP_SENSOR_C): str,
         vol.Required(CONF_ZONE_D): bool,
-        #vol.Optional(CONF_TEMP_SENSOR_D): str,
+        vol.Optional(CONF_TEMP_SENSOR_D): str,
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): str,
         vol.Optional(CONF_TEMP_SENSOR): str
     }
