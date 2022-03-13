@@ -16,10 +16,10 @@ from .const import (
     CONF_ZONE_C,
     CONF_ZONE_D,
     CONF_TEMP_SENSOR,
-    CONF_TEMP_SENSOR_A,
-    CONF_TEMP_SENSOR_B,
-    CONF_TEMP_SENSOR_C,
-    CONF_TEMP_SENSOR_D,
+#    CONF_TEMP_SENSOR_A,
+#    CONF_TEMP_SENSOR_B,
+#    CONF_TEMP_SENSOR_C,
+#    CONF_TEMP_SENSOR_D,
     DEFAULT_NAME
 )
 
@@ -29,13 +29,13 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_HOST): str,
         vol.Required(CONF_ZONE_A): bool,
-        vol.Optional(CONF_TEMP_SENSOR_A): str,
+        #vol.Optional(CONF_TEMP_SENSOR_A): str,
         vol.Required(CONF_ZONE_B): bool,
-        vol.Optional(CONF_TEMP_SENSOR_B): str,
+        #vol.Optional(CONF_TEMP_SENSOR_B): str,
         vol.Required(CONF_ZONE_C): bool,
-        vol.Optional(CONF_TEMP_SENSOR_C): str,
+        #vol.Optional(CONF_TEMP_SENSOR_C): str,
         vol.Required(CONF_ZONE_D): bool,
-        vol.Optional(CONF_TEMP_SENSOR_D): str,
+        #vol.Optional(CONF_TEMP_SENSOR_D): str,
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): str,
         vol.Optional(CONF_TEMP_SENSOR): str
     }
@@ -49,7 +49,7 @@ class RinnaiTouchConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle a flow initialized by the user."""
         errors = {}
         if user_input is not None:
-            system = RinnaiSystem.getInstance(user_input[CONF_HOST])
+            system = RinnaiSystem.get_instance(user_input[CONF_HOST])
             zones = []
             if user_input[CONF_ZONE_A]:
                 zones.append("A")
@@ -59,10 +59,10 @@ class RinnaiTouchConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 zones.append("C")
             if user_input[CONF_ZONE_D]:
                 zones.append("D")
-            system.setZones(zones)
+            system.set_zones(zones)
             device_id = "rinnaitouch_" + str.replace(user_input[CONF_HOST], ".", "_")
             try:
-                status = await system.GetStatus() # pylint: disable=unused-variable
+                status = await system.get_status() # pylint: disable=unused-variable
             except AbortFlow:
                 return self.async_abort(reason="single_instance_allowed")
             except Exception:  # pylint: disable=broad-except
