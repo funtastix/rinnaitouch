@@ -235,17 +235,17 @@ class RinnaiZoneSwitch(RinnaiExtraEntity, SwitchEntity):
         if self._system.get_stored_status().heater_mode:
             return getattr(
                         self._system.get_stored_status().heater_status,
-                        "zone" + self._attr_zone
+                        "zone_" + self._attr_zone.lower()
                     )
         if self._system.get_stored_status().cooling_mode:
             return getattr(
                         self._system.get_stored_status().cooling_status,
-                        "zone" + self._attr_zone
+                        "zone_" + self._attr_zone.lower()
                     )
         if self._system.get_stored_status().evap_mode:
             return getattr(
                         self._system.get_stored_status().evap_status,
-                        "zone" + self._attr_zone
+                        "zone_" + self._attr_zone.lower()
                     )
         return False
 

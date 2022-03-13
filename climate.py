@@ -21,6 +21,7 @@ import logging
 
 from pyrinnaitouch import RinnaiSystem
 
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     HVAC_MODE_AUTO,
