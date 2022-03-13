@@ -21,7 +21,6 @@ import logging
 
 from pyrinnaitouch import RinnaiSystem
 
-from homeassistant.core import HomeAssistant, callback
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     HVAC_MODE_AUTO,
@@ -436,7 +435,7 @@ class RinnaiTouchZone(ClimateEntity):
     #some common
     def __init__(self, hass, ip_address, name, zone, temperature_entity = None):
         # pylint: disable=too-many-arguments
-        self._host = ip_address
+
         _LOGGER.debug("Set up RinnaiTouch zone %s entity %s", zone, ip_address)
         self._system = RinnaiSystem.get_instance(ip_address)
         device_id = "rinnaitouch_zone" + zone + "_" + str.replace(ip_address, ".", "_")
@@ -774,8 +773,9 @@ class RinnaiTouchZone(ClimateEntity):
         """Update latest external temperature reading."""
         _LOGGER.debug("External temperature sensor entity name (zone %s): %s",
                       self._attr_zone,
-                      self._temerature_entity_name)
-        if self._temerature_entity_name is not None:
+                      self._temerature_entity_name
+                  )
+        if self._temerature_entity_name is not None and self._hass:
             temperature_entity = self._hass.states.get(self._temerature_entity_name)
             #_LOGGER.debug("External temperature sensor entity: %s", temperature_entity)
             if temperature_entity is not None and temperature_entity.state != "unavailable":
