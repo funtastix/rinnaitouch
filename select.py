@@ -29,12 +29,12 @@ class RinnaiSelectPresetEntity(SelectEntity):
 
     def __init__(self, ip_address, name):
         self._host = ip_address
-        self._system = RinnaiSystem.getInstance(ip_address)
+        self._system = RinnaiSystem.get_instance(ip_address)
         device_id = str.lower(self.__class__.__name__) + "_" + str.replace(ip_address, ".", "_")
 
         self._attr_unique_id = device_id
         self._attr_name = name
-        self._system.SubscribeUpdates(self.system_updated)
+        self._system.subscribe_updates(self.system_updated)
 
     def system_updated(self):
         """After system is updated write the new state to HA."""
@@ -53,9 +53,9 @@ class RinnaiSelectPresetEntity(SelectEntity):
     @property
     def current_option(self):
         """If the switch is currently on or off."""
-        if self._system.GetOfflineStatus().heaterMode :
+        if self._system.get_stored_status().heater_mode :
             return PRESET_HEAT
-        if self._system.GetOfflineStatus().coolingMode :
+        if self._system.get_stored_status().cooling_mode :
             return PRESET_COOL
         return PRESET_EVAP
 
@@ -63,11 +63,11 @@ class RinnaiSelectPresetEntity(SelectEntity):
     def options(self):
         """If the switch is currently on or off."""
         modes = []
-        if self._system.GetOfflineStatus().hasHeater:
+        if self._system.get_stored_status().has_heater:
             modes.append(PRESET_HEAT)
-        if self._system.GetOfflineStatus().hasCooling:
+        if self._system.get_stored_status().has_cooling:
             modes.append(PRESET_COOL)
-        if self._system.GetOfflineStatus().hasEvap:
+        if self._system.get_stored_status().has_evap:
             modes.append(PRESET_EVAP)
         return modes
 

@@ -32,10 +32,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     _LOGGER.debug("Get controller with IP: %s", ip_address)
 
     try:
-        system = RinnaiSystem.getInstance(ip_address)
+        system = RinnaiSystem.get_instance(ip_address)
         #scenes = await system.getSupportedScenes()
         scenes = []
-        await system.GetStatus()
+        await system.get_status()
     except (
         Exception,
         ConnectionError,

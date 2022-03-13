@@ -24,7 +24,7 @@ class RinnaiBinarySensorEntity(BinarySensorEntity):
 
     def __init__(self, ip_address, name):
         self._host = ip_address
-        self._system = RinnaiSystem.getInstance(ip_address)
+        self._system = RinnaiSystem.get_instance(ip_address)
         device_id = str.lower(self.__class__.__name__) + "_" + str.replace(ip_address, ".", "_")
 
         self._attr_unique_id = device_id
@@ -44,7 +44,7 @@ class RinnaiPrewetBinarySensorEntity(RinnaiBinarySensorEntity):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
-        self._system.SubscribeUpdates(self.system_updated)
+        self._system.subscribe_updates(self.system_updated)
 
     def system_updated(self):
         """After system is updated write the new state to HA."""
@@ -58,23 +58,23 @@ class RinnaiPrewetBinarySensorEntity(RinnaiBinarySensorEntity):
     @property
     def is_on(self):
         """If the switch is currently on or off."""
-        if self._system.GetOfflineStatus().evapMode:
+        if self._system.get_stored_status().evap_mode:
             return (
-                self._system.GetOfflineStatus().evapStatus.prewetting
-                or self._system.GetOfflineStatus().evapStatus.coolerBusy
+                self._system.get_stored_status().evap_status.prewetting
+                or self._system.get_stored_status().evap_status.cooler_busy
             )
         return False
 
     @property
     def available(self):
-        return self._system.GetOfflineStatus().evapMode
+        return self._system.get_stored_status().evap_mode
 
 class RinnaiPreheatBinarySensorEntity(RinnaiBinarySensorEntity):
     """Binary sensor for preheating on/off during heater operation."""
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
-        self._system.SubscribeUpdates(self.system_updated)
+        self._system.subscribe_updates(self.system_updated)
 
     def system_updated(self):
         """After system is updated write the new state to HA."""
@@ -88,10 +88,10 @@ class RinnaiPreheatBinarySensorEntity(RinnaiBinarySensorEntity):
     @property
     def is_on(self):
         """If the switch is currently on or off."""
-        if self._system.GetOfflineStatus().heaterMode:
-            return self._system.GetOfflineStatus().heaterStatus.preheating
+        if self._system.get_stored_status().heater_mode:
+            return self._system.get_stored_status().heater_status.preheating
         return False
 
     @property
     def available(self):
-        return self._system.GetOfflineStatus().heaterMode
+        return self._system.get_stored_status().heater_mode

@@ -58,12 +58,12 @@ class RinnaiExtraEntity(Entity):
 
     def __init__(self, ip_address, name):
         self._host = ip_address
-        self._system = RinnaiSystem.getInstance(ip_address)
+        self._system = RinnaiSystem.get_instance(ip_address)
         device_id = str.lower(self.__class__.__name__) + "_" + str.replace(ip_address, ".", "_")
 
         self._attr_unique_id = device_id
         self._attr_name = name
-        self._system.SubscribeUpdates(self.system_updated)
+        self._system.subscribe_updates(self.system_updated)
 
     def system_updated(self):
         """After system is updated write the new state to HA."""
@@ -89,26 +89,26 @@ class RinnaiOnOffSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def is_on(self):
         """If the switch is currently on or off."""
-        return self._system.GetOfflineStatus().systemOn
+        return self._system.get_stored_status().system_on
 
     async def async_turn_on(self, **kwargs):
         """Turn the switch on."""
         #turn whatever the preset is on and put it into manual mode
-        if self._system.GetOfflineStatus().coolingMode:
+        if self._system.get_stored_status().cooling_mode:
             await self._system.turn_cooling_on()
-        elif self._system.GetOfflineStatus().heaterMode:
+        elif self._system.get_stored_status().heater_mode:
             await self._system.turn_heater_on()
-        elif self._system.GetOfflineStatus().evapMode:
+        elif self._system.get_stored_status().evap_mode:
             await self._system.turn_evap_on()
 
     async def async_turn_off(self, **kwargs):
         """Turn the switch off."""
         #turn whatever the preset is off
-        if self._system.GetOfflineStatus().coolingMode:
+        if self._system.get_stored_status().cooling_mode:
             await self._system.turn_cooling_off()
-        elif self._system.GetOfflineStatus().heaterMode:
+        elif self._system.get_stored_status().heater_mode:
             await self._system.turn_heater_off()
-        elif self._system.GetOfflineStatus().evapMode:
+        elif self._system.get_stored_status().evap_mode:
             await self._system.turn_evap_off()
 
 class RinnaiCoolingModeSwitch(RinnaiExtraEntity, SwitchEntity):
@@ -127,14 +127,14 @@ class RinnaiCoolingModeSwitch(RinnaiExtraEntity, SwitchEntity):
 
     @property
     def is_on(self):
-        return self._system.GetOfflineStatus().coolingMode
+        return self._system.get_stored_status().cooling_mode
 
     @property
     def available(self):
-        return self._system.GetOfflineStatus().hasCooling
+        return self._system.get_stored_status().has_cooling
 
     async def async_turn_on(self, **kwargs):
-        if not self._system.GetOfflineStatus().coolingMode:
+        if not self._system.get_stored_status().cooling_mode:
             await self._system.set_cooling_mode()
 
     async def async_turn_off(self, **kwargs):
@@ -157,14 +157,14 @@ class RinnaiHeaterModeSwitch(RinnaiExtraEntity, SwitchEntity):
 
     @property
     def is_on(self):
-        return self._system.GetOfflineStatus().heaterMode
+        return self._system.get_stored_status().heater_mode
 
     @property
     def available(self):
-        return self._system.GetOfflineStatus().hasHeater
+        return self._system.get_stored_status().has_heater
 
     async def async_turn_on(self, **kwargs):
-        if not self._system.GetOfflineStatus().heaterMode:
+        if not self._system.get_stored_status().heater_mode:
             await self._system.set_heater_mode()
 
     async def async_turn_off(self, **kwargs):
@@ -187,14 +187,14 @@ class RinnaiEvapModeSwitch(RinnaiExtraEntity, SwitchEntity):
 
     @property
     def is_on(self):
-        return self._system.GetOfflineStatus().evapMode
+        return self._system.get_stored_status().evap_mode
 
     @property
     def available(self):
-        return self._system.GetOfflineStatus().hasEvap
+        return self._system.get_stored_status().has_evap
 
     async def async_turn_on(self, **kwargs):
-        if not self._system.GetOfflineStatus().evapMode:
+        if not self._system.get_stored_status().evap_mode:
             await self._system.set_evap_mode()
 
     async def async_turn_off(self, **kwargs):
@@ -222,39 +222,48 @@ class RinnaiZoneSwitch(RinnaiExtraEntity, SwitchEntity):
 
     @property
     def available(self):
-        if self._system.GetOfflineStatus().heaterMode:
-            return self._attr_zone in self._system.GetOfflineStatus().heaterStatus.zones
-        if self._system.GetOfflineStatus().coolingMode:
-            return self._attr_zone in self._system.GetOfflineStatus().coolingStatus.zones
-        if self._system.GetOfflineStatus().evapMode:
-            return self._attr_zone in self._system.GetOfflineStatus().evapStatus.zones
+        if self._system.get_stored_status().heater_mode:
+            return self._attr_zone in self._system.get_stored_status().heater_status.zones
+        if self._system.get_stored_status().cooling_mode:
+            return self._attr_zone in self._system.get_stored_status().cooling_status.zones
+        if self._system.get_stored_status().evap_mode:
+            return self._attr_zone in self._system.get_stored_status().evap_status.zones
         return False
 
     @property
     def is_on(self):
-        if self._system.GetOfflineStatus().heaterMode:
-            return getattr(self._system.GetOfflineStatus().heaterStatus, "zone" + self._attr_zone)
-        if self._system.GetOfflineStatus().coolingMode:
-            return getattr(self._system.GetOfflineStatus().coolingStatus, "zone" + self._attr_zone)
-        if self._system.GetOfflineStatus().evapMode:
-            return getattr(self._system.GetOfflineStatus().evapStatus, "zone" + self._attr_zone)
+        if self._system.get_stored_status().heater_mode:
+            return getattr(
+                        self._system.get_stored_status().heater_status,
+                        "zone" + self._attr_zone
+                    )
+        if self._system.get_stored_status().cooling_mode:
+            return getattr(
+                        self._system.get_stored_status().cooling_status,
+                        "zone" + self._attr_zone
+                    )
+        if self._system.get_stored_status().evap_mode:
+            return getattr(
+                        self._system.get_stored_status().evap_status,
+                        "zone" + self._attr_zone
+                    )
         return False
 
     async def async_turn_on(self, **kwargs):
-        if self._system.GetOfflineStatus().heaterMode:
+        if self._system.get_stored_status().heater_mode:
             await self._system.turn_heater_zone_on(self._attr_zone)
-        elif self._system.GetOfflineStatus().coolingMode:
+        elif self._system.get_stored_status().cooling_mode:
             await self._system.turn_cooling_zone_on(self._attr_zone)
-        elif self._system.GetOfflineStatus().evapMode:
+        elif self._system.get_stored_status().evap_mode:
             await self._system.turn_evap_zone_on(self._attr_zone)
 
     async def async_turn_off(self, **kwargs):
         """Turning it off does nothing"""
-        if self._system.GetOfflineStatus().heaterMode:
+        if self._system.get_stored_status().heater_mode:
             await self._system.turn_heater_zone_off(self._attr_zone)
-        elif self._system.GetOfflineStatus().coolingMode:
+        elif self._system.get_stored_status().cooling_mode:
             await self._system.turn_cooling_zone_off(self._attr_zone)
-        elif self._system.GetOfflineStatus().evapMode:
+        elif self._system.get_stored_status().evap_mode:
             await self._system.turn_evap_zone_off(self._attr_zone)
 
 class RinnaiWaterpumpSwitch(RinnaiExtraEntity, SwitchEntity):
@@ -274,9 +283,9 @@ class RinnaiWaterpumpSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def available(self):
         if (
-            self._system.GetOfflineStatus().evapMode
-            and self._system.GetOfflineStatus().evapStatus.evapOn
-            and self._system.GetOfflineStatus().evapStatus.manualMode
+            self._system.get_stored_status().evap_mode
+            and self._system.get_stored_status().evap_status.evap_on
+            and self._system.get_stored_status().evap_status.manual_mode
         ):
             return True
         return False
@@ -284,7 +293,7 @@ class RinnaiWaterpumpSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def is_on(self):
         if self.available:
-            return self._system.GetOfflineStatus().evapStatus.waterPumpOn
+            return self._system.get_stored_status().evap_status.waterPumpOn
         return False
 
     async def async_turn_on(self, **kwargs):
@@ -312,9 +321,9 @@ class RinnaiEvapFanSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def available(self):
         if (
-            self._system.GetOfflineStatus().evapMode
-            and self._system.GetOfflineStatus().evapStatus.evapOn
-            and self._system.GetOfflineStatus().evapStatus.manualMode
+            self._system.get_stored_status().evap_mode
+            and self._system.get_stored_status().evap_status.evap_on
+            and self._system.get_stored_status().evap_status.manual_mode
         ):
             return True
         return False
@@ -322,7 +331,7 @@ class RinnaiEvapFanSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def is_on(self):
         if self.available:
-            return self._system.GetOfflineStatus().evapStatus.FanOn
+            return self._system.get_stored_status().evap_status.FanOn
         return False
 
     async def async_turn_on(self, **kwargs):
@@ -349,37 +358,37 @@ class RinnaiAutoSwitch(RinnaiExtraEntity, SwitchEntity):
 
     @property
     def available(self):
-        if self._system.GetOfflineStatus().systemOn:
+        if self._system.get_stored_status().system_on:
             return True
         return False
 
     @property
     def is_on(self):
         if self.available:
-            if self._system.GetOfflineStatus().coolingMode:
-                return self._system.GetOfflineStatus().coolingStatus.autoMode
-            if self._system.GetOfflineStatus().heaterMode:
-                return self._system.GetOfflineStatus().heaterStatus.autoMode
-            if self._system.GetOfflineStatus().evapMode:
-                return self._system.GetOfflineStatus().evapStatus.autoMode
+            if self._system.get_stored_status().cooling_mode:
+                return self._system.get_stored_status().cooling_status.auto_mode
+            if self._system.get_stored_status().heater_mode:
+                return self._system.get_stored_status().heater_status.auto_mode
+            if self._system.get_stored_status().evap_mode:
+                return self._system.get_stored_status().evap_status.auto_mode
         return False
 
     async def async_turn_on(self, **kwargs):
         if self.available:
-            if self._system.GetOfflineStatus().coolingMode:
+            if self._system.get_stored_status().cooling_mode:
                 await self._system.set_cooling_auto()
-            if self._system.GetOfflineStatus().heaterMode:
+            if self._system.get_stored_status().heater_mode:
                 await self._system.set_heater_auto()
-            if self._system.GetOfflineStatus().evapMode:
+            if self._system.get_stored_status().evap_mode:
                 await self._system.set_evap_auto()
 
     async def async_turn_off(self, **kwargs):
         if self.available:
-            if self._system.GetOfflineStatus().coolingMode:
+            if self._system.get_stored_status().cooling_mode:
                 await self._system.set_cooling_manual()
-            if self._system.GetOfflineStatus().heaterMode:
+            if self._system.get_stored_status().heater_mode:
                 await self._system.set_heater_manual()
-            if self._system.GetOfflineStatus().evapMode:
+            if self._system.get_stored_status().evap_mode:
                 await self._system.set_evap_manual()
 
 class RinnaiCircFanSwitch(RinnaiExtraEntity, SwitchEntity):
@@ -399,15 +408,15 @@ class RinnaiCircFanSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def available(self):
         if not (
-            self._system.GetOfflineStatus().coolingMode
-            or self._system.GetOfflineStatus().heaterMode
+            self._system.get_stored_status().cooling_mode
+            or self._system.get_stored_status().heater_mode
         ):
             return False
-        if not self._system.GetOfflineStatus().systemOn:
+        if not self._system.get_stored_status().system_on:
             return True
         if (
-            not self._system.GetOfflineStatus().heaterStatus.heaterOn
-            and not self._system.GetOfflineStatus().coolingStatus.coolingOn
+            not self._system.get_stored_status().heater_status.heater_on
+            and not self._system.get_stored_status().cooling_status.cooling_on
         ):
             return True
         return False
@@ -415,24 +424,24 @@ class RinnaiCircFanSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def is_on(self):
         if self.available:
-            if self._system.GetOfflineStatus().coolingMode:
-                return self._system.GetOfflineStatus().coolingStatus.circulationFanOn
-            if self._system.GetOfflineStatus().heaterMode:
-                return self._system.GetOfflineStatus().heaterStatus.circulationFanOn
+            if self._system.get_stored_status().cooling_mode:
+                return self._system.get_stored_status().cooling_status.circulation_fan_on
+            if self._system.get_stored_status().heater_mode:
+                return self._system.get_stored_status().heater_status.circulation_fan_on
         return False
 
     async def async_turn_on(self, **kwargs):
         if self.available:
-            if self._system.GetOfflineStatus().coolingMode:
+            if self._system.get_stored_status().cooling_mode:
                 await self._system.turn_cooling_fan_only()
-            if self._system.GetOfflineStatus().heaterMode:
+            if self._system.get_stored_status().heater_mode:
                 await self._system.turn_heater_fan_only()
 
     async def async_turn_off(self, **kwargs):
         if self.available:
-            if self._system.GetOfflineStatus().coolingMode:
+            if self._system.get_stored_status().cooling_mode:
                 await self._system.turn_cooling_off()
-            if self._system.GetOfflineStatus().heaterMode:
+            if self._system.get_stored_status().heater_mode:
                 await self._system.turn_heater_off()
 
 class RinnaiZoneAutoSwitch(RinnaiExtraEntity, SwitchEntity):
@@ -456,50 +465,50 @@ class RinnaiZoneAutoSwitch(RinnaiExtraEntity, SwitchEntity):
 
     @property
     def available(self):
-        if self._system.GetOfflineStatus().systemOn:
-            if self._system.GetOfflineStatus().coolingMode:
-                return self._system.GetOfflineStatus().coolingStatus.autoMode
-            if self._system.GetOfflineStatus().heaterMode:
-                return self._system.GetOfflineStatus().heaterStatus.autoMode
-            if self._system.GetOfflineStatus().evapMode:
-                return self._system.GetOfflineStatus().evapStatus.autoMode
+        if self._system.get_stored_status().system_on:
+            if self._system.get_stored_status().cooling_mode:
+                return self._system.get_stored_status().cooling_status.auto_mode
+            if self._system.get_stored_status().heater_mode:
+                return self._system.get_stored_status().heater_status.auto_mode
+            if self._system.get_stored_status().evap_mode:
+                return self._system.get_stored_status().evap_status.auto_mode
             return True
         return False
 
     @property
     def is_on(self):
         if self.available:
-            if self._system.GetOfflineStatus().heaterMode:
+            if self._system.get_stored_status().heater_mode:
                 return getattr(
-                            self._system.GetOfflineStatus().heaterStatus,
-                            "zone" + self._attr_zone + "Auto"
+                            self._system.get_stored_status().heater_status,
+                            "zone_" + self._attr_zone.lower() + "_auto"
                         )
-            if self._system.GetOfflineStatus().coolingMode:
+            if self._system.get_stored_status().cooling_mode:
                 return getattr(
-                            self._system.GetOfflineStatus().coolingStatus,
-                            "zone" + self._attr_zone + "Auto"
+                            self._system.get_stored_status().cooling_status,
+                            "zone_" + self._attr_zone.lower() + "_auto"
                         )
-            if self._system.GetOfflineStatus().evapMode:
+            if self._system.get_stored_status().evap_mode:
                 return getattr(
-                            self._system.GetOfflineStatus().evapStatus,
-                            "zone" + self._attr_zone + "Auto"
+                            self._system.get_stored_status().evap_status,
+                            "zone_" + self._attr_zone.lower() + "_auto"
                         )
         return False
 
     async def async_turn_on(self, **kwargs):
         if self.available:
-            if self._system.GetOfflineStatus().heaterMode:
+            if self._system.get_stored_status().heater_mode:
                 await self._system.set_heater_zone_auto(self._attr_zone)
-            elif self._system.GetOfflineStatus().coolingMode:
+            elif self._system.get_stored_status().cooling_mode:
                 await self._system.set_cooling_zone_auto(self._attr_zone)
-            elif self._system.GetOfflineStatus().evapMode:
+            elif self._system.get_stored_status().evap_mode:
                 await self._system.set_evap_zone_auto(self._attr_zone)
 
     async def async_turn_off(self, **kwargs):
         if self.available:
-            if self._system.GetOfflineStatus().heaterMode:
+            if self._system.get_stored_status().heater_mode:
                 await self._system.set_heater_zone_manual(self._attr_zone)
-            elif self._system.GetOfflineStatus().coolingMode:
+            elif self._system.get_stored_status().cooling_mode:
                 await self._system.set_cooling_zone_manual(self._attr_zone)
-            elif self._system.GetOfflineStatus().evapMode:
+            elif self._system.get_stored_status().evap_mode:
                 await self._system.set_evap_zone_manual(self._attr_zone)

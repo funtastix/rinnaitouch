@@ -44,12 +44,12 @@ class RinnaiButtonEntity(ButtonEntity):
 
     def __init__(self, ip_address, name):
         self._host = ip_address
-        self._system = RinnaiSystem.getInstance(ip_address)
+        self._system = RinnaiSystem.get_instance(ip_address)
         device_id = str.lower(self.__class__.__name__) + "_" + str.replace(ip_address, ".", "_")
 
         self._attr_unique_id = device_id
         self._attr_name = name
-        self._system.SubscribeUpdates(self.system_updated)
+        self._system.subscribe_updates(self.system_updated)
 
     def system_updated(self):
         """After system is updated write the new state to HA."""
@@ -70,9 +70,9 @@ class RinnaiAdvanceButton(RinnaiButtonEntity):
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        if self._system.GetOfflineStatus().coolingMode:
+        if self._system.get_stored_status().cooling_mode:
             await self._system.cooling_advance()
-        elif self._system.GetOfflineStatus().heaterMode:
+        elif self._system.get_stored_status().heater_mode:
             await self._system.heater_advance()
 
 class RinnaiZoneAdvanceButton(RinnaiButtonEntity):
@@ -93,15 +93,15 @@ class RinnaiZoneAdvanceButton(RinnaiButtonEntity):
 
     @property
     def available(self):
-        if self._system.GetOfflineStatus().heaterMode:
-            return self._attr_zone in self._system.GetOfflineStatus().heaterStatus.zones
-        if self._system.GetOfflineStatus().coolingMode:
-            return self._attr_zone in self._system.GetOfflineStatus().coolingStatus.zones
+        if self._system.get_stored_status().heater_mode:
+            return self._attr_zone in self._system.get_stored_status().heater_status.zones
+        if self._system.get_stored_status().cooling_mode:
+            return self._attr_zone in self._system.get_stored_status().cooling_status.zones
         return False
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        if self._system.GetOfflineStatus().coolingMode:
+        if self._system.get_stored_status().cooling_mode:
             await self._system.cooling_zone_advance(self._attr_zone)
-        elif self._system.GetOfflineStatus().heaterMode:
+        elif self._system.get_stored_status().heater_mode:
             await self._system.heater_zone_advance(self._attr_zone)
