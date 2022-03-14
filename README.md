@@ -50,12 +50,14 @@ I have not tested the Cooling mode, as I do not have cooling
 3. <del>Implement reading NC-7 temperature for when no external sensor is set up</del>
 4. <del>Implement zone switches</del>
 5. All items in the [project list](https://github.com/funtastix/rinnaitouch/projects/1)
-6. Break out the library `pyrinnaitouch` and upload to PyPi
-7. Make component HACS compatible
+6. <del>Break out the library `pyrinnaitouch` and upload to PyPi</del>
+7. <del>Make component HACS compatible</del>
+
+## Installation
+
+Use [HACS](https://hacs.xyz/docs/basic/getting_started) to install by adding the repository and downloading any version from 0.9.0.
 
 ## Installation for testing
-
-NOTE: Currently working on HACS integration
 
 1. Logon to your HA or HASS with SSH
 2. Go to the HA 'custom_components' directory within the HA installation path (The directory is in the folder where the 'configuration.yaml' file is located. If this is not available - create this directory).
