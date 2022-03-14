@@ -44,10 +44,10 @@ from .const import (
     PRESET_COOL,
     PRESET_EVAP,
     CONF_TEMP_SENSOR,
-#    CONF_TEMP_SENSOR_A,
-#    CONF_TEMP_SENSOR_B,
-#    CONF_TEMP_SENSOR_C,
-#    CONF_TEMP_SENSOR_D,
+    CONF_TEMP_SENSOR_A,
+    CONF_TEMP_SENSOR_B,
+    CONF_TEMP_SENSOR_C,
+    CONF_TEMP_SENSOR_D,
     CONF_ZONE_A,
     CONF_ZONE_B,
     CONF_ZONE_C,
@@ -66,10 +66,10 @@ async def async_setup_entry(hass, entry, async_add_entities):
     ip_address = entry.data.get(CONF_HOST)
     name = entry.data.get(CONF_NAME)
     temperature_entity = entry.data.get(CONF_TEMP_SENSOR)
-    temperature_entity_a = None #entry.data.get(CONF_TEMP_SENSOR_A)
-    temperature_entity_b = None #entry.data.get(CONF_TEMP_SENSOR_B)
-    temperature_entity_c = None #entry.data.get(CONF_TEMP_SENSOR_C)
-    temperature_entity_d = None #entry.data.get(CONF_TEMP_SENSOR_D)
+    temperature_entity_a = entry.data.get(CONF_TEMP_SENSOR_A)
+    temperature_entity_b = entry.data.get(CONF_TEMP_SENSOR_B)
+    temperature_entity_c = entry.data.get(CONF_TEMP_SENSOR_C)
+    temperature_entity_d = entry.data.get(CONF_TEMP_SENSOR_D)
     async_add_entities([RinnaiTouch(hass, ip_address, name, temperature_entity)])
     if entry.data.get(CONF_ZONE_A):
         async_add_entities([RinnaiTouchZone(hass, ip_address, name, "A", temperature_entity_a)])
@@ -444,11 +444,11 @@ class RinnaiTouchZone(ClimateEntity):
         self._attr_name = name + " Zone " + zone
         self._attr_zone = zone
 
+        self._hass = hass
+
         self._temerature_entity_name = temperature_entity
         self._sensor_temperature = 0
         self.update_external_temperature()
-
-        self._hass = hass
 
         self._support_flags = SUPPORT_FLAGS_ZONE
 

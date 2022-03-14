@@ -21,7 +21,9 @@ This component has a dependency on `pyrinnaitouch` which currently resides in a 
 
 ## Capabilities
 
-To support the controller and make it work with the HA climate entity,these are the mappings:
+Read more details in the [wiki](https://github.com/funtastix/rinnaitouch/wiki)
+
+To support the controller and make it work with the HA climate entity, these are the mappings:
 
 HVAC modes:
 - HVAC_MODE_HEAT_COOL → Manual Mode (all operating modes)
