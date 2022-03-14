@@ -215,7 +215,7 @@ class RinnaiZoneTemperatureSensor(RinnaiTemperatureSensor):
             and self._attr_zone in self._system.get_stored_status().evap_status.zones
             and self._temp_attr == "temp"
         ):
-            self._attr_native_value = ifloat(getattr(
+            self._attr_native_value = float(getattr(
                                         self._system.get_stored_status().evap_status,
                                         "zone_" + self._attr_zone.lower() + "_" + self._temp_attr
                                     ))/self.multiplier
