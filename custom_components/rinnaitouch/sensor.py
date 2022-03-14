@@ -282,7 +282,7 @@ class RinnaiPeriodSensor(SensorEntity):
     @property
     def native_value(self) -> str | None:
         """Fetch new state data for the sensor."""
-        state = self._system.get_stored_state()
+        state = self._system.get_stored_status()
         if not state.system_on:
             return "N/A"
         if (
