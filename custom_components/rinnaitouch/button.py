@@ -66,8 +66,13 @@ class RinnaiAdvanceButton(RinnaiButtonEntity):
     @property
     def icon(self):
         """Return the icon to use in the frontend for this device."""
+        if self.available:
+            if (
+                self._system.get_stored_status().heater_status.advanced
+                or self._system.get_stored_status().cooling_status.advanced
+            ):
+                return "mdi:close-circle-outline"
         return "mdi:location-exit"
-
 
     @property
     def available(self):
@@ -81,9 +86,15 @@ class RinnaiAdvanceButton(RinnaiButtonEntity):
     async def async_press(self) -> None:
         """Handle the button press."""
         if self._system.get_stored_status().cooling_mode:
-            await self._system.cooling_advance()
+            if self._system.get_stored_status().cooling_status.advanced:
+                await self._system.cooling_advance_cancel()
+            else:
+                await self._system.cooling_advance()
         elif self._system.get_stored_status().heater_mode:
-            await self._system.heater_advance()
+            if self._system.get_stored_status().heater_status.advanced:
+                await self._system.heater_advance_cancel()
+            else:
+                await self._system.heater_advance()
 
 class RinnaiZoneAdvanceButton(RinnaiButtonEntity):
     """Advance button entity for a zone."""

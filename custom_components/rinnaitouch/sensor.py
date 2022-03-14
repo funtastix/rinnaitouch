@@ -301,10 +301,7 @@ class RinnaiPeriodSensor(SensorEntity):
 
     def schedule_period_to_str(self, status) -> str | None:
         """Convert SchedulePeriod to a UI presentable sensor string value."""
-        _LOGGER.debug("SchedulePeriod status is: %s", status)
-        _LOGGER.debug("SchedulePeriod _attr_period is: %s", self._attr_period)
         state = getattr(status, self._attr_period)
-        _LOGGER.debug("SchedulePeriod state is: %s", state)
         if state == SchedulePeriod.WAKE:
             return "Wake"
         if state == SchedulePeriod.LEAVE:
@@ -340,3 +337,12 @@ class RinnaiAdvancePeriodSensor(RinnaiPeriodSensor):
     def icon(self):
         """Return the icon to use in the frontend for this device."""
         return "mdi:calendar-arrow-right"
+
+    @property
+    def native_value(self):
+        if (
+            self._system.get_stored_status().heater_status.advanced
+            or self._system.get_stored_status().cooling_status.advanced
+        ):
+            return super().native_value()
+        return "N/A"
