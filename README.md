@@ -50,8 +50,8 @@ I have not tested the Cooling mode, as I do not have cooling
 3. <del>Implement reading NC-7 temperature for when no external sensor is set up</del>
 4. <del>Implement zone switches</del>
 5. All items in the [project list](https://github.com/funtastix/rinnaitouch/projects/1)
-6. Break out the library `pyrinnaitouch` and upload to PyPi
-7. Make component HACS compatible
+6. <del>Break out the library `pyrinnaitouch` and upload to PyPi</del>
+7. <del>Make component HACS compatible</del>
 
 ## Installation for testing
 
