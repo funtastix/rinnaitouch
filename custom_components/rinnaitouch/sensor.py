@@ -297,7 +297,7 @@ class RinnaiPeriodSensor(SensorEntity):
             and state.heater_status.auto_mode
         ):
             return self.schedule_period_to_str(state.heater_status)
-        return None
+        return "N/A"
 
     def schedule_period_to_str(self, status) -> str | None:
         """Convert SchedulePeriod to a UI presentable sensor string value."""
