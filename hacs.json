@@ -1,0 +1,6 @@
+{
+  "name": "Rinnai/Brivis Touch Wifi Integration",
+  "render_readme": "Yes",
+  "domains": ["climate", "sensor", "binary_sensor", "button", "switch", "select"],
+  "iot_class": [ "Local Polling" ]
+}
