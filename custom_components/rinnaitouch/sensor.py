@@ -344,5 +344,5 @@ class RinnaiAdvancePeriodSensor(RinnaiPeriodSensor):
             self._system.get_stored_status().heater_status.advanced
             or self._system.get_stored_status().cooling_status.advanced
         ):
-            return super().native_value()
+            return super().native_value
         return "N/A"
