@@ -13,7 +13,7 @@ from homeassistant.const import (
     CONF_HOST
 )
 
-from pyrinnaitouch import RinnaiSystem
+from pyrinnaitouch import RinnaiSystem, SchedulePeriod
 
 from .const import (
     CONF_ZONE_A,
@@ -33,7 +33,11 @@ async def async_setup_entry(hass, entry, async_add_entities): # pylint: disable=
                                     "temperature"),
         RinnaiMainTemperatureSensor(ip_address,
                                     "Rinnai Touch Main Target Temperature Sensor",
-                                    "set_temp")
+                                    "set_temp"),
+        RinnaiSchedulePeriodSensor(ip_address,
+                                   "Rinnai Touch Schedule Time Period Sensor"),
+        RinnaiAdvancePeriodSensor(ip_address,
+                                   "Rinnai Touch Advance Time Period Sensor")
     ])
     if entry.data.get(CONF_ZONE_A):
         async_add_entities([
@@ -246,3 +250,90 @@ class RinnaiZoneTemperatureSensor(RinnaiTemperatureSensor):
                     "zone_" + self._attr_zone.lower() + "_" + self._temp_attr
                 ) == 999
         return False
+
+class RinnaiPeriodSensor(SensorEntity):
+    """Representation of a Sensor."""
+
+    def __init__(self, ip_address, name):
+        self._system = RinnaiSystem.get_instance(ip_address)
+        device_id = str.lower(self.__class__.__name__) + "_" + str.replace(ip_address, ".", "_")
+
+        self._attr_unique_id = device_id
+        self._attr_name = name
+        self._attr_period = None
+
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._system.subscribe_updates(self.system_updated)
+
+    def system_updated(self):
+        """After system is updated write the new state to HA."""
+        self.async_write_ha_state()
+
+    @property
+    def name(self):
+        """Name of the entity."""
+        return self._attr_name
+
+    @property
+    def icon(self):
+        """Return the icon to use in the frontend for this device."""
+        return "mdi:calendar-question"
+
+    @property
+    def native_value(self) -> str | None:
+        """Fetch new state data for the sensor."""
+        state = self._system.get_stored_state()
+        if not state.system_on:
+            return "N/A"
+        if (
+            state.cooling_mode
+            and state.cooling_status.cooling_on
+            and state.cooling_status.auto_mode
+        ):
+            return self.schedule_period_to_str(state.cooling_status)
+        if (
+            state.heater_mode
+            and state.heater_status.cooling_on
+            and state.heater_status.auto_mode
+        ):
+            return self.schedule_period_to_str(state.heater_status)
+        return None
+
+    def schedule_period_to_str(self, status) -> str | None:
+        """Convert SchedulePeriod to a UI presentable sensor string value."""
+        state = getattr(status, self._attr_period)
+        if state == SchedulePeriod.WAKE:
+            return "Wake"
+        if state == SchedulePeriod.LEAVE:
+            return "Leave"
+        if state == SchedulePeriod.RETURN:
+            return "Return"
+        if state == SchedulePeriod.PRE_SLEEP:
+            return "Pre-Sleep"
+        if state == SchedulePeriod.SLEEP:
+            return "Sleep"
+        return None
+
+class RinnaiSchedulePeriodSensor(RinnaiPeriodSensor):
+    """Main on/off switch for the system."""
+
+    def __init__(self, ip_address, name):
+        super().__init__(ip_address, name)
+        self._attr_period = "schedule_period"
+
+    @property
+    def icon(self):
+        """Return the icon to use in the frontend for this device."""
+        return "mdi:calendar-month"
+
+class RinnaiAdvancePeriodSensor(RinnaiPeriodSensor):
+    """Main on/off switch for the system."""
+
+    def __init__(self, ip_address, name):
+        super().__init__(ip_address, name)
+        self._attr_period = "advance_period"
+
+    @property
+    def icon(self):
+        """Return the icon to use in the frontend for this device."""
+        return "mdi:calendar-arrow-right"

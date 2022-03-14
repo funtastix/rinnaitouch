@@ -68,6 +68,16 @@ class RinnaiAdvanceButton(RinnaiButtonEntity):
         """Return the icon to use in the frontend for this device."""
         return "mdi:location-exit"
 
+
+    @property
+    def available(self):
+        if (
+            self._system.get_stored_status().heater_mode
+            or self._system.get_stored_status().cooling_mode
+        ):
+            return self._system.get_stored_status().system_on
+        return False
+
     async def async_press(self) -> None:
         """Handle the button press."""
         if self._system.get_stored_status().cooling_mode:
