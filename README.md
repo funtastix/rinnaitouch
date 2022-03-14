@@ -53,11 +53,25 @@ I have not tested the Cooling mode, as I do not have cooling
 6. Break out the library `pyrinnaitouch` and upload to PyPi
 7. Make component HACS compatible
 
-## Installation
+## Installation for testing
+
+NOTE: Currently working on HACS integration
 
 1. Logon to your HA or HASS with SSH
 2. Go to the HA 'custom_components' directory within the HA installation path (The directory is in the folder where the 'configuration.yaml' file is located. If this is not available - create this directory).
 3. Run `cd custom_components`
-4. Run `git clone https://github.com/funtastix/rinnaitouch` within the `custom_components` directory
-5. Restart your HA/HASS service in the UI with `<your-URL>/config/server_control`
-8. Add your fireplace either by: HA UI by navigating to "Integrations" -> "Add Integration" -> "Rinnai Touch" (If it is not available, clear your web browser cache to renew the integrations list.)
+4. Run `git clone https://github.com/funtastix/rinnaitouch` within the `custom_components` directory. This will create a new rinnaitouch/custom_components/rinnaitouch subdirectory.
+5. Move everything from rinnaitouch/custom_components/rinnaitouch to rinnaitouch (base of the clone): `mv rinnaitouch/custom_components/rinnaitouch/* rinnaitouch/`
+6. Restart your HA/HASS service in the UI with `<your-URL>/config/server_control`
+7. Add your Rinnai Touch either by: HA UI by navigating to "Integrations" -> "Add Integration" -> "Rinnai Touch" (If it is not available, clear your web browser cache to renew the integrations list.)
+
+## Enable Debug
+
+```YAML
+logger:
+  default: warn
+  logs:
+    custom_components.rinnaitouch: debug
+    custom_components.rinnaitouch.pyrinnaitouch: debug
+    pyrinnaitouch: debug
+```
