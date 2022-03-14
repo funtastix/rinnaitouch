@@ -293,7 +293,7 @@ class RinnaiPeriodSensor(SensorEntity):
             return self.schedule_period_to_str(state.cooling_status)
         if (
             state.heater_mode
-            and state.heater_status.cooling_on
+            and state.heater_status.heater_on
             and state.heater_status.auto_mode
         ):
             return self.schedule_period_to_str(state.heater_status)
