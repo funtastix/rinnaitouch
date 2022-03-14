@@ -53,9 +53,11 @@ I have not tested the Cooling mode, as I do not have cooling
 6. <del>Break out the library `pyrinnaitouch` and upload to PyPi</del>
 7. <del>Make component HACS compatible</del>
 
-## Installation for testing
+## Installation
 
-NOTE: Currently working on HACS integration
+Use [HACS](https://hacs.xyz/docs/basic/getting_started) to install by adding the repository and downloading any version from 0.9.0.
+
+## Installation for testing
 
 1. Logon to your HA or HASS with SSH
 2. Go to the HA 'custom_components' directory within the HA installation path (The directory is in the folder where the 'configuration.yaml' file is located. If this is not available - create this directory).
