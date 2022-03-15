@@ -139,31 +139,31 @@ class RinnaiMainTemperatureSensor(RinnaiTemperatureSensor):
         This is the only method that should fetch new data for Home Assistant.
         """
         if self._system.get_stored_status().cooling_mode:
-            self._attr_native_value = int(round(float(getattr(
+            self._attr_native_value = float(getattr(
                                             self._system.get_stored_status().cooling_status,
                                             self._temp_attr
-                                        ))/self.multiplier))
+                                        ))/self.multiplier
         elif self._system.get_stored_status().heater_mode:
-            self._attr_native_value = int(round(float(getattr(
+            self._attr_native_value = float(getattr(
                                             self._system.get_stored_status().heater_status,
                                             self._temp_attr
-                                        ))/self.multiplier))
+                                        ))/self.multiplier
         elif self._system.get_stored_status().evap_mode and self._temp_attr == "temperature":
-            self._attr_native_value = int(round(float(getattr(
+            self._attr_native_value = float(getattr(
                                             self._system.get_stored_status().evap_status,
                                             self._temp_attr
-                                        ))/self.multiplier))
+                                        ))/self.multiplier
         else:
             self._attr_native_value = 0
 
     @property
     def available(self):
-        if self._system.get_stored_status().heater_mode:
+        if self._system.get_stored_status().cooling_mode:
             return not getattr(
                         self._system.get_stored_status().cooling_status,
                         self._temp_attr
                     ) == 999
-        if self._system.get_stored_status().cooling_mode:
+        if self._system.get_stored_status().heater_mode:
             return not getattr(
                         self._system.get_stored_status().heater_status,
                         self._temp_attr
@@ -198,27 +198,27 @@ class RinnaiZoneTemperatureSensor(RinnaiTemperatureSensor):
             self._system.get_stored_status().cooling_mode
             and self._attr_zone in self._system.get_stored_status().cooling_status.zones
         ):
-            self._attr_native_value = int(round(float(getattr(
+            self._attr_native_value = float(getattr(
                                         self._system.get_stored_status().cooling_status,
                                         "zone_" + self._attr_zone.lower() + "_" + self._temp_attr
-                                    ))/self.multiplier))
+                                    ))/self.multiplier
         elif (
             self._system.get_stored_status().heater_mode
             and self._attr_zone in self._system.get_stored_status().heater_status.zones
         ):
-            self._attr_native_value = int(round(float(getattr(
+            self._attr_native_value = float(getattr(
                                         self._system.get_stored_status().heater_status,
                                         "zone_" + self._attr_zone.lower() + "_" + self._temp_attr
-                                    ))/self.multiplier))
+                                    ))/self.multiplier
         elif (
             self._system.get_stored_status().evap_mode
             and self._attr_zone in self._system.get_stored_status().evap_status.zones
             and self._temp_attr == "temp"
         ):
-            self._attr_native_value = int(round(float(getattr(
+            self._attr_native_value = float(getattr(
                                         self._system.get_stored_status().evap_status,
                                         "zone_" + self._attr_zone.lower() + "_" + self._temp_attr
-                                    ))/self.multiplier))
+                                    ))/self.multiplier
         else:
             self._attr_native_value = 0
 
