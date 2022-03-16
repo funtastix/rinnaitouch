@@ -329,7 +329,7 @@ class RinnaiTouch(ClimateEntity):
 
         if int(temp) < 999:
             _LOGGER.debug("Internal temperature sensor should be reported: %s", int(temp) < 999)
-            return int(round(float(temp)/10))
+            return float(temp)/10
         return self._sensor_temperature
 
     @property
@@ -413,7 +413,7 @@ class RinnaiTouch(ClimateEntity):
             if temperature_entity is not None and temperature_entity.state != "unavailable":
                 _LOGGER.debug("External temperature sensor reports: %s", temperature_entity.state)
                 try:
-                    self._sensor_temperature = int(round(float(temperature_entity.state)))
+                    self._sensor_temperature = float(temperature_entity.state)
                 except ValueError:
                     self._sensor_temperature = 0
 
@@ -665,7 +665,7 @@ class RinnaiTouchZone(ClimateEntity):
                     )
 
         if int(temp) < 999:
-            return int(round(float(temp)/10))
+            return float(temp)/10
         return self._sensor_temperature
 
     #not common
