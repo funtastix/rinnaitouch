@@ -310,7 +310,7 @@ class RinnaiTouch(ClimateEntity):
         if self.preset_mode == PRESET_EVAP and self.hvac_mode == HVAC_MODE_AUTO :
             await self._system.set_evap_comfort(target_temperature)
         if self.preset_mode == PRESET_EVAP and self.hvac_mode == HVAC_MODE_HEAT_COOL :
-            await self._system.set_evap_fan_speed(target_temperature)
+            await self._system.set_evap_fanspeed(target_temperature)
 
     @property
     def current_temperature(self):
