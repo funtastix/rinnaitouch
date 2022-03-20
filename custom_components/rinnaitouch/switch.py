@@ -293,7 +293,7 @@ class RinnaiWaterpumpSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def is_on(self):
         if self.available:
-            return self._system.get_stored_status().evap_status.waterPumpOn
+            return self._system.get_stored_status().evap_status.water_pump_on
         return False
 
     async def async_turn_on(self, **kwargs):
@@ -331,7 +331,7 @@ class RinnaiEvapFanSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def is_on(self):
         if self.available:
-            return self._system.get_stored_status().evap_status.FanOn
+            return self._system.get_stored_status().evap_status.fan_on
         return False
 
     async def async_turn_on(self, **kwargs):
