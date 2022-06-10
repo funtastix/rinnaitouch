@@ -160,8 +160,7 @@ class RinnaiTouch(ClimateEntity):
         if hvac_mode == HVAC_MODE_COOL:
             if self.cooling_mode == COOLING_EVAP:
                 return "mdi:snowflake-melt"
-            else:
-                return "mdi:snowflake"
+            return "mdi:snowflake"
 
         if hvac_mode == HVAC_MODE_HEAT:
             return "mdi:fire"
@@ -173,10 +172,9 @@ class RinnaiTouch(ClimateEntity):
         """Return the cooling mode we're in mode."""
         if self._system.get_stored_status().cooling_mode:
             return COOLING_COOL
-        elif self._system.get_stored_status().evap_mode:
+        if self._system.get_stored_status().evap_mode:
             return COOLING_EVAP
-        else:
-            return COOLING_NONE
+        return COOLING_NONE
 
     @property
     def temperature_unit(self):
@@ -370,15 +368,13 @@ class RinnaiTouch(ClimateEntity):
         if self._system.get_stored_status().cooling_mode:
             if self._system.get_stored_status().cooling_status.cooling_on:
                 return HVAC_MODE_COOL
-            else:
-                #system on, cooling mode, but cooling off indicates fan only
-                return HVAC_MODE_FAN_ONLY
+            #system on, cooling mode, but cooling off indicates fan only
+            return HVAC_MODE_FAN_ONLY
         if self._system.get_stored_status().heater_mode:
             if self._system.get_stored_status().heater_status.heater_on:
                 return HVAC_MODE_HEAT
-            else:
-                #system on, heater mode, but heater off indicates fan only
-                return HVAC_MODE_FAN_ONLY
+            #system on, heater mode, but heater off indicates fan only
+            return HVAC_MODE_FAN_ONLY
         if self._system.get_stored_status().evap_mode:
             return HVAC_MODE_COOL
         return HVAC_MODE_OFF
@@ -393,6 +389,7 @@ class RinnaiTouch(ClimateEntity):
     @property
     def preset_mode(self):
         """Return current HVAC mode, ie Heat or Off."""
+        # pylint: disable=too-many-return-statements
         if self._system.get_stored_status().heater_mode :
             if self._system.get_stored_status().heater_status.auto_mode:
                 return PRESET_AUTO
@@ -405,6 +402,7 @@ class RinnaiTouch(ClimateEntity):
             if self._system.get_stored_status().evap_status.auto_mode:
                 return PRESET_AUTO
             return PRESET_MANUAL
+        return PRESET_MANUAL
 
     @property
     def preset_modes(self):
@@ -528,8 +526,7 @@ class RinnaiTouchZone(ClimateEntity):
         if hvac_mode == HVAC_MODE_COOL:
             if self.cooling_mode == COOLING_EVAP:
                 return "mdi:snowflake-melt"
-            else:
-                return "mdi:snowflake"
+            return "mdi:snowflake"
 
         if hvac_mode == HVAC_MODE_HEAT:
             return "mdi:fire"
@@ -541,10 +538,9 @@ class RinnaiTouchZone(ClimateEntity):
         """Return the cooling mode we're in mode."""
         if self._system.get_stored_status().cooling_mode:
             return COOLING_COOL
-        elif self._system.get_stored_status().evap_mode:
+        if self._system.get_stored_status().evap_mode:
             return COOLING_EVAP
-        else:
-            return COOLING_NONE
+        return COOLING_NONE
 
     @property
     def temperature_unit(self):
@@ -613,6 +609,15 @@ class RinnaiTouchZone(ClimateEntity):
                 return self._TEMPERATURE_LIMITS["max"]
         return self.target_temperature
 
+    @property
+    def preferred_cooling_mode(self):
+        """Return the preferred cooling mode, prioritising refrigerated over evap."""
+        if self._system.get_stored_status().has_cooling:
+            return COOLING_COOL
+        if self._system.get_stored_status().has_evap:
+            return COOLING_EVAP
+        return COOLING_NONE
+
     #not common
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
@@ -670,10 +675,6 @@ class RinnaiTouchZone(ClimateEntity):
                     await self._system.set_evap_zone_manual(self._attr_zone)
                 if self.cooling_mode == COOLING_NONE:
                     await self._system.set_heater_zone_manual(self._attr_zone)
-
-    async def async_set_preset_mode(self, preset_mode):
-        """Cannot change the preset per zone"""
-        return False
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
@@ -765,6 +766,7 @@ class RinnaiTouchZone(ClimateEntity):
     @property
     def preset_mode(self):
         """Return current Preset mode, ie Auto or Manual."""
+        # pylint: disable=too-many-return-statements
         if self.cooling_mode == COOLING_COOL:
             if getattr(
                         self._system.get_stored_status().cooling_status,
@@ -786,6 +788,7 @@ class RinnaiTouchZone(ClimateEntity):
                     ):
                 return PRESET_AUTO
             return PRESET_MANUAL
+        return PRESET_MANUAL
 
     #not common. Only return the mode that is set on the main
     @property

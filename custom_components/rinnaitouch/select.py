@@ -52,6 +52,7 @@ class RinnaiSelectPresetEntity(SelectEntity):
     @property
     def current_option(self):
         """If the switch is currently on or off."""
+        # pylint: disable=too-many-return-statements
         if self._system.get_stored_status().heater_mode :
             if self._system.get_stored_status().heater_status.auto_mode:
                 return PRESET_AUTO
@@ -64,6 +65,7 @@ class RinnaiSelectPresetEntity(SelectEntity):
             if self._system.get_stored_status().evap_status.auto_mode:
                 return PRESET_AUTO
             return PRESET_MANUAL
+        return PRESET_MANUAL
 
     @property
     def options(self):
