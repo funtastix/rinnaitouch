@@ -23,17 +23,21 @@ This component has a dependency on `pyrinnaitouch` which currently resides in a 
 
 Read more details in the [wiki](https://github.com/funtastix/rinnaitouch/wiki)
 
-To support the controller and make it work with the HA climate entity, these are the mappings:
+To support the controller and make it work with the HA climate entity, these are the mappings and they have changed with version 0.10.0:
 
 HVAC modes:
-- HVAC_MODE_HEAT_COOL → Manual Mode (all operating modes)
-- HVAC_MODE_AUTO → Auto Mode (all operating modes)
+- HVAC_MODE_HEAT → Heating mode (gas heater)
+- HVAC_MODE_COOL → Cooling Mode (evap or refrigerated)
 - HVAC_MODE_OFF → Unit Off (any operating mode)
+- HVAC_MODE_FAN_ONLY - Only circulation fan is on while in heating or cooling mode
 
 PRESET modes:
-- PRESET_COOL → Cooling mode
-- PRESET_HEAT → Heater mode
-- PRESET_EVAP → Evap mode
+- PRESET_MANUAL → Manual mode
+- PRESET_AUTO → Auto mode
+
+There is now internally a cooling selector (preselected, only available if multiple cooling methods installed)
+- COOLING_EVAP → Evap mode
+- COOLING_COOL → Refrigerated mode
 
 You can manipulate the Fan as required. Fan Only mode in Evap will turn off the pump.
 

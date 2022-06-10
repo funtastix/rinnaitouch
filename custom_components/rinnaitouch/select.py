@@ -9,9 +9,8 @@ from homeassistant.const import (
 from pyrinnaitouch import RinnaiSystem
 
 from .const import (
-    PRESET_HEAT,
-    PRESET_COOL,
-    PRESET_EVAP
+    PRESET_AUTO,
+    PRESET_MANUAL
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -54,28 +53,37 @@ class RinnaiSelectPresetEntity(SelectEntity):
     def current_option(self):
         """If the switch is currently on or off."""
         if self._system.get_stored_status().heater_mode :
-            return PRESET_HEAT
+            if self._system.get_stored_status().heater_status.auto_mode:
+                return PRESET_AUTO
+            return PRESET_MANUAL
         if self._system.get_stored_status().cooling_mode :
-            return PRESET_COOL
-        return PRESET_EVAP
+            if self._system.get_stored_status().cooling_status.auto_mode:
+                return PRESET_AUTO
+            return PRESET_MANUAL
+        if self._system.get_stored_status().evap_mode :
+            if self._system.get_stored_status().evap_status.auto_mode:
+                return PRESET_AUTO
+            return PRESET_MANUAL
 
     @property
     def options(self):
         """If the switch is currently on or off."""
-        modes = []
-        if self._system.get_stored_status().has_heater:
-            modes.append(PRESET_HEAT)
-        if self._system.get_stored_status().has_cooling:
-            modes.append(PRESET_COOL)
-        if self._system.get_stored_status().has_evap:
-            modes.append(PRESET_EVAP)
-        return modes
+        return [PRESET_MANUAL, PRESET_AUTO]
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
-        if option == PRESET_COOL:
-            await self._system.set_cooling_mode()
-        if option == PRESET_HEAT:
-            await self._system.set_heater_mode()
-        if option == PRESET_EVAP:
-            await self._system.set_evap_mode()
+        if self._system.get_stored_status().heater_mode :
+            if option == PRESET_AUTO:
+                await self._system.set_heater_auto()
+            else:
+                await self._system.set_heater_manual()
+        if self._system.get_stored_status().cooling_mode :
+            if option == PRESET_AUTO:
+                await self._system.set_cooling_auto()
+            else:
+                await self._system.set_cooling_manual()
+        if self._system.get_stored_status().evap_mode :
+            if option == PRESET_AUTO:
+                await self._system.set_evap_auto()
+            else:
+                await self._system.set_evap_manual()
