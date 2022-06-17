@@ -3,6 +3,7 @@ import logging
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.const import (
+    CONF_NAME,
     CONF_HOST
 )
 
@@ -18,8 +19,11 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, entry, async_add_entities): # pylint: disable=unused-argument
     """Set up the preset select entities."""
     ip_address = entry.data.get(CONF_HOST)
+    name = entry.data.get(CONF_NAME)
+    if name == "":
+        name = "Rinnai Touch"
     async_add_entities([
-        RinnaiSelectPresetEntity(ip_address, "Rinnai Touch Preset Select")
+        RinnaiSelectPresetEntity(ip_address, name + " Preset Select")
     ])
     return True
 
