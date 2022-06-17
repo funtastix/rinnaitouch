@@ -10,6 +10,7 @@ from homeassistant.components.sensor import (
 
 from homeassistant.const import TEMP_CELSIUS
 from homeassistant.const import (
+    CONF_NAME,
     CONF_HOST
 )
 
@@ -27,60 +28,63 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, entry, async_add_entities): # pylint: disable=unused-argument
     """Set up the sensor entities."""
     ip_address = entry.data.get(CONF_HOST)
+    name = entry.data.get(CONF_NAME)
+    if name == "":
+        name = "Rinnai Touch"
     async_add_entities([
         RinnaiMainTemperatureSensor(ip_address,
-                                    "Rinnai Touch Main Temperature Sensor",
+                                    name + " Main Temperature Sensor",
                                     "temperature"),
         RinnaiMainTemperatureSensor(ip_address,
-                                    "Rinnai Touch Main Target Temperature Sensor",
+                                    name + " Main Target Temperature Sensor",
                                     "set_temp"),
         RinnaiSchedulePeriodSensor(ip_address,
-                                   "Rinnai Touch Schedule Time Period Sensor"),
+                                   name + " Schedule Time Period Sensor"),
         RinnaiAdvancePeriodSensor(ip_address,
-                                   "Rinnai Touch Advance Time Period Sensor")
+                                  name + " Advance Time Period Sensor")
     ])
     if entry.data.get(CONF_ZONE_A):
         async_add_entities([
             RinnaiZoneTemperatureSensor(ip_address,
                                         "A",
-                                        "Rinnai Touch Zone A Target Temperature Sensor",
+                                        name + " Zone A Target Temperature Sensor",
                                         "set_temp"),
             RinnaiZoneTemperatureSensor(ip_address,
                                         "A",
-                                        "Rinnai Touch Zone A Temperature Sensor",
+                                        name + " Zone A Temperature Sensor",
                                         "temp")
         ])
     if entry.data.get(CONF_ZONE_B):
         async_add_entities([
             RinnaiZoneTemperatureSensor(ip_address,
                                         "B",
-                                        "Rinnai Touch Zone B Target Temperature Sensor",
+                                        name + " Zone B Target Temperature Sensor",
                                         "set_temp"),
             RinnaiZoneTemperatureSensor(ip_address,
                                         "B",
-                                        "Rinnai Touch Zone B Temperature Sensor",
+                                        name + " Zone B Temperature Sensor",
                                         "temp")
         ])
     if entry.data.get(CONF_ZONE_C):
         async_add_entities([
             RinnaiZoneTemperatureSensor(ip_address,
                                         "C",
-                                        "Rinnai Touch Zone C Target Temperature Sensor",
+                                        name + " Zone C Target Temperature Sensor",
                                         "set_temp"),
             RinnaiZoneTemperatureSensor(ip_address,
                                         "C",
-                                        "Rinnai Touch Zone C Temperature Sensor",
+                                        name + " Zone C Temperature Sensor",
                                         "temp")
         ])
     if entry.data.get(CONF_ZONE_D):
         async_add_entities([
             RinnaiZoneTemperatureSensor(ip_address,
                                         "D",
-                                        "Rinnai Touch Zone C Target Temperature Sensor",
+                                        name + " Zone C Target Temperature Sensor",
                                         "set_temp"),
             RinnaiZoneTemperatureSensor(ip_address,
                                         "D",
-                                        "Rinnai Touch Zone C Temperature Sensor",
+                                        name + " Zone C Temperature Sensor",
                                         "temp")
         ])
     return True

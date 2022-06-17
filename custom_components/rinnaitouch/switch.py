@@ -4,6 +4,7 @@ import logging
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.entity import Entity
 from homeassistant.const import (
+    CONF_NAME,
     CONF_HOST
 )
 
@@ -21,35 +22,38 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, entry, async_add_entities): # pylint: disable=unused-argument
     """Set up the switch entities."""
     ip_address = entry.data.get(CONF_HOST)
+    name = entry.data.get(CONF_NAME)
+    if name == "":
+        name = "Rinnai Touch"
     async_add_entities([
-        RinnaiOnOffSwitch(ip_address, "Rinnai Touch On Off Switch"),
-        RinnaiCoolingModeSwitch(ip_address, "Rinnai Touch Cooling Mode Switch"),
-        RinnaiHeaterModeSwitch(ip_address, "Rinnai Touch Heater Mode Switch"),
-        RinnaiEvapModeSwitch(ip_address, "Rinnai Touch Evap Mode Switch"),
-        RinnaiWaterpumpSwitch(ip_address, "Rinnai Touch Water Pump Switch"),
-        RinnaiEvapFanSwitch(ip_address, "Rinnai Touch Evap Fan Switch"),
-        RinnaiCircFanSwitch(ip_address, "Rinnai Touch Circulation Fan Switch"),
-        RinnaiAutoSwitch(ip_address, "Rinnai Touch Auto Switch")
+        RinnaiOnOffSwitch(ip_address, name + " On Off Switch"),
+        RinnaiCoolingModeSwitch(ip_address, name + " Cooling Mode Switch"),
+        RinnaiHeaterModeSwitch(ip_address, name + " Heater Mode Switch"),
+        RinnaiEvapModeSwitch(ip_address, name + " Evap Mode Switch"),
+        RinnaiWaterpumpSwitch(ip_address, name + " Water Pump Switch"),
+        RinnaiEvapFanSwitch(ip_address, name + " Evap Fan Switch"),
+        RinnaiCircFanSwitch(ip_address, name + " Circulation Fan Switch"),
+        RinnaiAutoSwitch(ip_address, name + " Auto Switch")
     ])
     if entry.data.get(CONF_ZONE_A):
         async_add_entities([
-            RinnaiZoneSwitch(ip_address, "A", "Rinnai Touch Zone A Switch"),
-            RinnaiZoneAutoSwitch(ip_address, "A", "Rinnai Touch Zone A Auto Switch")
+            RinnaiZoneSwitch(ip_address, "A", name + " Zone A Switch"),
+            RinnaiZoneAutoSwitch(ip_address, "A", name + " Zone A Auto Switch")
         ])
     if entry.data.get(CONF_ZONE_B):
         async_add_entities([
-            RinnaiZoneSwitch(ip_address, "B", "Rinnai Touch Zone B Switch"),
-            RinnaiZoneAutoSwitch(ip_address, "B", "Rinnai Touch Zone B Auto Switch")
+            RinnaiZoneSwitch(ip_address, "B", name + " Zone B Switch"),
+            RinnaiZoneAutoSwitch(ip_address, "B", name + " Zone B Auto Switch")
         ])
     if entry.data.get(CONF_ZONE_C):
         async_add_entities([
-            RinnaiZoneSwitch(ip_address, "C", "Rinnai Touch Zone C Switch"),
-            RinnaiZoneAutoSwitch(ip_address, "C", "Rinnai Touch Zone C Auto Switch")
+            RinnaiZoneSwitch(ip_address, "C", name + " Zone C Switch"),
+            RinnaiZoneAutoSwitch(ip_address, "C", name + " Zone C Auto Switch")
         ])
     if entry.data.get(CONF_ZONE_D):
         async_add_entities([
-            RinnaiZoneSwitch(ip_address, "D", "Rinnai Touch Zone D Switch"),
-            RinnaiZoneAutoSwitch(ip_address, "D", "Rinnai Touch Zone D Auto Switch")
+            RinnaiZoneSwitch(ip_address, "D", name + " Zone D Switch"),
+            RinnaiZoneAutoSwitch(ip_address, "D", name + " Zone D Auto Switch")
         ])
     return True
 

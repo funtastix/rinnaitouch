@@ -3,6 +3,7 @@ import logging
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.const import (
+    CONF_NAME,
     CONF_HOST
 )
 
@@ -13,9 +14,12 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, entry, async_add_entities): # pylint: disable=unused-argument
     """Set up the binary sensor entities."""
     ip_address = entry.data.get(CONF_HOST)
+    name = entry.data.get(CONF_NAME)
+    if name == "":
+        name = "Rinnai Touch"
     async_add_entities([
-        RinnaiPrewetBinarySensorEntity(ip_address, "Rinnai Touch Evap Prewetting Sensor"),
-        RinnaiPreheatBinarySensorEntity(ip_address, "Rinnai Touch Preheating Sensor")
+        RinnaiPrewetBinarySensorEntity(ip_address, name + " Evap Prewetting Sensor"),
+        RinnaiPreheatBinarySensorEntity(ip_address, name + " Preheating Sensor")
     ])
     return True
 
