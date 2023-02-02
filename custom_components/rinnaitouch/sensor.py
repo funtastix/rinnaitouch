@@ -268,7 +268,6 @@ class RinnaiPeriodSensor(SensorEntity):
         self._attr_name = name
         self._attr_period = None
 
-        self._attr_state_class = SensorStateClass.MEASUREMENT
         self._system.subscribe_updates(self.system_updated)
 
     def system_updated(self):
