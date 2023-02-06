@@ -113,7 +113,8 @@ class RinnaiTouch(ClimateEntity):
 
     def system_updated(self):
         """After system is updated write the new state to HA."""
-        self.async_write_ha_state()
+        self.update_external_temperature()
+        self.schedule_update_ha_state()
 
     @property
     def supported_features(self):
@@ -123,7 +124,7 @@ class RinnaiTouch(ClimateEntity):
     @property
     def should_poll(self):
         """Return the polling state."""
-        return True
+        return False
 
     @property
     def name(self):
@@ -417,11 +418,6 @@ class RinnaiTouch(ClimateEntity):
         """Turn auxiliary heater off."""
         return False
 
-    async def async_update(self):
-        """Update system with latest status."""
-        await self._system.get_status()
-        self.update_external_temperature()
-
     def update_external_temperature(self):
         """Update external temperature reading."""
         _LOGGER.debug("External temperature sensor entity name: %s", self._temerature_entity_name)
@@ -476,7 +472,7 @@ class RinnaiTouchZone(ClimateEntity):
 
     def system_updated(self):
         """After system is updated write the new state to HA."""
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()
 
     @property
     def supported_features(self):

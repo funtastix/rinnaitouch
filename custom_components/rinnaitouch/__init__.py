@@ -35,12 +35,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         system = RinnaiSystem.get_instance(ip_address)
         #scenes = await system.getSupportedScenes()
         scenes = []
-        await system.get_status()
+        await hass.async_add_executor_job(system.get_status)
     except (
         Exception,
         ConnectionError,
         ConnectionRefusedError,
     ) as err:
+        _LOGGER.debug("Get controller error: %s", err)
         raise ConfigEntryNotReady from err
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = RinnaiData(system=system, scenes=scenes)

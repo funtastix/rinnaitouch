@@ -3,9 +3,9 @@
   "name": "Rinnai Touch",
   "documentation": "https://github.com/funtastix/rinnaitouch",
   "issue_tracker": "https://github.com/funtastix/rinnaitouch/issues",
-  "codeowners": ["@funtastix"],
-  "requirements": [ "pyrinnaitouch>=0.9.3" ],
+  "codeowners": [ "@funtastix" ],
+  "requirements": [ "pyrinnaitouch>=0.10.1" ],
   "config_flow": true,
   "version": "0.11.1",
-  "iot_class": "local_polling"
+  "iot_class": "local_push"
 }

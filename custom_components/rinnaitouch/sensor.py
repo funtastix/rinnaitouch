@@ -106,7 +106,7 @@ class RinnaiTemperatureSensor(SensorEntity):
 
     def system_updated(self):
         """After system is updated write the new state to HA."""
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()
 
     @property
     def name(self):
@@ -272,7 +272,7 @@ class RinnaiPeriodSensor(SensorEntity):
 
     def system_updated(self):
         """After system is updated write the new state to HA."""
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()
 
     @property
     def name(self):
