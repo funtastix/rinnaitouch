@@ -247,26 +247,26 @@ class RinnaiTouch(ClimateEntity):
             if hvac_mode == HVAC_MODE_HEAT:
                 #turn whatever the preset is on and put it into manual mode
                 if self.preset_mode == PRESET_AUTO:
-                    await self._system.turn_heater_on()
+                    await self._system.set_heater_mode()
                     await self._system.set_heater_auto()
                 if self.preset_mode == PRESET_MANUAL:
-                    await self._system.turn_heater_on()
+                    await self._system.set_heater_mode()
                     await self._system.set_heater_manual()
             elif hvac_mode == HVAC_MODE_COOL:
                 #turn whatever the preset is on and put it into auto mode
                 if self.preset_mode == PRESET_AUTO:
                     if self.preferred_cooling_mode == COOLING_COOL:
-                        await self._system.turn_cooling_on()
+                        await self._system.set_cooling_mode()
                         await self._system.set_cooling_auto()
                     if self.preferred_cooling_mode == COOLING_EVAP:
-                        await self._system.turn_evap_on()
+                        await self._system.set_evap_mode()
                         await self._system.set_evap_auto()
                 if self.preset_mode == PRESET_MANUAL:
                     if self.preferred_cooling_mode == COOLING_COOL:
-                        await self._system.turn_cooling_on()
+                        await self._system.set_cooling_mode()
                         await self._system.set_cooling_manual()
                     if self.preferred_cooling_mode == COOLING_EVAP:
-                        await self._system.turn_evap_on()
+                        await self._system.set_evap_mode()
                         await self._system.set_evap_manual()
             elif hvac_mode == HVAC_MODE_OFF:
                 #turn whatever the preset is off
