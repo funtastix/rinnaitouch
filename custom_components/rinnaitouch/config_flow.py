@@ -62,8 +62,7 @@ class RinnaiTouchConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             system.set_zones(zones)
             device_id = "rinnaitouch_" + str.replace(user_input[CONF_HOST], ".", "_")
             try:
-                loop = asyncio.get_event_loop()
-                await loop.run_in_executor(None, system.get_status)
+                await hass.async_add_executor_job(system.get_status)
             except AbortFlow:
                 return self.async_abort(reason="single_instance_allowed")
             except Exception:  # pylint: disable=broad-except
