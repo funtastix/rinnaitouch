@@ -331,12 +331,12 @@ class RinnaiTouch(ClimateEntity):
             )
         if self.cooling_mode == COOLING_COOL:
             if self.hvac_mode == HVAC_MODE_FAN_ONLY:
-                await self._system.set_cooling_fan_speed(target_temperature)
+                await self._system.set_cooling_fanspeed(target_temperature)
             else:
                 await self._system.set_cooling_temp(target_temperature)
         if self.cooling_mode == COOLING_NONE:
             if self.hvac_mode == HVAC_MODE_FAN_ONLY:
-                await self._system.set_heater_fan_speed(target_temperature)
+                await self._system.set_heater_fanspeed(target_temperature)
             else:
                 await self._system.set_heater_temp(target_temperature)
         if self.cooling_mode == COOLING_EVAP and self.preset_mode == PRESET_AUTO :
