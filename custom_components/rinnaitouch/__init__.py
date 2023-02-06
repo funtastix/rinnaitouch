@@ -35,7 +35,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         system = RinnaiSystem.get_instance(ip_address)
         #scenes = await system.getSupportedScenes()
         scenes = []
-        await system.get_status()
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, system.get_status)
     except (
         Exception,
         ConnectionError,
