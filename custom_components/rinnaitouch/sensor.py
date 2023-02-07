@@ -109,8 +109,8 @@ class RinnaiTemperatureSensor(SensorEntity):
         #this very infrequently fails on startup so wrapping in try except
         try:
             self.schedule_update_ha_state()
-        except:
-            pass 
+        except: #pylint: disable=bare-except
+            pass
 
     @property
     def name(self):
@@ -279,8 +279,8 @@ class RinnaiPeriodSensor(SensorEntity):
         #this very infrequently fails on startup so wrapping in try except
         try:
             self.schedule_update_ha_state()
-        except:
-            pass 
+        except: #pylint: disable=bare-except
+            pass
 
     @property
     def name(self):

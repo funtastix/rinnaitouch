@@ -55,8 +55,8 @@ class RinnaiPrewetBinarySensorEntity(RinnaiBinarySensorEntity):
         #this very infrequently fails on startup so wrapping in try except
         try:
             self.schedule_update_ha_state()
-        except:
-            pass 
+        except: #pylint: disable=bare-except
+            pass
 
     @property
     def icon(self):
@@ -89,8 +89,8 @@ class RinnaiPreheatBinarySensorEntity(RinnaiBinarySensorEntity):
         #this very infrequently fails on startup so wrapping in try except
         try:
             self.schedule_update_ha_state()
-        except:
-            pass 
+        except: #pylint: disable=bare-except
+            pass
 
     @property
     def icon(self):

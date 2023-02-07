@@ -117,8 +117,8 @@ class RinnaiTouch(ClimateEntity):
         #this very infrequently fails on startup so wrapping in try except
         try:
             self.schedule_update_ha_state()
-        except:
-            pass 
+        except: #pylint: disable=bare-except
+            pass
 
     @property
     def supported_features(self):
@@ -483,8 +483,8 @@ class RinnaiTouchZone(ClimateEntity):
         #this very infrequently fails on startup so wrapping in try except
         try:
             self.schedule_update_ha_state()
-        except:
-            pass 
+        except: #pylint: disable=bare-except
+            pass
 
     @property
     def supported_features(self):
