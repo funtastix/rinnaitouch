@@ -41,7 +41,11 @@ class RinnaiSelectPresetEntity(SelectEntity):
 
     def system_updated(self):
         """After system is updated write the new state to HA."""
-        self.schedule_update_ha_state()
+        #this very infrequently fails on startup so wrapping in try except
+        try:
+            self.schedule_update_ha_state()
+        except:
+            pass 
 
     @property
     def name(self):
