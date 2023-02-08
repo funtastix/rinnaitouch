@@ -701,9 +701,9 @@ class RinnaiTouchZone(ClimateEntity):
                     f'{self.min_temp} and {self.max_temp}.'
                 )
             if self.cooling_mode == COOLING_COOL:
-                await self._system.set_cooling_zone_temp(target_temperature)
+                await self._system.set_cooling_zone_temp(self._attr_zone, target_temperature)
             if self.cooling_mode == COOLING_NONE:
-                await self._system.set_heater_zone_temp(target_temperature)
+                await self._system.set_heater_zone_temp(self._attr_zone, target_temperature)
         else:
             return False
 
