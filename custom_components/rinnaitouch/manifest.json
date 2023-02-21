@@ -4,7 +4,7 @@
   "documentation": "https://github.com/funtastix/rinnaitouch",
   "issue_tracker": "https://github.com/funtastix/rinnaitouch/issues",
   "codeowners": [ "@funtastix" ],
-  "requirements": [ "git+https://github.com/funtastix/pyrinnaitouch.git@zone_refactor#pyrinnaitouch==0.12.0beta5" ],
+  "requirements": [ "git+https://github.com/funtastix/pyrinnaitouch.git@zone_refactor#pyrinnaitouch==0.12.0beta6" ],
   "config_flow": true,
   "version": "0.11.1",
   "iot_class": "local_push"
