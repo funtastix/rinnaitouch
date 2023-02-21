@@ -15,12 +15,14 @@ from .const import (
     CONF_ZONE_B,
     CONF_ZONE_C,
     CONF_ZONE_D,
+    CONF_ZONE_COMMON,
     CONF_TEMP_SENSOR,
     CONF_TEMP_SENSOR_A,
     CONF_TEMP_SENSOR_B,
     CONF_TEMP_SENSOR_C,
     CONF_TEMP_SENSOR_D,
-    DEFAULT_NAME
+    CONF_TEMP_SENSOR_COMMON,
+    DEFAULT_NAME,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -36,8 +38,10 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         vol.Optional(CONF_TEMP_SENSOR_C): str,
         vol.Required(CONF_ZONE_D): bool,
         vol.Optional(CONF_TEMP_SENSOR_D): str,
+        vol.Required(CONF_ZONE_COMMON): bool,
+        vol.Optional(CONF_TEMP_SENSOR_COMMON): str,
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): str,
-        vol.Optional(CONF_TEMP_SENSOR): str
+        vol.Optional(CONF_TEMP_SENSOR): str,
     }
 )
 
@@ -59,6 +63,8 @@ class RinnaiTouchConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 zones.append("C")
             if user_input[CONF_ZONE_D]:
                 zones.append("D")
+            if user_input[CONF_ZONE_COMMON]:
+                zones.append("U")
             system.set_zones(zones)
             device_id = "rinnaitouch_" + str.replace(user_input[CONF_HOST], ".", "_")
             try:

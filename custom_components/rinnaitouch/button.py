@@ -2,23 +2,18 @@
 import logging
 
 from homeassistant.components.button import ButtonEntity
-from homeassistant.const import (
-    CONF_NAME,
-    CONF_HOST
-)
+from homeassistant.const import CONF_NAME, CONF_HOST
 
 from pyrinnaitouch import RinnaiSystem
 
-from .const import (
-    CONF_ZONE_A,
-    CONF_ZONE_B,
-    CONF_ZONE_C,
-    CONF_ZONE_D
-)
+from .const import CONF_ZONE_A, CONF_ZONE_B, CONF_ZONE_C, CONF_ZONE_D, CONF_ZONE_COMMON
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass, entry, async_add_entities): # pylint: disable=unused-argument
+
+async def async_setup_entry(
+    hass, entry, async_add_entities
+):  # pylint: disable=unused-argument
     """Set up the advance button entities."""
     ip_address = entry.data.get(CONF_HOST)
     name = entry.data.get(CONF_NAME)
@@ -26,22 +21,31 @@ async def async_setup_entry(hass, entry, async_add_entities): # pylint: disable=
         name = "Rinnai Touch"
     async_add_entities([RinnaiAdvanceButton(ip_address, name + " Advance Button")])
     if entry.data.get(CONF_ZONE_A):
-        async_add_entities([
-            RinnaiZoneAdvanceButton(ip_address, "A", name + " Zone A Advance Button")
-        ])
+        async_add_entities(
+            [RinnaiZoneAdvanceButton(ip_address, "A", name + " Zone A Advance Button")]
+        )
     if entry.data.get(CONF_ZONE_B):
         async_add_entities(
-            [RinnaiZoneAdvanceButton(ip_address, "B", name + " Zone B Advance Button")
-        ])
+            [RinnaiZoneAdvanceButton(ip_address, "B", name + " Zone B Advance Button")]
+        )
     if entry.data.get(CONF_ZONE_C):
         async_add_entities(
-            [RinnaiZoneAdvanceButton(ip_address, "C", name + " Zone C Advance Button")
-        ])
+            [RinnaiZoneAdvanceButton(ip_address, "C", name + " Zone C Advance Button")]
+        )
     if entry.data.get(CONF_ZONE_D):
         async_add_entities(
-            [RinnaiZoneAdvanceButton(ip_address, "D", name + " Zone D Advance Button")
-        ])
+            [RinnaiZoneAdvanceButton(ip_address, "D", name + " Zone D Advance Button")]
+        )
+    if entry.data.get(CONF_ZONE_COMMON):
+        async_add_entities(
+            [
+                RinnaiZoneAdvanceButton(
+                    ip_address, "U", name + " Common Zone Advance Button"
+                )
+            ]
+        )
     return True
+
 
 class RinnaiButtonEntity(ButtonEntity):
     """Base class button entity to set up naming and system."""
@@ -49,7 +53,9 @@ class RinnaiButtonEntity(ButtonEntity):
     def __init__(self, ip_address, name):
         self._host = ip_address
         self._system = RinnaiSystem.get_instance(ip_address)
-        device_id = str.lower(self.__class__.__name__) + "_" + str.replace(ip_address, ".", "_")
+        device_id = (
+            str.lower(self.__class__.__name__) + "_" + str.replace(ip_address, ".", "_")
+        )
 
         self._attr_unique_id = device_id
         self._attr_name = name
@@ -57,16 +63,17 @@ class RinnaiButtonEntity(ButtonEntity):
 
     def system_updated(self):
         """After system is updated write the new state to HA."""
-        #this very infrequently fails on startup so wrapping in try except
+        # this very infrequently fails on startup so wrapping in try except
         try:
             self.schedule_update_ha_state()
-        except: #pylint: disable=bare-except
+        except:  # pylint: disable=bare-except
             pass
 
     @property
     def name(self):
         """Name of the entity."""
         return self._attr_name
+
 
 class RinnaiAdvanceButton(RinnaiButtonEntity):
     """Main advance button entity."""
@@ -104,14 +111,19 @@ class RinnaiAdvanceButton(RinnaiButtonEntity):
             else:
                 await self._system.heater_advance()
 
+
 class RinnaiZoneAdvanceButton(RinnaiButtonEntity):
     """Advance button entity for a zone."""
 
     def __init__(self, ip_address, zone, name):
         super().__init__(ip_address, name)
         self._attr_zone = zone
-        device_id = str.lower(self.__class__.__name__) + "_" \
-                    + zone + str.replace(ip_address, ".", "_")
+        device_id = (
+            str.lower(self.__class__.__name__)
+            + "_"
+            + zone
+            + str.replace(ip_address, ".", "_")
+        )
 
         self._attr_unique_id = device_id
 
@@ -123,9 +135,13 @@ class RinnaiZoneAdvanceButton(RinnaiButtonEntity):
     @property
     def available(self):
         if self._system.get_stored_status().heater_mode:
-            return self._attr_zone in self._system.get_stored_status().heater_status.zones
+            return (
+                self._attr_zone in self._system.get_stored_status().heater_status.zones
+            )
         if self._system.get_stored_status().cooling_mode:
-            return self._attr_zone in self._system.get_stored_status().cooling_status.zones
+            return (
+                self._attr_zone in self._system.get_stored_status().cooling_status.zones
+            )
         return False
 
     async def async_press(self) -> None:

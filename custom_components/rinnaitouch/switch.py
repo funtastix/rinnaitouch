@@ -3,59 +3,74 @@ import logging
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.entity import Entity
-from homeassistant.const import (
-    CONF_NAME,
-    CONF_HOST
-)
+from homeassistant.const import CONF_NAME, CONF_HOST
 
 from pyrinnaitouch import RinnaiSystem
 
-from .const import (
-    CONF_ZONE_A,
-    CONF_ZONE_B,
-    CONF_ZONE_C,
-    CONF_ZONE_D
-)
+from .const import CONF_ZONE_A, CONF_ZONE_B, CONF_ZONE_C, CONF_ZONE_D, CONF_ZONE_COMMON
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass, entry, async_add_entities): # pylint: disable=unused-argument
+
+async def async_setup_entry(
+    hass, entry, async_add_entities
+):  # pylint: disable=unused-argument
     """Set up the switch entities."""
     ip_address = entry.data.get(CONF_HOST)
     name = entry.data.get(CONF_NAME)
     if name == "":
         name = "Rinnai Touch"
-    async_add_entities([
-        RinnaiOnOffSwitch(ip_address, name + " On Off Switch"),
-        RinnaiCoolingModeSwitch(ip_address, name + " Cooling Mode Switch"),
-        RinnaiHeaterModeSwitch(ip_address, name + " Heater Mode Switch"),
-        RinnaiEvapModeSwitch(ip_address, name + " Evap Mode Switch"),
-        RinnaiWaterpumpSwitch(ip_address, name + " Water Pump Switch"),
-        RinnaiEvapFanSwitch(ip_address, name + " Evap Fan Switch"),
-        RinnaiCircFanSwitch(ip_address, name + " Circulation Fan Switch"),
-        RinnaiAutoSwitch(ip_address, name + " Auto Switch")
-    ])
+    async_add_entities(
+        [
+            RinnaiOnOffSwitch(ip_address, name + " On Off Switch"),
+            RinnaiCoolingModeSwitch(ip_address, name + " Cooling Mode Switch"),
+            RinnaiHeaterModeSwitch(ip_address, name + " Heater Mode Switch"),
+            RinnaiEvapModeSwitch(ip_address, name + " Evap Mode Switch"),
+            RinnaiWaterpumpSwitch(ip_address, name + " Water Pump Switch"),
+            RinnaiEvapFanSwitch(ip_address, name + " Evap Fan Switch"),
+            RinnaiCircFanSwitch(ip_address, name + " Circulation Fan Switch"),
+            RinnaiAutoSwitch(ip_address, name + " Auto Switch"),
+        ]
+    )
     if entry.data.get(CONF_ZONE_A):
-        async_add_entities([
-            RinnaiZoneSwitch(ip_address, "A", name + " Zone A Switch"),
-            RinnaiZoneAutoSwitch(ip_address, "A", name + " Zone A Auto Switch")
-        ])
+        async_add_entities(
+            [
+                RinnaiZoneSwitch(ip_address, "A", name + " Zone A Switch"),
+                RinnaiZoneAutoSwitch(ip_address, "A", name + " Zone A Auto Switch"),
+            ]
+        )
     if entry.data.get(CONF_ZONE_B):
-        async_add_entities([
-            RinnaiZoneSwitch(ip_address, "B", name + " Zone B Switch"),
-            RinnaiZoneAutoSwitch(ip_address, "B", name + " Zone B Auto Switch")
-        ])
+        async_add_entities(
+            [
+                RinnaiZoneSwitch(ip_address, "B", name + " Zone B Switch"),
+                RinnaiZoneAutoSwitch(ip_address, "B", name + " Zone B Auto Switch"),
+            ]
+        )
     if entry.data.get(CONF_ZONE_C):
-        async_add_entities([
-            RinnaiZoneSwitch(ip_address, "C", name + " Zone C Switch"),
-            RinnaiZoneAutoSwitch(ip_address, "C", name + " Zone C Auto Switch")
-        ])
+        async_add_entities(
+            [
+                RinnaiZoneSwitch(ip_address, "C", name + " Zone C Switch"),
+                RinnaiZoneAutoSwitch(ip_address, "C", name + " Zone C Auto Switch"),
+            ]
+        )
     if entry.data.get(CONF_ZONE_D):
-        async_add_entities([
-            RinnaiZoneSwitch(ip_address, "D", name + " Zone D Switch"),
-            RinnaiZoneAutoSwitch(ip_address, "D", name + " Zone D Auto Switch")
-        ])
+        async_add_entities(
+            [
+                RinnaiZoneSwitch(ip_address, "D", name + " Zone D Switch"),
+                RinnaiZoneAutoSwitch(ip_address, "D", name + " Zone D Auto Switch"),
+            ]
+        )
+    if entry.data.get(CONF_ZONE_COMMON):
+        async_add_entities(
+            [
+                RinnaiZoneSwitch(ip_address, "U", name + " Common Zone Switch"),
+                RinnaiZoneAutoSwitch(
+                    ip_address, "U", name + " Common Zone Auto Switch"
+                ),
+            ]
+        )
     return True
+
 
 class RinnaiExtraEntity(Entity):
     """Base entity with a name and system update capability."""
@@ -63,7 +78,9 @@ class RinnaiExtraEntity(Entity):
     def __init__(self, ip_address, name):
         self._host = ip_address
         self._system = RinnaiSystem.get_instance(ip_address)
-        device_id = str.lower(self.__class__.__name__) + "_" + str.replace(ip_address, ".", "_")
+        device_id = (
+            str.lower(self.__class__.__name__) + "_" + str.replace(ip_address, ".", "_")
+        )
 
         self._attr_unique_id = device_id
         self._attr_name = name
@@ -71,16 +88,17 @@ class RinnaiExtraEntity(Entity):
 
     def system_updated(self):
         """After system is updated write the new state to HA."""
-        #this very infrequently fails on startup so wrapping in try except
+        # this very infrequently fails on startup so wrapping in try except
         try:
             self.schedule_update_ha_state()
-        except: #pylint: disable=bare-except
+        except:  # pylint: disable=bare-except
             pass
 
     @property
     def name(self):
         """Name of the entity."""
         return self._attr_name
+
 
 class RinnaiOnOffSwitch(RinnaiExtraEntity, SwitchEntity):
     """Main on/off switch for the system."""
@@ -101,7 +119,7 @@ class RinnaiOnOffSwitch(RinnaiExtraEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs):
         """Turn the switch on."""
-        #turn whatever the preset is on and put it into manual mode
+        # turn whatever the preset is on and put it into manual mode
         if self._system.get_stored_status().cooling_mode:
             await self._system.turn_cooling_on()
         elif self._system.get_stored_status().heater_mode:
@@ -111,13 +129,14 @@ class RinnaiOnOffSwitch(RinnaiExtraEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs):
         """Turn the switch off."""
-        #turn whatever the preset is off
+        # turn whatever the preset is off
         if self._system.get_stored_status().cooling_mode:
             await self._system.turn_cooling_off()
         elif self._system.get_stored_status().heater_mode:
             await self._system.turn_heater_off()
         elif self._system.get_stored_status().evap_mode:
             await self._system.turn_evap_off()
+
 
 class RinnaiCoolingModeSwitch(RinnaiExtraEntity, SwitchEntity):
     """A switch to turn the system into cooling mode."""
@@ -147,7 +166,8 @@ class RinnaiCoolingModeSwitch(RinnaiExtraEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs):
         """Turning it off does nothing"""
-        pass # pylint: disable=unnecessary-pass
+        pass  # pylint: disable=unnecessary-pass
+
 
 class RinnaiHeaterModeSwitch(RinnaiExtraEntity, SwitchEntity):
     """A switch to turn the system into heater mode."""
@@ -177,7 +197,8 @@ class RinnaiHeaterModeSwitch(RinnaiExtraEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs):
         """Turning it off does nothing"""
-        pass # pylint: disable=unnecessary-pass
+        pass  # pylint: disable=unnecessary-pass
+
 
 class RinnaiEvapModeSwitch(RinnaiExtraEntity, SwitchEntity):
     """A switch to turn the system into evap mode."""
@@ -207,7 +228,8 @@ class RinnaiEvapModeSwitch(RinnaiExtraEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs):
         """Turning it off does nothing"""
-        pass # pylint: disable=unnecessary-pass
+        pass  # pylint: disable=unnecessary-pass
+
 
 class RinnaiZoneSwitch(RinnaiExtraEntity, SwitchEntity):
     """A switch to turn a zone on or off."""
@@ -216,8 +238,12 @@ class RinnaiZoneSwitch(RinnaiExtraEntity, SwitchEntity):
         super().__init__(ip_address, name)
         self._is_on = False
         self._attr_zone = zone
-        device_id = str.lower(self.__class__.__name__) + "_" \
-            + zone + str.replace(ip_address, ".", "_")
+        device_id = (
+            str.lower(self.__class__.__name__)
+            + "_"
+            + zone
+            + str.replace(ip_address, ".", "_")
+        )
 
         self._attr_unique_id = device_id
 
@@ -231,9 +257,13 @@ class RinnaiZoneSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def available(self):
         if self._system.get_stored_status().heater_mode:
-            return self._attr_zone in self._system.get_stored_status().heater_status.zones
+            return (
+                self._attr_zone in self._system.get_stored_status().heater_status.zones
+            )
         if self._system.get_stored_status().cooling_mode:
-            return self._attr_zone in self._system.get_stored_status().cooling_status.zones
+            return (
+                self._attr_zone in self._system.get_stored_status().cooling_status.zones
+            )
         if self._system.get_stored_status().evap_mode:
             return self._attr_zone in self._system.get_stored_status().evap_status.zones
         return False
@@ -241,20 +271,20 @@ class RinnaiZoneSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def is_on(self):
         if self._system.get_stored_status().heater_mode:
-            return getattr(
-                        self._system.get_stored_status().heater_status,
-                        "zone_" + self._attr_zone.lower()
-                    )
+            return (
+                self._attr_zone
+                in self._system.get_stored_status().heater_status.zones.keys()
+            )
         if self._system.get_stored_status().cooling_mode:
-            return getattr(
-                        self._system.get_stored_status().cooling_status,
-                        "zone_" + self._attr_zone.lower()
-                    )
+            return (
+                self._attr_zone
+                in self._system.get_stored_status().cooling_status.zones.keys()
+            )
         if self._system.get_stored_status().evap_mode:
-            return getattr(
-                        self._system.get_stored_status().evap_status,
-                        "zone_" + self._attr_zone.lower()
-                    )
+            return (
+                self._attr_zone
+                in self._system.get_stored_status().evap_status.zones.keys()
+            )
         return False
 
     async def async_turn_on(self, **kwargs):
@@ -273,6 +303,7 @@ class RinnaiZoneSwitch(RinnaiExtraEntity, SwitchEntity):
             await self._system.turn_cooling_zone_off(self._attr_zone)
         elif self._system.get_stored_status().evap_mode:
             await self._system.turn_evap_zone_off(self._attr_zone)
+
 
 class RinnaiWaterpumpSwitch(RinnaiExtraEntity, SwitchEntity):
     """A switch to turn the waterpump on or off in evap mode."""
@@ -312,6 +343,7 @@ class RinnaiWaterpumpSwitch(RinnaiExtraEntity, SwitchEntity):
         if self.available:
             await self._system.turn_evap_pump_off()
 
+
 class RinnaiEvapFanSwitch(RinnaiExtraEntity, SwitchEntity):
     """A switch to turn the fan on or off in evap mode."""
 
@@ -349,6 +381,7 @@ class RinnaiEvapFanSwitch(RinnaiExtraEntity, SwitchEntity):
     async def async_turn_off(self, **kwargs):
         if self.available:
             await self._system.turn_evap_fan_off()
+
 
 class RinnaiAutoSwitch(RinnaiExtraEntity, SwitchEntity):
     """A switch to change between auto and manual operation."""
@@ -399,6 +432,7 @@ class RinnaiAutoSwitch(RinnaiExtraEntity, SwitchEntity):
             if self._system.get_stored_status().evap_mode:
                 await self._system.set_evap_manual()
 
+
 class RinnaiCircFanSwitch(RinnaiExtraEntity, SwitchEntity):
     """A switch to turn the circ fan on or off in heater or cooling mode when the system is off."""
 
@@ -433,7 +467,9 @@ class RinnaiCircFanSwitch(RinnaiExtraEntity, SwitchEntity):
     def is_on(self):
         if self.available:
             if self._system.get_stored_status().cooling_mode:
-                return self._system.get_stored_status().cooling_status.circulation_fan_on
+                return (
+                    self._system.get_stored_status().cooling_status.circulation_fan_on
+                )
             if self._system.get_stored_status().heater_mode:
                 return self._system.get_stored_status().heater_status.circulation_fan_on
         return False
@@ -452,6 +488,7 @@ class RinnaiCircFanSwitch(RinnaiExtraEntity, SwitchEntity):
             if self._system.get_stored_status().heater_mode:
                 await self._system.turn_heater_off()
 
+
 class RinnaiZoneAutoSwitch(RinnaiExtraEntity, SwitchEntity):
     """A switch to change to auto or manual operation in a zone."""
 
@@ -459,8 +496,12 @@ class RinnaiZoneAutoSwitch(RinnaiExtraEntity, SwitchEntity):
         super().__init__(ip_address, name)
         self._is_on = False
         self._attr_zone = zone
-        device_id = str.lower(self.__class__.__name__) + "_" \
-            + zone + str.replace(ip_address, ".", "_")
+        device_id = (
+            str.lower(self.__class__.__name__)
+            + "_"
+            + zone
+            + str.replace(ip_address, ".", "_")
+        )
 
         self._attr_unique_id = device_id
 
@@ -487,20 +528,23 @@ class RinnaiZoneAutoSwitch(RinnaiExtraEntity, SwitchEntity):
     def is_on(self):
         if self.available:
             if self._system.get_stored_status().heater_mode:
-                return getattr(
-                            self._system.get_stored_status().heater_status,
-                            "zone_" + self._attr_zone.lower() + "_auto"
-                        )
+                return (
+                    self._system.get_stored_status()
+                    .heater_status.zones[self._attr_zone]
+                    .auto_mode
+                )
             if self._system.get_stored_status().cooling_mode:
-                return getattr(
-                            self._system.get_stored_status().cooling_status,
-                            "zone_" + self._attr_zone.lower() + "_auto"
-                        )
+                return (
+                    self._system.get_stored_status()
+                    .cooling_status.zones[self._attr_zone]
+                    .auto_mode
+                )
             if self._system.get_stored_status().evap_mode:
-                return getattr(
-                            self._system.get_stored_status().evap_status,
-                            "zone_" + self._attr_zone.lower() + "_auto"
-                        )
+                return (
+                    self._system.get_stored_status()
+                    .evap_status.zones[self._attr_zone]
+                    .auto_mode
+                )
         return False
 
     async def async_turn_on(self, **kwargs):
