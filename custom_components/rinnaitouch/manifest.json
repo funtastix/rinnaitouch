@@ -6,6 +6,6 @@
   "codeowners": [ "@funtastix" ],
   "requirements": [ "git+https://github.com/funtastix/pyrinnaitouch.git@zone_refactor#pyrinnaitouch==0.12.0beta4" ],
   "config_flow": true,
-  "version": "0.12.0beta4",
+  "version": "0.11.1",
   "iot_class": "local_push"
 }
