@@ -94,7 +94,7 @@ class RinnaiAdvanceButton(RinnaiButtonEntity):
         if (
             (self._system.get_stored_status().heater_mode
              and self._system.get_stored_status().heater_status.auto_mode)
-            or 
+            or
             (self._system.get_stored_status().cooling_mode
              and self._system.get_stored_status().cooling_status.auto_mode)
         ):
