@@ -92,8 +92,11 @@ class RinnaiAdvanceButton(RinnaiButtonEntity):
     @property
     def available(self):
         if (
-            self._system.get_stored_status().heater_mode
-            or self._system.get_stored_status().cooling_mode
+            (self._system.get_stored_status().heater_mode
+             and self._system.get_stored_status().heater_status.auto_mode)
+            or 
+            (self._system.get_stored_status().cooling_mode
+             and self._system.get_stored_status().cooling_status.auto_mode)
         ):
             return self._system.get_stored_status().system_on
         return False
@@ -136,11 +139,13 @@ class RinnaiZoneAdvanceButton(RinnaiButtonEntity):
     def available(self):
         if self._system.get_stored_status().heater_mode:
             return (
-                self._attr_zone in self._system.get_stored_status().heater_status.zones
+                self._attr_zone in self._system.get_stored_status().heater_status.zones.keys()
+                and self._system.get_stored_status().heater_status.zones[self._attr_zone].auto_mode
             )
         if self._system.get_stored_status().cooling_mode:
             return (
-                self._attr_zone in self._system.get_stored_status().cooling_status.zones
+                self._attr_zone in self._system.get_stored_status().cooling_status.zones.keys()
+                and self._system.get_stored_status().cooling_status.zones[self._attr_zone].auto_mode
             )
         return False
 
