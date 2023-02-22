@@ -263,7 +263,7 @@ class RinnaiZoneSwitch(RinnaiExtraEntity, SwitchEntity):
         if self._attr_zone not in self._system.get_stored_status().unit_status.zones.keys():
             return False
         return self._system.get_stored_status().unit_status.zones[self._attr_zone].user_enabled \
-            or self._system.get_stored_status().unit_status.zones[self._attr_zone].set_temp > 7
+            or int(self._system.get_stored_status().unit_status.zones[self._attr_zone].set_temp) > 7
 
     async def async_turn_on(self, **kwargs):
         if self._system.get_stored_status().mode == RinnaiSystemMode.COOLING:
@@ -483,7 +483,7 @@ class RinnaiZoneAutoSwitch(RinnaiExtraEntity, SwitchEntity):
             return (
                 self._system.get_stored_status()
                 .unit_status.zones[self._attr_zone]
-                .operating_mode == RinnaiOperatingMode.AUTO
+                .auto_mode
             )
         return False
 

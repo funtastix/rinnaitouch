@@ -742,7 +742,7 @@ class RinnaiTouchZone(ClimateEntity):
         if (
             self._system.get_stored_status()
             .unit_status.zones[self._attr_zone]
-            .operating_mode == RinnaiOperatingMode.AUTO
+            .auto_mode
         ):
             return PRESET_AUTO
         return PRESET_MANUAL
