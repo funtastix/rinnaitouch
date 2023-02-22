@@ -4,7 +4,7 @@ import logging
 from homeassistant.components.button import ButtonEntity
 from homeassistant.const import CONF_NAME, CONF_HOST
 
-from pyrinnaitouch import RinnaiSystem
+from pyrinnaitouch import RinnaiSystem, RinnaiSystemMode
 
 from .const import CONF_ZONE_A, CONF_ZONE_B, CONF_ZONE_C, CONF_ZONE_D, CONF_ZONE_COMMON
 
@@ -82,38 +82,28 @@ class RinnaiAdvanceButton(RinnaiButtonEntity):
     def icon(self):
         """Return the icon to use in the frontend for this device."""
         if self.available:
-            if (
-                self._system.get_stored_status().heater_status.advanced
-                or self._system.get_stored_status().cooling_status.advanced
-            ):
+            if self._system.get_stored_status().unit_status.advanced:
                 return "mdi:close-circle-outline"
         return "mdi:location-exit"
 
     @property
-    def available(self):
+    def available(self) -> bool:
         if (
-            (self._system.get_stored_status().heater_mode
-             and self._system.get_stored_status().heater_status.auto_mode)
-            or
-            (self._system.get_stored_status().cooling_mode
-             and self._system.get_stored_status().cooling_status.auto_mode)
+            self._system.get_stored_status().mode \
+                in RinnaiSystemMode.HEATING | RinnaiSystemMode.COOLING
+            and self._system.get_stored_status().unit_status.auto_mode
         ):
             return self._system.get_stored_status().system_on
         return False
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        if self._system.get_stored_status().cooling_mode:
-            if self._system.get_stored_status().cooling_status.advanced:
-                await self._system.cooling_advance_cancel()
+        if self._system.get_stored_status().mode \
+            in RinnaiSystemMode.HEATING | RinnaiSystemMode.COOLING:
+            if self._system.get_stored_status().unit_status.advanced:
+                await self._system.unit_advance_cancel()
             else:
-                await self._system.cooling_advance()
-        elif self._system.get_stored_status().heater_mode:
-            if self._system.get_stored_status().heater_status.advanced:
-                await self._system.heater_advance_cancel()
-            else:
-                await self._system.heater_advance()
-
+                await self._system.unit_advance()
 
 class RinnaiZoneAdvanceButton(RinnaiButtonEntity):
     """Advance button entity for a zone."""
@@ -137,21 +127,19 @@ class RinnaiZoneAdvanceButton(RinnaiButtonEntity):
 
     @property
     def available(self):
-        if self._system.get_stored_status().heater_mode:
+        if self._system.get_stored_status().mode \
+            in RinnaiSystemMode.HEATING | RinnaiSystemMode.COOLING:
             return (
-                self._attr_zone in self._system.get_stored_status().heater_status.zones.keys()
-                and self._system.get_stored_status().heater_status.zones[self._attr_zone].auto_mode
-            )
-        if self._system.get_stored_status().cooling_mode:
-            return (
-                self._attr_zone in self._system.get_stored_status().cooling_status.zones.keys()
-                and self._system.get_stored_status().cooling_status.zones[self._attr_zone].auto_mode
+                self._attr_zone in self._system.get_stored_status().unit_status.zones.keys()
+                and self._system.get_stored_status().unit_status.zones[self._attr_zone].auto_mode
             )
         return False
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        if self._system.get_stored_status().cooling_mode:
-            await self._system.cooling_zone_advance(self._attr_zone)
-        elif self._system.get_stored_status().heater_mode:
-            await self._system.heater_zone_advance(self._attr_zone)
+        if self._system.get_stored_status().mode \
+            in RinnaiSystemMode.HEATING | RinnaiSystemMode.COOLING:
+            if self._system.get_stored_status().unit_status.zones[self._attr_zone].advanced:
+                await self._system.unit_zone_advance_cancel(self._attr_zone)
+            else:
+                await self._system.heater_zone_advance(self._attr_zone)
