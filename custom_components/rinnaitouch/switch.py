@@ -392,7 +392,7 @@ class RinnaiAutoSwitch(RinnaiExtraEntity, SwitchEntity):
                 in (RinnaiSystemMode.COOLING, RinnaiSystemMode.HEATING):
                 await self._system.set_unit_auto()
             if self._system.get_stored_status().mode == RinnaiSystemMode.EVAP:
-                await self._system.set_evap_auto()
+                await self._system.set_unit_auto()
 
     async def async_turn_off(self, **kwargs):
         if self.available:
@@ -400,7 +400,7 @@ class RinnaiAutoSwitch(RinnaiExtraEntity, SwitchEntity):
                 in (RinnaiSystemMode.COOLING, RinnaiSystemMode.HEATING):
                 await self._system.set_unit_manual()
             if self._system.get_stored_status().mode == RinnaiSystemMode.EVAP:
-                await self._system.set_evap_manual()
+                await self._system.set_unit_manual()
 
 
 class RinnaiCircFanSwitch(RinnaiExtraEntity, SwitchEntity):
