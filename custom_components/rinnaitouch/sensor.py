@@ -11,7 +11,7 @@ from homeassistant.components.sensor import (
 from homeassistant.const import UnitOfTemperature
 from homeassistant.const import CONF_NAME, CONF_HOST
 
-from pyrinnaitouch import RinnaiSystem, SchedulePeriod
+from pyrinnaitouch import RinnaiSystem, RinnaiSchedulePeriod, RinnaiSystemMode
 
 from .const import CONF_ZONE_A, CONF_ZONE_B, CONF_ZONE_C, CONF_ZONE_D, CONF_ZONE_COMMON
 
@@ -182,32 +182,24 @@ class RinnaiMainTemperatureSensor(RinnaiTemperatureSensor):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
-        if self._system.get_stored_status().cooling_mode:
+        if self._system.get_stored_status().mode \
+                in RinnaiSystemMode.COOLING | RinnaiSystemMode.HEATING:
             return (
                 float(
                     getattr(
-                        self._system.get_stored_status().cooling_status, self._temp_attr
-                    )
-                )
-                / self.multiplier
-            )
-        if self._system.get_stored_status().heater_mode:
-            return (
-                float(
-                    getattr(
-                        self._system.get_stored_status().heater_status, self._temp_attr
+                        self._system.get_stored_status().unit_status, self._temp_attr
                     )
                 )
                 / self.multiplier
             )
         if (
-            self._system.get_stored_status().evap_mode
+            self._system.get_stored_status().mode == RinnaiSystemMode.EVAP
             and self._temp_attr == "temperature"
         ):
             return (
                 float(
                     getattr(
-                        self._system.get_stored_status().evap_status, self._temp_attr
+                        self._system.get_stored_status().unit_status, self._temp_attr
                     )
                 )
                 / self.multiplier
@@ -217,25 +209,6 @@ class RinnaiMainTemperatureSensor(RinnaiTemperatureSensor):
     @property
     def available(self):
         return self.native_value < 99 and self.native_value > 0
-
-
-#        if self._system.get_stored_status().cooling_mode:
-#            return not getattr(
-#                        self._system.get_stored_status().cooling_status,
-#                        self._temp_attr
-#                    ) == 999
-#        if self._system.get_stored_status().heater_mode:
-#            return not getattr(
-#                        self._system.get_stored_status().heater_status,
-#                        self._temp_attr
-#                    ) == 999
-#        if self._system.get_stored_status().evap_mode and self._temp_attr == "temperature":
-#            return not getattr(
-#                        self._system.get_stored_status().evap_status,
-#                        self._temp_attr
-#                    ) == 999
-#        return False
-
 
 class RinnaiZoneTemperatureSensor(RinnaiTemperatureSensor):
     """Temperature sensor on a zone."""
@@ -264,14 +237,15 @@ class RinnaiZoneTemperatureSensor(RinnaiTemperatureSensor):
         This is the only method that should fetch new data for Home Assistant.
         """
         if (
-            self._system.get_stored_status().cooling_mode
+            self._system.get_stored_status().mode \
+                in RinnaiSystemMode.COOLING | RinnaiSystemMode.HEATING
             and self._attr_zone
-            in self._system.get_stored_status().cooling_status.zones.keys()
+            in self._system.get_stored_status().unit_status.zones.keys()
         ):
             return (
                 float(
                     getattr(
-                        self._system.get_stored_status().cooling_status.zones[
+                        self._system.get_stored_status().unit_status.zones[
                             self._attr_zone
                         ],
                         self._temp_attr,
@@ -280,23 +254,7 @@ class RinnaiZoneTemperatureSensor(RinnaiTemperatureSensor):
                 / self.multiplier
             )
         if (
-            self._system.get_stored_status().heater_mode
-            and self._attr_zone
-            in self._system.get_stored_status().heater_status.zones.keys()
-        ):
-            return (
-                float(
-                    getattr(
-                        self._system.get_stored_status().heater_status.zones[
-                            self._attr_zone
-                        ],
-                        self._temp_attr,
-                    )
-                )
-                / self.multiplier
-            )
-        if (
-            self._system.get_stored_status().evap_mode
+            self._system.get_stored_status().mode == RinnaiSystemMode.EVAP
             and self._attr_zone
             in self._system.get_stored_status().evap_status.zones.keys()
             and self._temp_attr == "temperature"
@@ -304,7 +262,7 @@ class RinnaiZoneTemperatureSensor(RinnaiTemperatureSensor):
             return (
                 float(
                     getattr(
-                        self._system.get_stored_status().evap_status.zones[
+                        self._system.get_stored_status().unit_status.zones[
                             self._attr_zone
                         ],
                         self._temp_attr,
@@ -359,31 +317,25 @@ class RinnaiPeriodSensor(SensorEntity):
         if not state.system_on:
             return "N/A"
         if (
-            state.cooling_mode
-            and state.cooling_status.cooling_on
-            and state.cooling_status.auto_mode
+            state.mode in RinnaiSystemMode.COOLING | RinnaiSystemMode.HEATING
+            and state.unit_status.is_on
+            and state.unit_status.auto_mode
         ):
-            return self.schedule_period_to_str(state.cooling_status)
-        if (
-            state.heater_mode
-            and state.heater_status.heater_on
-            and state.heater_status.auto_mode
-        ):
-            return self.schedule_period_to_str(state.heater_status)
+            return self.schedule_period_to_str(state.unit_status)
         return "N/A"
 
     def schedule_period_to_str(self, status) -> str | None:
         """Convert SchedulePeriod to a UI presentable sensor string value."""
         state = getattr(status, self._attr_period)
-        if state == SchedulePeriod.WAKE:
+        if state == RinnaiSchedulePeriod.WAKE:
             return "Wake"
-        if state == SchedulePeriod.LEAVE:
+        if state == RinnaiSchedulePeriod.LEAVE:
             return "Leave"
-        if state == SchedulePeriod.RETURN:
+        if state == RinnaiSchedulePeriod.RETURN:
             return "Return"
-        if state == SchedulePeriod.PRE_SLEEP:
+        if state == RinnaiSchedulePeriod.PRE_SLEEP:
             return "Pre-Sleep"
-        if state == SchedulePeriod.SLEEP:
+        if state == RinnaiSchedulePeriod.SLEEP:
             return "Sleep"
         return None
 
@@ -415,9 +367,6 @@ class RinnaiAdvancePeriodSensor(RinnaiPeriodSensor):
 
     @property
     def native_value(self):
-        if (
-            self._system.get_stored_status().heater_status.advanced
-            or self._system.get_stored_status().cooling_status.advanced
-        ):
+        if self._system.get_stored_status().unit_status.advanced:
             return super().native_value
         return "N/A"

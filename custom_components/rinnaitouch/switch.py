@@ -297,9 +297,10 @@ class RinnaiWaterpumpSwitch(RinnaiExtraEntity, SwitchEntity):
 
     @property
     def available(self):
-        if self._system.get_stored_status().mode == RinnaiSystemMode.EVAP \
-            and self._system.get_stored_status().unit_status.is_on \
-            and self._system.get_stored_status().unit_status.operating_mode == RinnaiOperatingMode.MANUAL:
+        state = self._system.get_stored_status()
+        if state.mode == RinnaiSystemMode.EVAP \
+            and state.unit_status.is_on \
+            and state.unit_status.operating_mode == RinnaiOperatingMode.MANUAL:
             return True
         return False
 
@@ -334,9 +335,10 @@ class RinnaiEvapFanSwitch(RinnaiExtraEntity, SwitchEntity):
 
     @property
     def available(self):
-        if self._system.get_stored_status().mode == RinnaiSystemMode.EVAP \
-            and self._system.get_stored_status().unit_status.is_on \
-            and self._system.get_stored_status().unit_status.operating_mode == RinnaiOperatingMode.MANUAL:
+        state = self._system.get_stored_status()
+        if state.mode == RinnaiSystemMode.EVAP \
+            and state.unit_status.is_on \
+            and state.unit_status.operating_mode == RinnaiOperatingMode.MANUAL:
             return True
         return False
 
@@ -430,7 +432,7 @@ class RinnaiCircFanSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def is_on(self):
         if self.available:
-            self._system.get_stored_status().unit_status.circulation_fan_on
+            return self._system.get_stored_status().unit_status.circulation_fan_on
         return False
 
     async def async_turn_on(self, **kwargs):
@@ -468,7 +470,8 @@ class RinnaiZoneAutoSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def available(self):
         if self._system.get_stored_status().system_on:
-            return self._system.get_stored_status().unit_status.operating_mode == RinnaiOperatingMode.AUTO
+            return self._system.get_stored_status().unit_status.operating_mode == \
+                RinnaiOperatingMode.AUTO
         return False
 
     @property
