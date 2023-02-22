@@ -144,4 +144,4 @@ class RinnaiZoneAdvanceButton(RinnaiButtonEntity):
             if self._system.get_stored_status().unit_status.zones[self._attr_zone].advanced:
                 await self._system.unit_zone_advance_cancel(self._attr_zone)
             else:
-                await self._system.heater_zone_advance(self._attr_zone)
+                await self._system.set_unit_zone_advance(self._attr_zone)

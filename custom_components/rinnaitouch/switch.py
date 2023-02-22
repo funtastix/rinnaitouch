@@ -121,9 +121,9 @@ class RinnaiOnOffSwitch(RinnaiExtraEntity, SwitchEntity):
         """Turn the switch on."""
         # turn whatever the preset is on and put it into manual mode
         if self._system.get_stored_status().mode == RinnaiSystemMode.COOLING:
-            await self._system.turn_cooling_on()
+            await self._system.turn_unit_on()
         elif self._system.get_stored_status().mode == RinnaiSystemMode.HEATING:
-            await self._system.turn_heater_on()
+            await self._system.turn_unit_on()
         elif self._system.get_stored_status().mode == RinnaiSystemMode.EVAP:
             await self._system.turn_evap_on()
 
@@ -131,9 +131,9 @@ class RinnaiOnOffSwitch(RinnaiExtraEntity, SwitchEntity):
         """Turn the switch off."""
         # turn whatever the preset is off
         if self._system.get_stored_status().mode == RinnaiSystemMode.COOLING:
-            await self._system.turn_cooling_off()
+            await self._system.turn_unit_off()
         elif self._system.get_stored_status().mode == RinnaiSystemMode.HEATING:
-            await self._system.turn_heater_off()
+            await self._system.turn_unit_off()
         elif self._system.get_stored_status().mode == RinnaiSystemMode.EVAP:
             await self._system.turn_evap_off()
 

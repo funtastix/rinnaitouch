@@ -1,3 +1,3 @@
 async_timeout>=3.0.1
 asyncio>=3.4.3
-pyrinnaitouch>=git+https://github.com/funtastix/pyrinnaitouch.git@code_refactor#pyrinnaitouch==0.12.1beta14
+pyrinnaitouch>=git+https://github.com/funtastix/pyrinnaitouch.git@code_refactor#pyrinnaitouch==0.12.1beta15
