@@ -274,16 +274,16 @@ class RinnaiTouch(ClimateEntity):
         if not hvac_mode == self.hvac_mode:
             if hvac_mode == HVACMode.HEAT:
                 # turn whatever the preset is on and put it into manual mode
-                await self._system.turn_unit_on()
                 await self._system.set_heater_mode()
+                await self._system.turn_unit_on()
             elif hvac_mode == HVACMode.COOL:
                 # turn whatever the preset is on and put it into auto mode
                 if self.preferred_cooling_mode == COOLING_COOL:
-                    await self._system.turn_unit_on()
                     await self._system.set_cooling_mode()
+                    await self._system.turn_unit_on()
                 if self.preferred_cooling_mode == COOLING_EVAP:
-                    await self._system.turn_evap_on()
                     await self._system.set_evap_mode()
+                    await self._system.turn_evap_on()
             elif hvac_mode == HVACMode.OFF:
                 # turn whatever the preset is off
                 if self.cooling_mode == COOLING_EVAP:
@@ -381,9 +381,16 @@ class RinnaiTouch(ClimateEntity):
     @property
     def hvac_modes(self):
         """Return the list of available HVAC modes."""
+        modes = [HVACMode.OFF]
+        for mode in self._system.get_store_status().capabilities:
+            if mode == RinnaiCapabilities.COOLER:
+                modes.append(HVACMode.COOL)
+            if mode == RinnaiCapabilities.HEATER:
+                modes.append(HVACMode.HEAT)
         if self._system.get_stored_status().mode == RinnaiSystemMode.EVAP:
-            return [HVACMode.COOL, HVACMode.HEAT, HVACMode.OFF]
-        return [HVACMode.COOL, HVACMode.HEAT, HVACMode.FAN_ONLY, HVACMode.OFF]
+            return modes
+        modes.append(HVACMode.FAN_ONLY)
+        return modes
 
     @property
     def preset_mode(self):
