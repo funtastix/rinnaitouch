@@ -382,11 +382,10 @@ class RinnaiTouch(ClimateEntity):
     def hvac_modes(self):
         """Return the list of available HVAC modes."""
         modes = [HVACMode.OFF]
-        for mode in self._system.get_stored_status().capabilities:
-            if mode == RinnaiCapabilities.COOLER:
-                modes.append(HVACMode.COOL)
-            if mode == RinnaiCapabilities.HEATER:
-                modes.append(HVACMode.HEAT)
+        if RinnaiCapabilities.COOLER in self._system.get_stored_status().capabilities:
+            modes.append(HVACMode.COOL)
+        if RinnaiCapabilities.HEATER in self._system.get_stored_status().capabilities:
+            modes.append(HVACMode.HEAT)
         if self._system.get_stored_status().mode == RinnaiSystemMode.EVAP:
             return modes
         modes.append(HVACMode.FAN_ONLY)
