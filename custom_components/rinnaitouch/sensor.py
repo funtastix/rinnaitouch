@@ -256,7 +256,7 @@ class RinnaiZoneTemperatureSensor(RinnaiTemperatureSensor):
         if (
             self._system.get_stored_status().mode == RinnaiSystemMode.EVAP
             and self._attr_zone
-            in self._system.get_stored_status().evap_status.zones.keys()
+            in self._system.get_stored_status().unit_status.zones.keys()
             and self._temp_attr == "temperature"
         ):
             return (

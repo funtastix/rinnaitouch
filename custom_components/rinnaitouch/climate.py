@@ -548,7 +548,9 @@ class RinnaiTouchZone(ClimateEntity):
         if self.hvac_mode == HVACMode.OFF:
             return 0
 
-        if self._system.get_stored_status().is_multi_set_point:
+        if self._system.get_stored_status().is_multi_set_point \
+            and self._attr_zone in \
+            self._system.get_stored_status().unit_status.zones.keys():
             if self.cooling_mode == COOLING_COOL:
                 return float(
                     self._system.get_stored_status()
@@ -685,11 +687,12 @@ class RinnaiTouchZone(ClimateEntity):
     @property
     def current_temperature(self):
         """Return the current temperature."""
-        temp = temp = (
-            self._system.get_stored_status()
-            .unit_status.zones[self._attr_zone]
-            .temperature
-        )
+        if self._attr_zone in self._system.get_stored_status().unit_status.zones.keys():
+            temp = temp = (
+                self._system.get_stored_status()
+                .unit_status.zones[self._attr_zone]
+                .temperature
+            )
 
         if int(temp) < 999:
             return float(temp) / 10
@@ -740,7 +743,8 @@ class RinnaiTouchZone(ClimateEntity):
         """Return current Preset mode, ie Auto or Manual."""
         # pylint: disable=too-many-return-statements
         if (
-            self._system.get_stored_status()
+            self._attr_zone in self._system.get_stored_status().unit_status.zones.keys()
+            and self._system.get_stored_status()
             .unit_status.zones[self._attr_zone]
             .auto_mode
         ):

@@ -472,7 +472,8 @@ class RinnaiZoneAutoSwitch(RinnaiExtraEntity, SwitchEntity):
 
     @property
     def available(self):
-        if self._system.get_stored_status().system_on:
+        if self._system.get_stored_status().system_on\
+            and self._attr_zone in self._system.get_stored_status().unit_status.zones.keys():
             return self._system.get_stored_status().unit_status.operating_mode == \
                 RinnaiOperatingMode.AUTO
         return False

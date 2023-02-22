@@ -139,7 +139,8 @@ class RinnaiZoneAdvanceButton(RinnaiButtonEntity):
     async def async_press(self) -> None:
         """Handle the button press."""
         if self._system.get_stored_status().mode \
-            in (RinnaiSystemMode.HEATING, RinnaiSystemMode.COOLING):
+            in (RinnaiSystemMode.HEATING, RinnaiSystemMode.COOLING) \
+            and self._attr_zone in self._system.get_stored_status().unit_status.zones.keys():
             if self._system.get_stored_status().unit_status.zones[self._attr_zone].advanced:
                 await self._system.unit_zone_advance_cancel(self._attr_zone)
             else:
