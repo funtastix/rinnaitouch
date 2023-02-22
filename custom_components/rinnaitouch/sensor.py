@@ -183,7 +183,7 @@ class RinnaiMainTemperatureSensor(RinnaiTemperatureSensor):
         This is the only method that should fetch new data for Home Assistant.
         """
         if self._system.get_stored_status().mode \
-                in RinnaiSystemMode.COOLING | RinnaiSystemMode.HEATING:
+                in (RinnaiSystemMode.COOLING, RinnaiSystemMode.HEATING):
             return (
                 float(
                     getattr(
@@ -238,7 +238,7 @@ class RinnaiZoneTemperatureSensor(RinnaiTemperatureSensor):
         """
         if (
             self._system.get_stored_status().mode \
-                in RinnaiSystemMode.COOLING | RinnaiSystemMode.HEATING
+                in (RinnaiSystemMode.COOLING, RinnaiSystemMode.HEATING)
             and self._attr_zone
             in self._system.get_stored_status().unit_status.zones.keys()
         ):
@@ -317,7 +317,7 @@ class RinnaiPeriodSensor(SensorEntity):
         if not state.system_on:
             return "N/A"
         if (
-            state.mode in RinnaiSystemMode.COOLING | RinnaiSystemMode.HEATING
+            state.mode in (RinnaiSystemMode.COOLING, RinnaiSystemMode.HEATING)
             and state.unit_status.is_on
             and state.unit_status.auto_mode
         ):

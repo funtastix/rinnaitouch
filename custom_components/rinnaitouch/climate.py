@@ -764,7 +764,7 @@ class RinnaiTouchZone(ClimateEntity):
     @property
     def available(self):
         if self._system.get_stored_status().mode \
-                in RinnaiSystemMode.COOLING | RinnaiSystemMode.HEATING:
+                in (RinnaiSystemMode.COOLING, RinnaiSystemMode.HEATING):
             return (
                 self._attr_zone
                 in self._system.get_stored_status().unit_status.zones.keys()
