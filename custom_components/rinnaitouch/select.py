@@ -7,7 +7,7 @@ from homeassistant.const import (
     CONF_HOST
 )
 
-from pyrinnaitouch import RinnaiSystem
+from pyrinnaitouch import RinnaiSystem, RinnaiOperatingMode
 
 from .const import (
     PRESET_AUTO,
@@ -61,7 +61,7 @@ class RinnaiSelectPresetEntity(SelectEntity):
     def current_option(self):
         """If the switch is currently on or off."""
         # pylint: disable=too-many-return-statements
-        if self._system.get_stored_status().unit_status.auto_mode:
+        if self._system.get_stored_status().unit_status.operating_mode == RinnaiOperatingMode.AUTO:
             return PRESET_AUTO
         return PRESET_MANUAL
 

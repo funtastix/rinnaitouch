@@ -4,7 +4,7 @@ import logging
 from homeassistant.components.button import ButtonEntity
 from homeassistant.const import CONF_NAME, CONF_HOST
 
-from pyrinnaitouch import RinnaiSystem, RinnaiSystemMode
+from pyrinnaitouch import RinnaiSystem, RinnaiSystemMode, RinnaiOperatingMode
 
 from .const import CONF_ZONE_A, CONF_ZONE_B, CONF_ZONE_C, CONF_ZONE_D, CONF_ZONE_COMMON
 
@@ -91,7 +91,8 @@ class RinnaiAdvanceButton(RinnaiButtonEntity):
         if (
             self._system.get_stored_status().mode \
                 in (RinnaiSystemMode.HEATING, RinnaiSystemMode.COOLING)
-            and self._system.get_stored_status().unit_status.auto_mode
+            and self._system.get_stored_status().unit_status.operating_mode == \
+                RinnaiOperatingMode.AUTO
         ):
             return self._system.get_stored_status().system_on
         return False

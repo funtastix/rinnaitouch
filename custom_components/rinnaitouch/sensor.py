@@ -11,7 +11,7 @@ from homeassistant.components.sensor import (
 from homeassistant.const import UnitOfTemperature
 from homeassistant.const import CONF_NAME, CONF_HOST
 
-from pyrinnaitouch import RinnaiSystem, RinnaiSchedulePeriod, RinnaiSystemMode
+from pyrinnaitouch import RinnaiSystem, RinnaiSchedulePeriod, RinnaiSystemMode, RinnaiOperatingMode
 
 from .const import CONF_ZONE_A, CONF_ZONE_B, CONF_ZONE_C, CONF_ZONE_D, CONF_ZONE_COMMON
 
@@ -319,7 +319,7 @@ class RinnaiPeriodSensor(SensorEntity):
         if (
             state.mode in (RinnaiSystemMode.COOLING, RinnaiSystemMode.HEATING)
             and state.unit_status.is_on
-            and state.unit_status.auto_mode
+            and state.unit_status.operating_mode == RinnaiOperatingMode.AUTO
         ):
             return self.schedule_period_to_str(state.unit_status)
         return "N/A"

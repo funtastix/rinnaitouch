@@ -21,7 +21,13 @@ from datetime import timedelta
 
 import logging
 
-from pyrinnaitouch import RinnaiSystem, RinnaiSystemMode, TEMP_FAHRENHEIT, RinnaiCapabilities
+from pyrinnaitouch import (
+    RinnaiSystem,
+    RinnaiSystemMode,
+    TEMP_FAHRENHEIT,
+    RinnaiCapabilities,
+    RinnaiOperatingMode
+)
 
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate import (
@@ -382,7 +388,7 @@ class RinnaiTouch(ClimateEntity):
     @property
     def preset_mode(self):
         """Return current HVAC mode, ie Heat or Off."""
-        if self._system.get_stored_status().unit_status.auto_mode:
+        if self._system.get_stored_status().unit_status.operating_mode == RinnaiOperatingMode.AUTO:
             return PRESET_AUTO
         return PRESET_MANUAL
 
@@ -736,7 +742,7 @@ class RinnaiTouchZone(ClimateEntity):
         if (
             self._system.get_stored_status()
             .unit_status.zones[self._attr_zone]
-            .auto_mode
+            .operating_mode == RinnaiOperatingMode.AUTO
         ):
             return PRESET_AUTO
         return PRESET_MANUAL
