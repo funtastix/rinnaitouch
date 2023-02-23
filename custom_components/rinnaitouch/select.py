@@ -7,7 +7,7 @@ from homeassistant.const import (
     CONF_HOST
 )
 
-from pyrinnaitouch import RinnaiSystem
+from pyrinnaitouch import RinnaiSystem, RinnaiOperatingMode
 
 from .const import (
     PRESET_AUTO,
@@ -61,18 +61,8 @@ class RinnaiSelectPresetEntity(SelectEntity):
     def current_option(self):
         """If the switch is currently on or off."""
         # pylint: disable=too-many-return-statements
-        if self._system.get_stored_status().heater_mode :
-            if self._system.get_stored_status().heater_status.auto_mode:
-                return PRESET_AUTO
-            return PRESET_MANUAL
-        if self._system.get_stored_status().cooling_mode :
-            if self._system.get_stored_status().cooling_status.auto_mode:
-                return PRESET_AUTO
-            return PRESET_MANUAL
-        if self._system.get_stored_status().evap_mode :
-            if self._system.get_stored_status().evap_status.auto_mode:
-                return PRESET_AUTO
-            return PRESET_MANUAL
+        if self._system.get_stored_status().unit_status.operating_mode == RinnaiOperatingMode.AUTO:
+            return PRESET_AUTO
         return PRESET_MANUAL
 
     @property
@@ -82,18 +72,7 @@ class RinnaiSelectPresetEntity(SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
-        if self._system.get_stored_status().heater_mode :
-            if option == PRESET_AUTO:
-                await self._system.set_heater_auto()
-            else:
-                await self._system.set_heater_manual()
-        if self._system.get_stored_status().cooling_mode :
-            if option == PRESET_AUTO:
-                await self._system.set_cooling_auto()
-            else:
-                await self._system.set_cooling_manual()
-        if self._system.get_stored_status().evap_mode :
-            if option == PRESET_AUTO:
-                await self._system.set_evap_auto()
-            else:
-                await self._system.set_evap_manual()
+        if option == PRESET_AUTO:
+            await self._system.set_unit_auto()
+        else:
+            await self._system.set_unit_manual()
