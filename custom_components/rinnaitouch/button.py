@@ -4,7 +4,7 @@ import logging
 from homeassistant.components.button import ButtonEntity
 from homeassistant.const import CONF_NAME, CONF_HOST
 
-from pyrinnaitouch import RinnaiSystem, RinnaiSystemMode, RinnaiOperatingMode
+from pyrinnaitouch import RinnaiSystem, RinnaiSystemMode, RinnaiOperatingMode, RinnaiSystemStatus
 
 from .const import CONF_ZONE_A, CONF_ZONE_B, CONF_ZONE_C, CONF_ZONE_D, CONF_ZONE_COMMON
 
@@ -88,20 +88,19 @@ class RinnaiAdvanceButton(RinnaiButtonEntity):
 
     @property
     def available(self) -> bool:
+        state: RinnaiSystemStatus = self._system.get_stored_status()
         if (
-            self._system.get_stored_status().mode \
-                in (RinnaiSystemMode.HEATING, RinnaiSystemMode.COOLING)
-            and self._system.get_stored_status().unit_status.operating_mode == \
-                RinnaiOperatingMode.AUTO
+            state.mode in (RinnaiSystemMode.HEATING, RinnaiSystemMode.COOLING)
+            and state.unit_status.operating_mode == RinnaiOperatingMode.AUTO
         ):
-            return self._system.get_stored_status().system_on
+            return state.system_on
         return False
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        if self._system.get_stored_status().mode \
-            in (RinnaiSystemMode.HEATING, RinnaiSystemMode.COOLING):
-            if self._system.get_stored_status().unit_status.advanced:
+        state: RinnaiSystemStatus = self._system.get_stored_status()
+        if state.mode in (RinnaiSystemMode.HEATING, RinnaiSystemMode.COOLING):
+            if state.unit_status.advanced:
                 await self._system.unit_advance_cancel()
             else:
                 await self._system.unit_advance()
@@ -128,20 +127,20 @@ class RinnaiZoneAdvanceButton(RinnaiButtonEntity):
 
     @property
     def available(self):
-        if self._system.get_stored_status().mode \
-            in (RinnaiSystemMode.HEATING, RinnaiSystemMode.COOLING):
+        state: RinnaiSystemStatus = self._system.get_stored_status()
+        if state.mode in (RinnaiSystemMode.HEATING, RinnaiSystemMode.COOLING):
             return (
-                self._attr_zone in self._system.get_stored_status().unit_status.zones.keys()
-                and self._system.get_stored_status().unit_status.zones[self._attr_zone].auto_mode
+                self._attr_zone in state.unit_status.zones.keys()
+                and state.unit_status.zones[self._attr_zone].auto_mode
             )
         return False
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        if self._system.get_stored_status().mode \
-            in (RinnaiSystemMode.HEATING, RinnaiSystemMode.COOLING) \
-            and self._attr_zone in self._system.get_stored_status().unit_status.zones.keys():
-            if self._system.get_stored_status().unit_status.zones[self._attr_zone].advanced:
+        state: RinnaiSystemStatus = self._system.get_stored_status()
+        if state.mode in (RinnaiSystemMode.HEATING, RinnaiSystemMode.COOLING) \
+            and self._attr_zone in state.unit_status.zones.keys():
+            if state.unit_status.zones[self._attr_zone].advanced:
                 await self._system.unit_zone_advance_cancel(self._attr_zone)
             else:
                 await self._system.set_unit_zone_advance(self._attr_zone)

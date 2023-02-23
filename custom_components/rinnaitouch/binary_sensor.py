@@ -7,7 +7,7 @@ from homeassistant.const import (
     CONF_HOST
 )
 
-from pyrinnaitouch import RinnaiSystem, RinnaiSystemMode
+from pyrinnaitouch import RinnaiSystem, RinnaiSystemMode, RinnaiSystemStatus
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -66,16 +66,18 @@ class RinnaiPrewetBinarySensorEntity(RinnaiBinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """If the switch is currently on or off."""
-        if self._system.get_stored_status().mode == RinnaiSystemMode.EVAP:
+        state: RinnaiSystemStatus = self._system.get_stored_status()
+        if state.mode == RinnaiSystemMode.EVAP:
             return (
-                self._system.get_stored_status().unit_status.prewetting
-                or self._system.get_stored_status().unit_status.cooler_busy
+                state.unit_status.prewetting
+                or state.unit_status.cooler_busy
             )
         return False
 
     @property
     def available(self):
-        return self._system.get_stored_status().mode == RinnaiSystemMode.EVAP
+        state: RinnaiSystemStatus = self._system.get_stored_status()
+        return state.mode == RinnaiSystemMode.EVAP
 
 class RinnaiPreheatBinarySensorEntity(RinnaiBinarySensorEntity):
     """Binary sensor for preheating on/off during heater operation."""
@@ -100,10 +102,13 @@ class RinnaiPreheatBinarySensorEntity(RinnaiBinarySensorEntity):
     @property
     def is_on(self):
         """If the switch is currently on or off."""
-        if self._system.get_stored_status().mode == RinnaiSystemMode.HEATING:
-            return self._system.get_stored_status().unit_status.preheating
+        state: RinnaiSystemStatus = self._system.get_stored_status()
+        if state.mode == RinnaiSystemMode.HEATING:
+            return state.unit_status.preheating
         return False
 
     @property
     def available(self):
-        return self._system.get_stored_status().mode == RinnaiSystemMode.HEATING
+        state: RinnaiSystemStatus = self._system.get_stored_status()
+        return state.mode == RinnaiSystemMode.HEATING \
+            and state.is_multi_set_point
