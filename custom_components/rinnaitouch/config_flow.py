@@ -54,18 +54,6 @@ class RinnaiTouchConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
         if user_input is not None:
             system = RinnaiSystem.get_instance(user_input[CONF_HOST])
-            zones = []
-            if user_input[CONF_ZONE_A]:
-                zones.append("A")
-            if user_input[CONF_ZONE_B]:
-                zones.append("B")
-            if user_input[CONF_ZONE_C]:
-                zones.append("C")
-            if user_input[CONF_ZONE_D]:
-                zones.append("D")
-            if user_input[CONF_ZONE_COMMON]:
-                zones.append("U")
-            system.set_zones(zones)
             device_id = "rinnaitouch_" + str.replace(user_input[CONF_HOST], ".", "_")
             try:
                 await self.hass.async_add_executor_job(system.get_status)
