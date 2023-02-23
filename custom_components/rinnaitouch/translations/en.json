@@ -12,19 +12,21 @@
                 "description": "Do you want to set up a Rinnai Touch Wifi?"
             },
             "user": {
-                "data": {
-                    "host": "Hostname or IP",
-                    "name": "Name",
-                    "external_temperature_sensor": "Entity name of a temperature sensor to use (for NC3 or NC6)",
-                    "Zone A": "Zone A is installed",
-                    "external_temperature_sensor_a": "Entity name of a temperature sensor in zone A",
-                    "Zone B": "Zone B is installed",
-                    "external_temperature_sensor_b": "Entity name of a temperature sensor in zone B",
-                    "Zone C": "Zone C is installed",
-                    "external_temperature_sensor_c": "Entity name of a temperature sensor in zone C",
-                    "Zone D": "Zone D is installed",
-                    "external_temperature_sensor_d": "Entity name of a temperature sensor in zone D"
-                },
+              "data": {
+                "host": "Hostname or IP",
+                "name": "Name",
+                "external_temperature_sensor": "Entity name of a temperature sensor to use (for NC3 or NC6)",
+                "Zone A": "Zone A is installed",
+                "external_temperature_sensor_a": "Entity name of a temperature sensor in zone A",
+                "Zone B": "Zone B is installed",
+                "external_temperature_sensor_b": "Entity name of a temperature sensor in zone B",
+                "Zone C": "Zone C is installed",
+                "external_temperature_sensor_c": "Entity name of a temperature sensor in zone C",
+                "Zone D": "Zone D is installed",
+                "external_temperature_sensor_d": "Entity name of a temperature sensor in zone D",
+                "Common Zone": "Common Zone is installed",
+                "external_temperature_sensor_common": "Entity name of a temperature sensor for the common zone"
+              },
                     "description": "Please enter a hostname or IP address and name for your device"
             }
         }

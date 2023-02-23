@@ -7,7 +7,7 @@ from homeassistant.const import (
     CONF_HOST
 )
 
-from pyrinnaitouch import RinnaiSystem
+from pyrinnaitouch import RinnaiSystem, RinnaiSystemMode
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ async def async_setup_entry(hass, entry, async_add_entities): # pylint: disable=
 class RinnaiBinarySensorEntity(BinarySensorEntity):
     """Base class for all binary sensor entities setting up names and system instance."""
 
-    def __init__(self, ip_address, name):
+    def __init__(self, ip_address, name) -> None:
         self._host = ip_address
         self._system = RinnaiSystem.get_instance(ip_address)
         device_id = str.lower(self.__class__.__name__) + "_" + str.replace(ip_address, ".", "_")
@@ -35,22 +35,22 @@ class RinnaiBinarySensorEntity(BinarySensorEntity):
         self._attr_name = name
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Name of the entity."""
         return self._attr_name
 
     @property
-    def is_on(self):
+    def is_on(self) -> bool:
         return False
 
 class RinnaiPrewetBinarySensorEntity(RinnaiBinarySensorEntity):
     """Binary sensor for prewetting on/off during evap operation."""
 
-    def __init__(self, ip_address, name):
+    def __init__(self, ip_address, name) -> None:
         super().__init__(ip_address, name)
         self._system.subscribe_updates(self.system_updated)
 
-    def system_updated(self):
+    def system_updated(self) -> None:
         """After system is updated write the new state to HA."""
         #this very infrequently fails on startup so wrapping in try except
         try:
@@ -59,23 +59,23 @@ class RinnaiPrewetBinarySensorEntity(RinnaiBinarySensorEntity):
             pass
 
     @property
-    def icon(self):
+    def icon(self) -> str:
         """Return the icon to use in the frontend for this device."""
         return "mdi:snowflake-melt"
 
     @property
-    def is_on(self):
+    def is_on(self) -> bool:
         """If the switch is currently on or off."""
-        if self._system.get_stored_status().evap_mode:
+        if self._system.get_stored_status().mode == RinnaiSystemMode.EVAP:
             return (
-                self._system.get_stored_status().evap_status.prewetting
-                or self._system.get_stored_status().evap_status.cooler_busy
+                self._system.get_stored_status().unit_status.prewetting
+                or self._system.get_stored_status().unit_status.cooler_busy
             )
         return False
 
     @property
     def available(self):
-        return self._system.get_stored_status().evap_mode
+        return self._system.get_stored_status().mode == RinnaiSystemMode.EVAP
 
 class RinnaiPreheatBinarySensorEntity(RinnaiBinarySensorEntity):
     """Binary sensor for preheating on/off during heater operation."""
@@ -100,10 +100,10 @@ class RinnaiPreheatBinarySensorEntity(RinnaiBinarySensorEntity):
     @property
     def is_on(self):
         """If the switch is currently on or off."""
-        if self._system.get_stored_status().heater_mode:
-            return self._system.get_stored_status().heater_status.preheating
+        if self._system.get_stored_status().mode == RinnaiSystemMode.HEATING:
+            return self._system.get_stored_status().unit_status.preheating
         return False
 
     @property
     def available(self):
-        return self._system.get_stored_status().heater_mode
+        return self._system.get_stored_status().mode == RinnaiSystemMode.HEATING
