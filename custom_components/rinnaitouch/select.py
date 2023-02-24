@@ -32,7 +32,7 @@ class RinnaiSelectPresetEntity(SelectEntity):
 
     def __init__(self, ip_address, name):
         self._host = ip_address
-        self._system = RinnaiSystem.get_instance(ip_address)
+        self._system: RinnaiSystem = RinnaiSystem.get_instance(ip_address)
         device_id = str.lower(self.__class__.__name__) + "_" + str.replace(ip_address, ".", "_")
 
         self._attr_unique_id = device_id

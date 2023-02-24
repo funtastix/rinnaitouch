@@ -11,7 +11,13 @@ from homeassistant.components.sensor import (
 from homeassistant.const import UnitOfTemperature
 from homeassistant.const import CONF_NAME, CONF_HOST
 
-from pyrinnaitouch import RinnaiSystem, RinnaiSchedulePeriod, RinnaiSystemMode, RinnaiOperatingMode
+from pyrinnaitouch import (
+    RinnaiSystem,
+    RinnaiSchedulePeriod,
+    RinnaiSystemMode,
+    RinnaiOperatingMode,
+    RinnaiSystemStatus
+)
 
 from .const import CONF_ZONE_A, CONF_ZONE_B, CONF_ZONE_C, CONF_ZONE_D, CONF_ZONE_COMMON
 
@@ -120,7 +126,7 @@ class RinnaiTemperatureSensor(SensorEntity):
     """Representation of a Sensor."""
 
     def __init__(self, ip_address, name):
-        self._system = RinnaiSystem.get_instance(ip_address)
+        self._system: RinnaiSystem = RinnaiSystem.get_instance(ip_address)
         device_id = (
             str.lower(self.__class__.__name__) + "_" + str.replace(ip_address, ".", "_")
         )
@@ -182,24 +188,24 @@ class RinnaiMainTemperatureSensor(RinnaiTemperatureSensor):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
-        if self._system.get_stored_status().mode \
-                in (RinnaiSystemMode.COOLING, RinnaiSystemMode.HEATING):
+        state: RinnaiSystemStatus = self._system.get_stored_status()
+        if state.mode in (RinnaiSystemMode.COOLING, RinnaiSystemMode.HEATING):
             return (
                 float(
                     getattr(
-                        self._system.get_stored_status().unit_status, self._temp_attr
+                        state.unit_status, self._temp_attr
                     )
                 )
                 / self.multiplier
             )
         if (
-            self._system.get_stored_status().mode == RinnaiSystemMode.EVAP
+            state.mode == RinnaiSystemMode.EVAP
             and self._temp_attr == "temperature"
         ):
             return (
                 float(
                     getattr(
-                        self._system.get_stored_status().unit_status, self._temp_attr
+                        state.unit_status, self._temp_attr
                     )
                 )
                 / self.multiplier
@@ -236,35 +242,29 @@ class RinnaiZoneTemperatureSensor(RinnaiTemperatureSensor):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
+        state: RinnaiSystemStatus = self._system.get_stored_status()
         if (
-            self._system.get_stored_status().mode \
-                in (RinnaiSystemMode.COOLING, RinnaiSystemMode.HEATING)
-            and self._attr_zone
-            in self._system.get_stored_status().unit_status.zones.keys()
+            state.mode in (RinnaiSystemMode.COOLING, RinnaiSystemMode.HEATING)
+            and self._attr_zone in state.unit_status.zones.keys()
         ):
             return (
                 float(
                     getattr(
-                        self._system.get_stored_status().unit_status.zones[
-                            self._attr_zone
-                        ],
+                        state.unit_status.zones[self._attr_zone],
                         self._temp_attr,
                     )
                 )
                 / self.multiplier
             )
         if (
-            self._system.get_stored_status().mode == RinnaiSystemMode.EVAP
-            and self._attr_zone
-            in self._system.get_stored_status().unit_status.zones.keys()
+            state.mode == RinnaiSystemMode.EVAP
+            and self._attr_zone in state.unit_status.zones.keys()
             and self._temp_attr == "temperature"
         ):
             return (
                 float(
                     getattr(
-                        self._system.get_stored_status().unit_status.zones[
-                            self._attr_zone
-                        ],
+                        state.unit_status.zones[self._attr_zone],
                         self._temp_attr,
                     )
                 )

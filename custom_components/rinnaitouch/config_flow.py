@@ -53,7 +53,7 @@ class RinnaiTouchConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle a flow initialized by the user."""
         errors = {}
         if user_input is not None:
-            system = RinnaiSystem.get_instance(user_input[CONF_HOST])
+            system: RinnaiSystem = RinnaiSystem.get_instance(user_input[CONF_HOST])
             device_id = "rinnaitouch_" + str.replace(user_input[CONF_HOST], ".", "_")
             try:
                 await self.hass.async_add_executor_job(system.get_status)
