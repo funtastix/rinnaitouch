@@ -20,6 +20,7 @@ from __future__ import annotations
 from datetime import timedelta
 
 import logging
+import re
 
 from pyrinnaitouch import (
     RinnaiSystem,
@@ -518,7 +519,7 @@ class RinnaiTouchZone(ClimateEntity):
         # pylint: disable=too-many-arguments
 
         _LOGGER.debug("Set up RinnaiTouch zone %s entity %s", zone, ip_address)
-        self._system = RinnaiSystem.get_instance(ip_address)
+        self._system: RinnaiSystem = RinnaiSystem.get_instance(ip_address)
         device_id = "rinnaitouch_zone" + zone + "_" + str.replace(ip_address, ".", "_")
 
         self._attr_unique_id = device_id
@@ -802,6 +803,96 @@ class RinnaiTouchZone(ClimateEntity):
                 return HVACMode.OFF
             return HVACMode.COOL
         return HVACMode.OFF
+
+    @property
+    def hvac_action(self):
+        """Return current HVAC action."""
+        # pylint: disable=too-many-return-statements
+
+        state = self._system.get_stored_status()
+        if not state.system_on:
+            return HVACAction.OFF
+        if state.is_multi_set_point:
+            # return zone actions in zone unit
+            if state.mode == RinnaiSystemMode.COOLING:
+                if state.unit_status.is_on \
+                    and self._attr_zone in state.unit_status.zones.keys():
+                    if (
+                        state.unit_status.zones[self._attr_zone].compressor_active
+                        or state.unit_status.zones[self._attr_zone].calling_for_work
+                        or state.unit_status.zones[self._attr_zone].fan_operating
+                    ):
+                        return HVACAction.COOLING
+                    return HVACAction.IDLE
+                elif state.unit_status.zones[self._attr_zone].fan_operating:
+                    return HVACAction.FAN
+                else:
+                    return HVACAction.OFF
+            if state.mode == RinnaiSystemMode.HEATING:
+                if state.unit_status.is_on \
+                    and self._attr_zone in state.unit_status.zones.keys():
+                    if (
+                        state.unit_status.zones[self._attr_zone].gas_valve_active
+                        or state.unit_status.zones[self._attr_zone].calling_for_work
+                        or state.unit_status.zones[self._attr_zone].fan_operating
+                    ):
+                        return HVACAction.HEATING
+                    return HVACAction.IDLE
+                elif state.unit_status.zones[self._attr_zone].fan_operating:
+                    return HVACAction.FAN
+                else:
+                    return HVACAction.OFF
+
+        # logic to return the right action for main unit
+        if state.mode == RinnaiSystemMode.COOLING:
+            if state.unit_status.is_on:
+                if (
+                    state.unit_status.compressor_active
+                    or state.unit_status.calling_for_cool
+                    or state.unit_status.fan_operating
+                ):
+                    return HVACAction.COOLING
+                return HVACAction.IDLE
+            return HVACAction.FAN
+
+        if state.mode == RinnaiSystemMode.HEATING:
+            if state.unit_status.is_on:
+                if (
+                    state.unit_status.gas_valve_active
+                    or state.unit_status.calling_for_heat
+                    or state.unit_status.fan_operating
+                    or state.unit_status.preheating
+                ):
+                    return HVACAction.HEATING
+                return HVACAction.IDLE
+            return HVACAction.FAN
+
+        if state.mode == RinnaiSystemMode.EVAP:
+            if state.unit_status.is_on \
+                and self._attr_zone in state.unit_status.zones.keys() \
+                and state.unit_status.zones[self._attr_zone].user_enabled:
+                if (
+                    state.unit_status.prewetting
+                    or state.unit_status.cooler_busy
+                    or (
+                        state.unit_status.fan_operating
+                        and state.unit_status.pump_operating
+                    )
+                ):
+                    return HVACAction.COOLING
+                if (
+                    state.unit_status.fan_operating
+                    and not (
+                        state.unit_status.cooler_busy
+                        or state.unit_status.prewetting
+                        or state.unit_status.pump_operating
+                    )
+                ):
+                    return HVACAction.FAN
+                return HVACAction.IDLE
+            else:
+                return HVACAction.OFF
+        return HVACAction.OFF
 
     # not common. Only return the mode that is set on the main
     @property
