@@ -1,6 +1,7 @@
 """Platform for sensor integration."""
 from __future__ import annotations
-#import logging
+
+# import logging
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -16,7 +17,7 @@ from pyrinnaitouch import (
     RinnaiSchedulePeriod,
     RinnaiSystemMode,
     RinnaiOperatingMode,
-    RinnaiSystemStatus
+    RinnaiSystemStatus,
 )
 
 from .const import (
@@ -25,10 +26,11 @@ from .const import (
     CONF_ZONE_C,
     CONF_ZONE_D,
     CONF_ZONE_COMMON,
-    DEFAULT_NAME
+    DEFAULT_NAME,
 )
 
-#_LOGGER = logging.getLogger(__name__)
+# _LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(
     hass, entry, async_add_entities
@@ -49,35 +51,35 @@ async def async_setup_entry(
     if entry.data.get(CONF_ZONE_A):
         async_add_entities(
             [
-                RinnaiZoneTemperatureSensor(ip_address,"A",name,"set_temp"),
+                RinnaiZoneTemperatureSensor(ip_address, "A", name, "set_temp"),
                 RinnaiZoneTemperatureSensor(ip_address, "A", name, "temperature"),
             ]
         )
     if entry.data.get(CONF_ZONE_B):
         async_add_entities(
             [
-                RinnaiZoneTemperatureSensor(ip_address,"B",name,"set_temp"),
+                RinnaiZoneTemperatureSensor(ip_address, "B", name, "set_temp"),
                 RinnaiZoneTemperatureSensor(ip_address, "B", name, "temperature"),
             ]
         )
     if entry.data.get(CONF_ZONE_C):
         async_add_entities(
             [
-                RinnaiZoneTemperatureSensor(ip_address,"C",name,"set_temp"),
+                RinnaiZoneTemperatureSensor(ip_address, "C", name, "set_temp"),
                 RinnaiZoneTemperatureSensor(ip_address, "C", name, "temperature"),
             ]
         )
     if entry.data.get(CONF_ZONE_D):
         async_add_entities(
             [
-                RinnaiZoneTemperatureSensor(ip_address,"D",name,"set_temp"),
+                RinnaiZoneTemperatureSensor(ip_address, "D", name, "set_temp"),
                 RinnaiZoneTemperatureSensor(ip_address, "D", name, "temperature"),
             ]
         )
     if entry.data.get(CONF_ZONE_COMMON):
         async_add_entities(
             [
-                RinnaiZoneTemperatureSensor(ip_address,"U",name,"set_temp"),
+                RinnaiZoneTemperatureSensor(ip_address, "U", name, "set_temp"),
                 RinnaiZoneTemperatureSensor(ip_address, "U", name, "temperature"),
             ]
         )
@@ -86,6 +88,7 @@ async def async_setup_entry(
 
 class RinnaiTemperatureSensor(SensorEntity):
     """Representation of a Sensor."""
+
     # pylint: disable=too-many-instance-attributes
 
     def __init__(self, ip_address, name):
@@ -116,7 +119,7 @@ class RinnaiTemperatureSensor(SensorEntity):
     def device_info(self):
         """Return device information about this heater."""
         return {
-            #"connections": {(CONNECTION_NETWORK_MAC, self._host)},
+            # "connections": {(CONNECTION_NETWORK_MAC, self._host)},
             "identifiers": {("rinnai_touch", self._host)},
             "model": "Rinnai Touch Wifi",
             "name": self._attr_device_name,
@@ -170,31 +173,15 @@ class RinnaiMainTemperatureSensor(RinnaiTemperatureSensor):
         """
         state: RinnaiSystemStatus = self._system.get_stored_status()
         if state.mode in (RinnaiSystemMode.COOLING, RinnaiSystemMode.HEATING):
-            return (
-                float(
-                    getattr(
-                        state.unit_status, self._temp_attr
-                    )
-                )
-                / self.multiplier
-            )
-        if (
-            state.mode == RinnaiSystemMode.EVAP
-            and self._temp_attr == "temperature"
-        ):
-            return (
-                float(
-                    getattr(
-                        state.unit_status, self._temp_attr
-                    )
-                )
-                / self.multiplier
-            )
+            return float(getattr(state.unit_status, self._temp_attr)) / self.multiplier
+        if state.mode == RinnaiSystemMode.EVAP and self._temp_attr == "temperature":
+            return float(getattr(state.unit_status, self._temp_attr)) / self.multiplier
         return 0
 
     @property
     def available(self):
         return self.native_value < 99 and self.native_value > 0
+
 
 class RinnaiZoneTemperatureSensor(RinnaiTemperatureSensor):
     """Temperature sensor on a zone."""
@@ -290,7 +277,7 @@ class RinnaiPeriodSensor(SensorEntity):
     def device_info(self):
         """Return device information about this heater."""
         return {
-            #"connections": {(CONNECTION_NETWORK_MAC, self._host)},
+            # "connections": {(CONNECTION_NETWORK_MAC, self._host)},
             "identifiers": {("rinnai_touch", self._host)},
             "model": "Rinnai Touch Wifi",
             "name": self._attr_device_name,

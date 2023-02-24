@@ -1,5 +1,5 @@
 """Switches for Auto/Manual, On/Off, Mode, Water Pump and Fan"""
-#import logging
+# import logging
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.entity import Entity
@@ -10,7 +10,7 @@ from pyrinnaitouch import (
     RinnaiSystemMode,
     RinnaiCapabilities,
     RinnaiOperatingMode,
-    RinnaiSystemStatus
+    RinnaiSystemStatus,
 )
 
 from .const import (
@@ -19,10 +19,10 @@ from .const import (
     CONF_ZONE_C,
     CONF_ZONE_D,
     CONF_ZONE_COMMON,
-    DEFAULT_NAME
+    DEFAULT_NAME,
 )
 
-#_LOGGER = logging.getLogger(__name__)
+# _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -110,7 +110,7 @@ class RinnaiExtraEntity(Entity):
     def device_info(self):
         """Return device information about this heater."""
         return {
-            #"connections": {(CONNECTION_NETWORK_MAC, self._host)},
+            # "connections": {(CONNECTION_NETWORK_MAC, self._host)},
             "identifiers": {("rinnai_touch", self._host)},
             "model": "Rinnai Touch Wifi",
             "name": self._attr_device_name,
@@ -185,7 +185,9 @@ class RinnaiCoolingModeSwitch(RinnaiExtraEntity, SwitchEntity):
 
     @property
     def available(self):
-        return RinnaiCapabilities.COOLER in self._system.get_stored_status().capabilities
+        return (
+            RinnaiCapabilities.COOLER in self._system.get_stored_status().capabilities
+        )
 
     async def async_turn_on(self, **kwargs):
         if not self._system.get_stored_status().mode == RinnaiSystemMode.COOLING:
@@ -217,7 +219,9 @@ class RinnaiHeaterModeSwitch(RinnaiExtraEntity, SwitchEntity):
 
     @property
     def available(self):
-        return RinnaiCapabilities.HEATER in self._system.get_stored_status().capabilities
+        return (
+            RinnaiCapabilities.HEATER in self._system.get_stored_status().capabilities
+        )
 
     async def async_turn_on(self, **kwargs):
         if not self._system.get_stored_status().mode == RinnaiSystemMode.HEATING:
@@ -286,15 +290,19 @@ class RinnaiZoneSwitch(RinnaiExtraEntity, SwitchEntity):
 
     @property
     def available(self):
-        return self._attr_zone in self._system.get_stored_status().unit_status.zones.keys()
+        return (
+            self._attr_zone in self._system.get_stored_status().unit_status.zones.keys()
+        )
 
     @property
     def is_on(self):
         state: RinnaiSystemStatus = self._system.get_stored_status()
         if self._attr_zone not in state.unit_status.zones.keys():
             return False
-        return state.unit_status.zones[self._attr_zone].user_enabled \
+        return (
+            state.unit_status.zones[self._attr_zone].user_enabled
             or int(state.unit_status.zones[self._attr_zone].set_temp) > 7
+        )
 
     async def async_turn_on(self, **kwargs):
         state: RinnaiSystemStatus = self._system.get_stored_status()
@@ -334,9 +342,11 @@ class RinnaiWaterpumpSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def available(self):
         state = self._system.get_stored_status()
-        if state.mode == RinnaiSystemMode.EVAP \
-            and state.unit_status.is_on \
-            and state.unit_status.operating_mode == RinnaiOperatingMode.MANUAL:
+        if (
+            state.mode == RinnaiSystemMode.EVAP
+            and state.unit_status.is_on
+            and state.unit_status.operating_mode == RinnaiOperatingMode.MANUAL
+        ):
             return True
         return False
 
@@ -373,9 +383,11 @@ class RinnaiEvapFanSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def available(self):
         state = self._system.get_stored_status()
-        if state.mode == RinnaiSystemMode.EVAP \
-            and state.unit_status.is_on \
-            and state.unit_status.operating_mode == RinnaiOperatingMode.MANUAL:
+        if (
+            state.mode == RinnaiSystemMode.EVAP
+            and state.unit_status.is_on
+            and state.unit_status.operating_mode == RinnaiOperatingMode.MANUAL
+        ):
             return True
         return False
 
@@ -457,15 +469,11 @@ class RinnaiCircFanSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def available(self):
         state: RinnaiSystemStatus = self._system.get_stored_status()
-        if not (
-            state.mode in (RinnaiSystemMode.COOLING, RinnaiSystemMode.HEATING)
-        ):
+        if not (state.mode in (RinnaiSystemMode.COOLING, RinnaiSystemMode.HEATING)):
             return False
         if not state.system_on:
             return True
-        if (
-            not state.unit_status.is_on
-        ):
+        if not state.unit_status.is_on:
             return True
         return False
 
@@ -519,9 +527,7 @@ class RinnaiZoneAutoSwitch(RinnaiExtraEntity, SwitchEntity):
     def is_on(self):
         if self.available:
             state: RinnaiSystemStatus = self._system.get_stored_status()
-            return (
-                state.unit_status.zones[self._attr_zone].auto_mode
-            )
+            return state.unit_status.zones[self._attr_zone].auto_mode
         return False
 
     async def async_turn_on(self, **kwargs):
