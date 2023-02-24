@@ -802,14 +802,18 @@ class RinnaiTouchZone(ClimateEntity):
                 not in state.unit_status.zones.keys()
             ):
                 return HVACMode.OFF
-            return HVACMode.HEAT
+            if state.unit_status.is_on:
+                return HVACMode.HEAT
+            return HVACMode.FAN_ONLY
         if self.cooling_mode == COOLING_EVAP:
             if (
                 self._attr_zone
                 not in state.unit_status.zones.keys()
             ):
                 return HVACMode.OFF
-            return HVACMode.COOL
+            if state.unit_status.is_on:
+                return HVACMode.COOL
+            return HVACMode.FAN_ONLY
         return HVACMode.OFF
 
     @property
