@@ -1,5 +1,5 @@
 """Select to choose preset"""
-import logging
+#import logging
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.const import (
@@ -11,19 +11,20 @@ from pyrinnaitouch import RinnaiSystem, RinnaiOperatingMode
 
 from .const import (
     PRESET_AUTO,
-    PRESET_MANUAL
+    PRESET_MANUAL,
+    DEFAULT_NAME
 )
 
-_LOGGER = logging.getLogger(__name__)
+#_LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities): # pylint: disable=unused-argument
     """Set up the preset select entities."""
     ip_address = entry.data.get(CONF_HOST)
     name = entry.data.get(CONF_NAME)
     if name == "":
-        name = "Rinnai Touch"
+        name = DEFAULT_NAME
     async_add_entities([
-        RinnaiSelectPresetEntity(ip_address, name + " Preset Select")
+        RinnaiSelectPresetEntity(ip_address, name)
     ])
     return True
 
@@ -36,7 +37,8 @@ class RinnaiSelectPresetEntity(SelectEntity):
         device_id = str.lower(self.__class__.__name__) + "_" + str.replace(ip_address, ".", "_")
 
         self._attr_unique_id = device_id
-        self._attr_name = name
+        self._attr_name = name + " Preset Select"
+        self._attr_device_name = name
         self._system.subscribe_updates(self.system_updated)
 
     def system_updated(self):
@@ -46,6 +48,17 @@ class RinnaiSelectPresetEntity(SelectEntity):
             self.schedule_update_ha_state()
         except: #pylint: disable=bare-except
             pass
+
+    @property
+    def device_info(self):
+        """Return device information about this heater."""
+        return {
+            #"connections": {(CONNECTION_NETWORK_MAC, self._host)},
+            "identifiers": {("rinnai_touch", self._host)},
+            "model": "Rinnai Touch Wifi",
+            "name": self._attr_device_name,
+            "manufacturer": "Rinnai/Brivis",
+        }
 
     @property
     def name(self):

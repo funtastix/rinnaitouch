@@ -1,6 +1,6 @@
 """Platform for sensor integration."""
 from __future__ import annotations
-import logging
+#import logging
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -19,10 +19,16 @@ from pyrinnaitouch import (
     RinnaiSystemStatus
 )
 
-from .const import CONF_ZONE_A, CONF_ZONE_B, CONF_ZONE_C, CONF_ZONE_D, CONF_ZONE_COMMON
+from .const import (
+    CONF_ZONE_A,
+    CONF_ZONE_B,
+    CONF_ZONE_C,
+    CONF_ZONE_D,
+    CONF_ZONE_COMMON,
+    DEFAULT_NAME
+)
 
-_LOGGER = logging.getLogger(__name__)
-
+#_LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass, entry, async_add_entities
@@ -31,92 +37,48 @@ async def async_setup_entry(
     ip_address = entry.data.get(CONF_HOST)
     name = entry.data.get(CONF_NAME)
     if name == "":
-        name = "Rinnai Touch"
+        name = DEFAULT_NAME
     async_add_entities(
         [
-            RinnaiMainTemperatureSensor(
-                ip_address, name + " Main Temperature Sensor", "temperature"
-            ),
-            RinnaiMainTemperatureSensor(
-                ip_address, name + " Main Target Temperature Sensor", "set_temp"
-            ),
-            RinnaiSchedulePeriodSensor(
-                ip_address, name + " Schedule Time Period Sensor"
-            ),
-            RinnaiAdvancePeriodSensor(ip_address, name + " Advance Time Period Sensor"),
+            RinnaiMainTemperatureSensor(ip_address, name, "temperature"),
+            RinnaiMainTemperatureSensor(ip_address, name, "set_temp"),
+            RinnaiSchedulePeriodSensor(ip_address, name),
+            RinnaiAdvancePeriodSensor(ip_address, name),
         ]
     )
     if entry.data.get(CONF_ZONE_A):
         async_add_entities(
             [
-                RinnaiZoneTemperatureSensor(
-                    ip_address,
-                    "A",
-                    name + " Zone A Target Temperature Sensor",
-                    "set_temp",
-                ),
-                RinnaiZoneTemperatureSensor(
-                    ip_address, "A", name + " Zone A Temperature Sensor", "temperature"
-                ),
+                RinnaiZoneTemperatureSensor(ip_address,"A",name,"set_temp"),
+                RinnaiZoneTemperatureSensor(ip_address, "A", name, "temperature"),
             ]
         )
     if entry.data.get(CONF_ZONE_B):
         async_add_entities(
             [
-                RinnaiZoneTemperatureSensor(
-                    ip_address,
-                    "B",
-                    name + " Zone B Target Temperature Sensor",
-                    "set_temp",
-                ),
-                RinnaiZoneTemperatureSensor(
-                    ip_address, "B", name + " Zone B Temperature Sensor", "temperature"
-                ),
+                RinnaiZoneTemperatureSensor(ip_address,"B",name,"set_temp"),
+                RinnaiZoneTemperatureSensor(ip_address, "B", name, "temperature"),
             ]
         )
     if entry.data.get(CONF_ZONE_C):
         async_add_entities(
             [
-                RinnaiZoneTemperatureSensor(
-                    ip_address,
-                    "C",
-                    name + " Zone C Target Temperature Sensor",
-                    "set_temp",
-                ),
-                RinnaiZoneTemperatureSensor(
-                    ip_address, "C", name + " Zone C Temperature Sensor", "temperature"
-                ),
+                RinnaiZoneTemperatureSensor(ip_address,"C",name,"set_temp"),
+                RinnaiZoneTemperatureSensor(ip_address, "C", name, "temperature"),
             ]
         )
     if entry.data.get(CONF_ZONE_D):
         async_add_entities(
             [
-                RinnaiZoneTemperatureSensor(
-                    ip_address,
-                    "D",
-                    name + " Zone D Target Temperature Sensor",
-                    "set_temp",
-                ),
-                RinnaiZoneTemperatureSensor(
-                    ip_address, "D", name + " Zone D Temperature Sensor", "temperature"
-                ),
+                RinnaiZoneTemperatureSensor(ip_address,"D",name,"set_temp"),
+                RinnaiZoneTemperatureSensor(ip_address, "D", name, "temperature"),
             ]
         )
     if entry.data.get(CONF_ZONE_COMMON):
         async_add_entities(
             [
-                RinnaiZoneTemperatureSensor(
-                    ip_address,
-                    "U",
-                    name + " Common Zone Target Temperature Sensor",
-                    "set_temp",
-                ),
-                RinnaiZoneTemperatureSensor(
-                    ip_address,
-                    "D",
-                    name + " Common Zone Temperature Sensor",
-                    "temperature",
-                ),
+                RinnaiZoneTemperatureSensor(ip_address,"U",name,"set_temp"),
+                RinnaiZoneTemperatureSensor(ip_address, "U", name, "temperature"),
             ]
         )
     return True
@@ -124,6 +86,7 @@ async def async_setup_entry(
 
 class RinnaiTemperatureSensor(SensorEntity):
     """Representation of a Sensor."""
+    # pylint: disable=too-many-instance-attributes
 
     def __init__(self, ip_address, name):
         self._system: RinnaiSystem = RinnaiSystem.get_instance(ip_address)
@@ -131,8 +94,10 @@ class RinnaiTemperatureSensor(SensorEntity):
             str.lower(self.__class__.__name__) + "_" + str.replace(ip_address, ".", "_")
         )
 
+        self._host = ip_address
         self._attr_unique_id = device_id
         self._attr_name = name
+        self._attr_device_name = name
 
         self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
         self._attr_device_class = SensorDeviceClass.TEMPERATURE
@@ -148,9 +113,20 @@ class RinnaiTemperatureSensor(SensorEntity):
             pass
 
     @property
+    def device_info(self):
+        """Return device information about this heater."""
+        return {
+            #"connections": {(CONNECTION_NETWORK_MAC, self._host)},
+            "identifiers": {("rinnai_touch", self._host)},
+            "model": "Rinnai Touch Wifi",
+            "name": self._attr_device_name,
+            "manufacturer": "Rinnai/Brivis",
+        }
+
+    @property
     def name(self):
         """Name of the entity."""
-        return self._attr_name
+        return self._attr_name.replace("Zone U", "Common Zone")
 
     @property
     def icon(self):
@@ -169,6 +145,10 @@ class RinnaiMainTemperatureSensor(RinnaiTemperatureSensor):
 
     def __init__(self, ip_address, name, temp_attr):
         super().__init__(ip_address, name)
+        if temp_attr == "set_temp":
+            self._attr_name = name + " Main Target Temperature Sensor"
+        else:
+            self._attr_name = name + " Main Temperature Sensor"
         self._temp_attr = temp_attr
         device_id = (
             str.lower(self.__class__.__name__)
@@ -221,6 +201,10 @@ class RinnaiZoneTemperatureSensor(RinnaiTemperatureSensor):
 
     def __init__(self, ip_address, zone, name, temp_attr="temperature"):
         super().__init__(ip_address, name)
+        if temp_attr == "set_temp":
+            self._attr_name = name + " Zone " + zone + " Target Temperature Sensor"
+        else:
+            self._attr_name = name + " Zone " + zone + " Temperature Sensor"
         self._attr_zone = zone
         self._temp_attr = temp_attr
         device_id = (
@@ -286,8 +270,10 @@ class RinnaiPeriodSensor(SensorEntity):
             str.lower(self.__class__.__name__) + "_" + str.replace(ip_address, ".", "_")
         )
 
+        self._host = ip_address
         self._attr_unique_id = device_id
         self._attr_name = name
+        self._attr_device_name = name
         self._attr_period = None
 
         self._system.subscribe_updates(self.system_updated)
@@ -301,9 +287,20 @@ class RinnaiPeriodSensor(SensorEntity):
             pass
 
     @property
+    def device_info(self):
+        """Return device information about this heater."""
+        return {
+            #"connections": {(CONNECTION_NETWORK_MAC, self._host)},
+            "identifiers": {("rinnai_touch", self._host)},
+            "model": "Rinnai Touch Wifi",
+            "name": self._attr_device_name,
+            "manufacturer": "Rinnai/Brivis",
+        }
+
+    @property
     def name(self):
         """Name of the entity."""
-        return self._attr_name
+        return self._attr_name.replace("Zone U", "Common Zone")
 
     @property
     def icon(self):
@@ -345,6 +342,7 @@ class RinnaiSchedulePeriodSensor(RinnaiPeriodSensor):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._attr_name = name + " Schedule Time Period Sensor"
         self._attr_period = "schedule_period"
 
     @property
@@ -358,6 +356,7 @@ class RinnaiAdvancePeriodSensor(RinnaiPeriodSensor):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._attr_name = name + " Advance Time Period Sensor"
         self._attr_period = "advance_period"
 
     @property
