@@ -469,7 +469,7 @@ class RinnaiCircFanSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def available(self):
         state: RinnaiSystemStatus = self._system.get_stored_status()
-        if not (state.mode in (RinnaiSystemMode.COOLING, RinnaiSystemMode.HEATING)):
+        if not (state.mode in (RinnaiSystemMode.COOLING, RinnaiSystemMode.HEATING)): # pylint: disable=superfluous-parens
             return False
         if not state.system_on:
             return True
