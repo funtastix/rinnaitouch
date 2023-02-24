@@ -90,7 +90,7 @@ class RinnaiButtonEntity(ButtonEntity):
     @property
     def name(self):
         """Name of the entity."""
-        return self._attr_name._attr_name.replace("Zone U", "Common Zone")
+        return self._attr_name.replace("Zone U", "Common Zone")
 
 class RinnaiAdvanceButton(RinnaiButtonEntity):
     """Main advance button entity."""

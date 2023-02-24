@@ -126,7 +126,7 @@ class RinnaiTemperatureSensor(SensorEntity):
     @property
     def name(self):
         """Name of the entity."""
-        return self._attr_name._attr_name.replace("Zone U", "Common Zone")
+        return self._attr_name.replace("Zone U", "Common Zone")
 
     @property
     def icon(self):
@@ -300,7 +300,7 @@ class RinnaiPeriodSensor(SensorEntity):
     @property
     def name(self):
         """Name of the entity."""
-        return self._attr_name._attr_name.replace("Zone U", "Common Zone")
+        return self._attr_name.replace("Zone U", "Common Zone")
 
     @property
     def icon(self):
