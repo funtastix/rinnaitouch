@@ -1,5 +1,5 @@
 """Switches for Auto/Manual, On/Off, Mode, Water Pump and Fan"""
-import logging
+#import logging
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.entity import Entity
@@ -13,9 +13,16 @@ from pyrinnaitouch import (
     RinnaiSystemStatus
 )
 
-from .const import CONF_ZONE_A, CONF_ZONE_B, CONF_ZONE_C, CONF_ZONE_D, CONF_ZONE_COMMON
+from .const import (
+    CONF_ZONE_A,
+    CONF_ZONE_B,
+    CONF_ZONE_C,
+    CONF_ZONE_D,
+    CONF_ZONE_COMMON,
+    DEFAULT_NAME
+)
 
-_LOGGER = logging.getLogger(__name__)
+#_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -25,54 +32,52 @@ async def async_setup_entry(
     ip_address = entry.data.get(CONF_HOST)
     name = entry.data.get(CONF_NAME)
     if name == "":
-        name = "Rinnai Touch"
+        name = DEFAULT_NAME
     async_add_entities(
         [
-            RinnaiOnOffSwitch(ip_address, name + " On Off Switch"),
-            RinnaiCoolingModeSwitch(ip_address, name + " Cooling Mode Switch"),
-            RinnaiHeaterModeSwitch(ip_address, name + " Heater Mode Switch"),
-            RinnaiEvapModeSwitch(ip_address, name + " Evap Mode Switch"),
-            RinnaiWaterpumpSwitch(ip_address, name + " Water Pump Switch"),
-            RinnaiEvapFanSwitch(ip_address, name + " Evap Fan Switch"),
-            RinnaiCircFanSwitch(ip_address, name + " Circulation Fan Switch"),
-            RinnaiAutoSwitch(ip_address, name + " Auto Switch"),
+            RinnaiOnOffSwitch(ip_address, name),
+            RinnaiCoolingModeSwitch(ip_address, name),
+            RinnaiHeaterModeSwitch(ip_address, name),
+            RinnaiEvapModeSwitch(ip_address, name),
+            RinnaiWaterpumpSwitch(ip_address, name),
+            RinnaiEvapFanSwitch(ip_address, name),
+            RinnaiCircFanSwitch(ip_address, name),
+            RinnaiAutoSwitch(ip_address, name),
         ]
     )
     if entry.data.get(CONF_ZONE_A):
         async_add_entities(
             [
-                RinnaiZoneSwitch(ip_address, "A", name + " Zone A Switch"),
-                RinnaiZoneAutoSwitch(ip_address, "A", name + " Zone A Auto Switch"),
+                RinnaiZoneSwitch(ip_address, "A", name),
+                RinnaiZoneAutoSwitch(ip_address, "A", name),
             ]
         )
     if entry.data.get(CONF_ZONE_B):
         async_add_entities(
             [
-                RinnaiZoneSwitch(ip_address, "B", name + " Zone B Switch"),
-                RinnaiZoneAutoSwitch(ip_address, "B", name + " Zone B Auto Switch"),
+                RinnaiZoneSwitch(ip_address, "B", name),
+                RinnaiZoneAutoSwitch(ip_address, "B", name),
             ]
         )
     if entry.data.get(CONF_ZONE_C):
         async_add_entities(
             [
-                RinnaiZoneSwitch(ip_address, "C", name + " Zone C Switch"),
-                RinnaiZoneAutoSwitch(ip_address, "C", name + " Zone C Auto Switch"),
+                RinnaiZoneSwitch(ip_address, "C", name),
+                RinnaiZoneAutoSwitch(ip_address, "C", name),
             ]
         )
     if entry.data.get(CONF_ZONE_D):
         async_add_entities(
             [
-                RinnaiZoneSwitch(ip_address, "D", name + " Zone D Switch"),
-                RinnaiZoneAutoSwitch(ip_address, "D", name + " Zone D Auto Switch"),
+                RinnaiZoneSwitch(ip_address, "D", name),
+                RinnaiZoneAutoSwitch(ip_address, "D", name),
             ]
         )
     if entry.data.get(CONF_ZONE_COMMON):
         async_add_entities(
             [
-                RinnaiZoneSwitch(ip_address, "U", name + " Common Zone Switch"),
-                RinnaiZoneAutoSwitch(
-                    ip_address, "U", name + " Common Zone Auto Switch"
-                ),
+                RinnaiZoneSwitch(ip_address, "U", name),
+                RinnaiZoneAutoSwitch(ip_address, "U", name),
             ]
         )
     return True
@@ -90,6 +95,7 @@ class RinnaiExtraEntity(Entity):
 
         self._attr_unique_id = device_id
         self._attr_name = name
+        self._attr_device_name = name
         self._system.subscribe_updates(self.system_updated)
 
     def system_updated(self):
@@ -107,14 +113,14 @@ class RinnaiExtraEntity(Entity):
             #"connections": {(CONNECTION_NETWORK_MAC, self._host)},
             "identifiers": {("rinnai_touch", self._host)},
             "model": "Rinnai Touch Wifi",
-            "name": "Rinnai Touch Wifi (" + self._host + ")",
+            "name": self._attr_device_name,
             "manufacturer": "Rinnai/Brivis",
         }
 
     @property
     def name(self):
         """Name of the entity."""
-        return self._attr_name
+        return self._attr_name.replace("Zone U", "Common Zone")
 
 
 class RinnaiOnOffSwitch(RinnaiExtraEntity, SwitchEntity):
@@ -122,6 +128,7 @@ class RinnaiOnOffSwitch(RinnaiExtraEntity, SwitchEntity):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._attr_name = name + " On Off Switch"
         self._is_on = False
 
     @property
@@ -162,6 +169,7 @@ class RinnaiCoolingModeSwitch(RinnaiExtraEntity, SwitchEntity):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._attr_name = name + " Cooling Mode Switch"
         self._is_on = False
 
     @property
@@ -193,6 +201,7 @@ class RinnaiHeaterModeSwitch(RinnaiExtraEntity, SwitchEntity):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._attr_name = name + " Heater Mode Switch"
         self._is_on = False
 
     @property
@@ -224,6 +233,7 @@ class RinnaiEvapModeSwitch(RinnaiExtraEntity, SwitchEntity):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._attr_name = name + " Evap Mode Switch"
         self._is_on = False
 
     @property
@@ -256,6 +266,7 @@ class RinnaiZoneSwitch(RinnaiExtraEntity, SwitchEntity):
     def __init__(self, ip_address, zone, name):
         super().__init__(ip_address, name)
         self._is_on = False
+        self._attr_name = name + " Zone " + zone + " Switch"
         self._attr_zone = zone
         device_id = (
             str.lower(self.__class__.__name__)
@@ -310,6 +321,7 @@ class RinnaiWaterpumpSwitch(RinnaiExtraEntity, SwitchEntity):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._attr_name = name + " Water Pump Switch"
         self._is_on = False
 
     @property
@@ -348,6 +360,7 @@ class RinnaiEvapFanSwitch(RinnaiExtraEntity, SwitchEntity):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._attr_name = name + " Evap Fan Switch"
         self._is_on = False
 
     @property
@@ -386,6 +399,7 @@ class RinnaiAutoSwitch(RinnaiExtraEntity, SwitchEntity):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._attr_name = name + " Auto Switch"
         self._is_on = False
 
     @property
@@ -430,6 +444,7 @@ class RinnaiCircFanSwitch(RinnaiExtraEntity, SwitchEntity):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._attr_name = name + " Circulation Fan Switch"
         self._is_on = False
 
     @property
@@ -474,6 +489,7 @@ class RinnaiZoneAutoSwitch(RinnaiExtraEntity, SwitchEntity):
 
     def __init__(self, ip_address, zone, name):
         super().__init__(ip_address, name)
+        self._attr_name = name + " Zone " + zone + " Auto Switch"
         self._is_on = False
         self._attr_zone = zone
         device_id = (

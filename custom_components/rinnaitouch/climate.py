@@ -61,6 +61,7 @@ from .const import (
     CONF_ZONE_C,
     CONF_ZONE_D,
     CONF_ZONE_COMMON,
+    DEFAULT_NAME
 )
 
 SUPPORT_FLAGS_MAIN = (
@@ -79,6 +80,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
     """Set up climate entities."""
     ip_address = entry.data.get(CONF_HOST)
     name = entry.data.get(CONF_NAME)
+    if name == "":
+        name = DEFAULT_NAME
     temperature_entity = entry.data.get(CONF_TEMP_SENSOR)
     temperature_entity_a = entry.data.get(CONF_TEMP_SENSOR_A)
     temperature_entity_b = entry.data.get(CONF_TEMP_SENSOR_B)
@@ -121,6 +124,7 @@ class RinnaiTouch(ClimateEntity):
 
         self._attr_unique_id = device_id
         self._attr_name = name
+        self._attr_device_name = name
 
         self._hass = hass
         self._temerature_entity_name = temperature_entity
@@ -171,7 +175,7 @@ class RinnaiTouch(ClimateEntity):
             #"connections": {(CONNECTION_NETWORK_MAC, self._host)},
             "identifiers": {("rinnai_touch", self._host)},
             "model": "Rinnai Touch Wifi",
-            "name": "Rinnai Touch Wifi (" + self._host + ")",
+            "name": self._attr_device_name,
             "manufacturer": "Rinnai/Brivis",
         }
 
@@ -527,6 +531,7 @@ class RinnaiTouchZone(ClimateEntity):
         if zone == "U":
             self._attr_name = name + "Common Zone"
         self._attr_zone = zone
+        self._attr_device_name = name
 
         self._hass = hass
 
@@ -575,7 +580,7 @@ class RinnaiTouchZone(ClimateEntity):
             #"connections": {(CONNECTION_NETWORK_MAC, self._host)},
             "identifiers": {("rinnai_touch", self._host)},
             "model": "Rinnai Touch Wifi",
-            "name": "Rinnai Touch Wifi (" + self._host + ")",
+            "name": self._attr_device_name,
             "manufacturer": "Rinnai/Brivis",
         }
 

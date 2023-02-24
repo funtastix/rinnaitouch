@@ -1,5 +1,5 @@
 """Binary sensors for prewetting and preheating"""
-import logging
+#import logging
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.const import (
@@ -8,110 +8,87 @@ from homeassistant.const import (
 )
 
 from pyrinnaitouch import RinnaiSystem, RinnaiSystemMode, RinnaiSystemStatus
-from .const import CONF_ZONE_A, CONF_ZONE_B, CONF_ZONE_C, CONF_ZONE_D, CONF_ZONE_COMMON
+from .const import (
+    CONF_ZONE_A,
+    CONF_ZONE_B,
+    CONF_ZONE_C,
+    CONF_ZONE_D,
+    CONF_ZONE_COMMON,
+    DEFAULT_NAME
+)
 
-_LOGGER = logging.getLogger(__name__)
+#_LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities): # pylint: disable=unused-argument
     """Set up the binary sensor entities."""
     ip_address = entry.data.get(CONF_HOST)
     name = entry.data.get(CONF_NAME)
     if name == "":
-        name = "Rinnai Touch"
+        name = DEFAULT_NAME
     async_add_entities([
-        RinnaiPreheatBinarySensorEntity(ip_address, name + " Preheating Sensor"),
-        RinnaiGasValveBinarySensorEntity(ip_address, name + " Gas Valve Active Sensor"),
-        RinnaiCallingHeatBinarySensorEntity(ip_address, name + " Calling Heat Sensor"),
-        RinnaiCompressorBinarySensorEntity(ip_address, name + " Compressor Active Sensor"),
-        RinnaiCallingCoolBinarySensorEntity(ip_address, name + " Calling Cool Sensor"),
-        RinnaiPrewetBinarySensorEntity(ip_address, name + " Evap Prewetting Sensor"),
-        RinnaiPumpOperatingBinarySensorEntity(ip_address, name + " Pump Operating Sensor"),
-        RinnaiCoolerBusyBinarySensorEntity(ip_address, name + " Cooler Busy Sensor"),
-        RinnaiFanOperatingBinarySensorEntity(ip_address, name + " Fan Active Sensor")
+        RinnaiPreheatBinarySensorEntity(ip_address, name),
+        RinnaiGasValveBinarySensorEntity(ip_address, name),
+        RinnaiCallingHeatBinarySensorEntity(ip_address, name),
+        RinnaiCompressorBinarySensorEntity(ip_address, name),
+        RinnaiCallingCoolBinarySensorEntity(ip_address, name),
+        RinnaiPrewetBinarySensorEntity(ip_address, name),
+        RinnaiPumpOperatingBinarySensorEntity(ip_address, name),
+        RinnaiCoolerBusyBinarySensorEntity(ip_address, name),
+        RinnaiFanOperatingBinarySensorEntity(ip_address, name)
     ])
     if entry.data.get(CONF_ZONE_A):
         async_add_entities(
             [
-                RinnaiZonePreheatBinarySensorEntity(ip_address, "A", \
-                    name + " Zone A Preheating Sensor"),
-                RinnaiZoneGasValveBinarySensorEntity(ip_address, "A", \
-                    name + " Zone A Gas Valve Active Sensor"),
-                RinnaiZoneCallingHeatBinarySensorEntity(ip_address, "A", \
-                    name + " Zone A Calling Heat Sensor"),
-                RinnaiZoneCompressorBinarySensorEntity(ip_address, "A", \
-                    name + " Zone A Compressor Active Sensor"),
-                RinnaiZoneCallingCoolBinarySensorEntity(ip_address, "A", \
-                    name + " Zone A Calling Cool Sensor"),
-                RinnaiZoneFanOperatingBinarySensorEntity(ip_address, "A", \
-                    name + " Zone A Fan Active Sensor")
+                RinnaiZonePreheatBinarySensorEntity(ip_address, "A", name),
+                RinnaiZoneGasValveBinarySensorEntity(ip_address, "A", name),
+                RinnaiZoneCallingHeatBinarySensorEntity(ip_address, "A", name),
+                RinnaiZoneCompressorBinarySensorEntity(ip_address, "A", name),
+                RinnaiZoneCallingCoolBinarySensorEntity(ip_address, "A", name),
+                RinnaiZoneFanOperatingBinarySensorEntity(ip_address, "A", name)
             ]
         )
     if entry.data.get(CONF_ZONE_B):
         async_add_entities(
             [
-                RinnaiZonePreheatBinarySensorEntity(ip_address, "B", \
-                    name + " Zone B Preheating Sensor"),
-                RinnaiZoneGasValveBinarySensorEntity(ip_address, "B", \
-                    name + " Zone B Gas Valve Active Sensor"),
-                RinnaiZoneCallingHeatBinarySensorEntity(ip_address, "B", \
-                    name + " Zone B Calling Heat Sensor"),
-                RinnaiZoneCompressorBinarySensorEntity(ip_address, "B", \
-                    name + " Zone B Compressor Active Sensor"),
-                RinnaiZoneCallingCoolBinarySensorEntity(ip_address, "B", \
-                    name + " Zone B Calling Cool Sensor"),
-                RinnaiZoneFanOperatingBinarySensorEntity(ip_address, "B", \
-                    name + " Zone B Fan Active Sensor")
+                RinnaiZonePreheatBinarySensorEntity(ip_address, "B", name),
+                RinnaiZoneGasValveBinarySensorEntity(ip_address, "B", name),
+                RinnaiZoneCallingHeatBinarySensorEntity(ip_address, "B", name),
+                RinnaiZoneCompressorBinarySensorEntity(ip_address, "B", name),
+                RinnaiZoneCallingCoolBinarySensorEntity(ip_address, "B", name),
+                RinnaiZoneFanOperatingBinarySensorEntity(ip_address, "B", name)
             ]
         )
     if entry.data.get(CONF_ZONE_C):
         async_add_entities(
             [
-                RinnaiZonePreheatBinarySensorEntity(ip_address, "C", \
-                    name + " Zone C Preheating Sensor"),
-                RinnaiZoneGasValveBinarySensorEntity(ip_address, "C", \
-                    name + " Zone C Gas Valve Active Sensor"),
-                RinnaiZoneCallingHeatBinarySensorEntity(ip_address, "C", \
-                    name + " Zone C Calling Heat Sensor"),
-                RinnaiZoneCompressorBinarySensorEntity(ip_address, "C", \
-                    name + " Zone C Compressor Active Sensor"),
-                RinnaiZoneCallingCoolBinarySensorEntity(ip_address, "C", \
-                    name + " Zone C Calling Cool Sensor"),
-                RinnaiZoneFanOperatingBinarySensorEntity(ip_address, "C", \
-                    name + " Zone C Fan Active Sensor")
+                RinnaiZonePreheatBinarySensorEntity(ip_address, "C", name),
+                RinnaiZoneGasValveBinarySensorEntity(ip_address, "C", name),
+                RinnaiZoneCallingHeatBinarySensorEntity(ip_address, "C", name),
+                RinnaiZoneCompressorBinarySensorEntity(ip_address, "C", name),
+                RinnaiZoneCallingCoolBinarySensorEntity(ip_address, "C", name),
+                RinnaiZoneFanOperatingBinarySensorEntity(ip_address, "C", name)
             ]
         )
     if entry.data.get(CONF_ZONE_D):
         async_add_entities(
             [
-                RinnaiZonePreheatBinarySensorEntity(ip_address, "D", \
-                    name + " Zone D Preheating Sensor"),
-                RinnaiZoneGasValveBinarySensorEntity(ip_address, "D", \
-                    name + " Zone D Gas Valve Active Sensor"),
-                RinnaiZoneCallingHeatBinarySensorEntity(ip_address, "D", \
-                    name + " Zone D Calling Heat Sensor"),
-                RinnaiZoneCompressorBinarySensorEntity(ip_address, "D", \
-                    name + " Zone D Compressor Active Sensor"),
-                RinnaiZoneCallingCoolBinarySensorEntity(ip_address, "D", \
-                    name + " Zone D Calling Cool Sensor"),
-                RinnaiZoneFanOperatingBinarySensorEntity(ip_address, "D", \
-                    name + " Zone D Fan Active Sensor")
+                RinnaiZonePreheatBinarySensorEntity(ip_address, "D", name),
+                RinnaiZoneGasValveBinarySensorEntity(ip_address, "D", name),
+                RinnaiZoneCallingHeatBinarySensorEntity(ip_address, "D", name),
+                RinnaiZoneCompressorBinarySensorEntity(ip_address, "D", name),
+                RinnaiZoneCallingCoolBinarySensorEntity(ip_address, "D", name),
+                RinnaiZoneFanOperatingBinarySensorEntity(ip_address, "D", name)
             ]
         )
     if entry.data.get(CONF_ZONE_COMMON):
         async_add_entities(
             [
-                RinnaiZonePreheatBinarySensorEntity(ip_address, "U", \
-                    name + " Common Zone Preheating Sensor"),
-                RinnaiZoneGasValveBinarySensorEntity(ip_address, "U", \
-                    name + " Common Zone Gas Valve Active Sensor"),
-                RinnaiZoneCallingHeatBinarySensorEntity(ip_address, "U", \
-                    name + " Common Zone Calling Heat Sensor"),
-                RinnaiZoneCompressorBinarySensorEntity(ip_address, "U", \
-                    name + " Common Zone Compressor Active Sensor"),
-                RinnaiZoneCallingCoolBinarySensorEntity(ip_address, "U", \
-                    name + " Common Zone Calling Cool Sensor"),
-                RinnaiZoneFanOperatingBinarySensorEntity(ip_address, "U", \
-                    name + " Common Zone Fan Active Sensor")
+                RinnaiZonePreheatBinarySensorEntity(ip_address, "U", name),
+                RinnaiZoneGasValveBinarySensorEntity(ip_address, "U", name),
+                RinnaiZoneCallingHeatBinarySensorEntity(ip_address, "U", name),
+                RinnaiZoneCompressorBinarySensorEntity(ip_address, "U", name),
+                RinnaiZoneCallingCoolBinarySensorEntity(ip_address, "U", name),
+                RinnaiZoneFanOperatingBinarySensorEntity(ip_address, "U", name)
             ]
         )
     return True
@@ -125,7 +102,8 @@ class RinnaiBinarySensorEntity(BinarySensorEntity):
         device_id = str.lower(self.__class__.__name__) + "_" + str.replace(ip_address, ".", "_")
 
         self._attr_unique_id = device_id
-        self._attr_name = name
+        self._attr_name = name + " Binary Sensor"
+        self._attr_device_name = name
         self._system.subscribe_updates(self.system_updated)
 
     def system_updated(self):
@@ -143,14 +121,14 @@ class RinnaiBinarySensorEntity(BinarySensorEntity):
             #"connections": {(CONNECTION_NETWORK_MAC, self._host)},
             "identifiers": {("rinnai_touch", self._host)},
             "model": "Rinnai Touch Wifi",
-            "name": "Rinnai Touch Wifi (" + self._host + ")",
+            "name": self._attr_device_name,
             "manufacturer": "Rinnai/Brivis",
         }
 
     @property
     def name(self) -> str:
         """Name of the entity."""
-        return self._attr_name
+        return self._attr_name.replace("Zone U", "Common Zone")
 
     @property
     def is_on(self) -> bool:
@@ -195,6 +173,7 @@ class RinnaiPreheatBinarySensorEntity(RinnaiUnitStateBinarySensorEntity):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._attr_name = name + " Preheating Sensor"
         self._attr_unit_mode = RinnaiSystemMode.HEATING
         self._attr_status_attr = "preheating"
 
@@ -208,6 +187,7 @@ class RinnaiGasValveBinarySensorEntity(RinnaiUnitStateBinarySensorEntity):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._attr_name = name + " Gas Valve Active Sensor"
         self._attr_unit_mode = RinnaiSystemMode.HEATING
         self._attr_status_attr = "gas_valve_active"
 
@@ -221,6 +201,7 @@ class RinnaiCallingHeatBinarySensorEntity(RinnaiUnitStateBinarySensorEntity):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._attr_name = name + " Calling Heat Sensor"
         self._attr_unit_mode = RinnaiSystemMode.HEATING
         self._attr_status_attr = "calling_for_heat"
 
@@ -234,6 +215,7 @@ class RinnaiCompressorBinarySensorEntity(RinnaiUnitStateBinarySensorEntity):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._attr_name = name + " Compressor Active Sensor"
         self._attr_unit_mode = RinnaiSystemMode.COOLING
         self._attr_status_attr = "compressor_active"
 
@@ -247,6 +229,7 @@ class RinnaiCallingCoolBinarySensorEntity(RinnaiUnitStateBinarySensorEntity):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._attr_name = name + " Calling Cool Sensor"
         self._attr_unit_mode = RinnaiSystemMode.COOLING
         self._attr_status_attr = "calling_for_cool"
 
@@ -260,6 +243,7 @@ class RinnaiPrewetBinarySensorEntity(RinnaiUnitStateBinarySensorEntity):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._attr_name = name + " Evap Prewetting Sensor"
         self._attr_unit_mode = RinnaiSystemMode.EVAP
         self._attr_check_multi = False
         self._attr_status_attr = "prewetting"
@@ -274,6 +258,7 @@ class RinnaiPumpOperatingBinarySensorEntity(RinnaiUnitStateBinarySensorEntity):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._attr_name = name + " Pump Operating Sensor"
         self._attr_unit_mode = RinnaiSystemMode.EVAP
         self._attr_check_multi = False
         self._attr_status_attr = "pump_operating"
@@ -288,6 +273,7 @@ class RinnaiCoolerBusyBinarySensorEntity(RinnaiUnitStateBinarySensorEntity):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._attr_name = name + " Cooler Busy Sensor"
         self._attr_unit_mode = RinnaiSystemMode.EVAP
         self._attr_check_multi = False
         self._attr_status_attr = "cooler_busy"
@@ -302,6 +288,7 @@ class RinnaiFanOperatingBinarySensorEntity(RinnaiUnitStateBinarySensorEntity):
 
     def __init__(self, ip_address, name):
         super().__init__(ip_address, name)
+        self._attr_name = name + " Fan Active Sensor"
         self._attr_status_attr = "fan_operating"
 
     @property
@@ -370,6 +357,7 @@ class RinnaiZonePreheatBinarySensorEntity(RinnaiZoneStateBinarySensorEntity):
 
     def __init__(self, ip_address, zone, name):
         super().__init__(ip_address, zone, name)
+        self._attr_name = name + " Zone " + zone + " Preheating Sensor"
         self._attr_unit_mode = RinnaiSystemMode.HEATING
         self._attr_status_attr = "preheating"
 
@@ -383,6 +371,7 @@ class RinnaiZoneGasValveBinarySensorEntity(RinnaiZoneStateBinarySensorEntity):
 
     def __init__(self, ip_address, zone, name):
         super().__init__(ip_address, zone, name)
+        self._attr_name = name + " Zone " + zone + " Gas Valve Active Sensor"
         self._attr_unit_mode = RinnaiSystemMode.HEATING
         self._attr_status_attr = "gas_valve_active"
 
@@ -396,6 +385,7 @@ class RinnaiZoneCallingHeatBinarySensorEntity(RinnaiZoneStateBinarySensorEntity)
 
     def __init__(self, ip_address, zone, name):
         super().__init__(ip_address, zone, name)
+        self._attr_name = name + " Zone " + zone + " Calling Heat Sensor"
         self._attr_unit_mode = RinnaiSystemMode.HEATING
         self._attr_status_attr = "calling_for_work"
 
@@ -409,6 +399,7 @@ class RinnaiZoneCompressorBinarySensorEntity(RinnaiZoneStateBinarySensorEntity):
 
     def __init__(self, ip_address, zone, name):
         super().__init__(ip_address, zone, name)
+        self._attr_name = name + " Zone " + zone + " Compressor Active Sensor"
         self._attr_unit_mode = RinnaiSystemMode.COOLING
         self._attr_status_attr = "compressor_active"
 
@@ -422,6 +413,7 @@ class RinnaiZoneCallingCoolBinarySensorEntity(RinnaiZoneStateBinarySensorEntity)
 
     def __init__(self, ip_address, zone, name):
         super().__init__(ip_address, zone, name)
+        self._attr_name = name + " Zone " + zone + " Calling Cool Sensor"
         self._attr_unit_mode = RinnaiSystemMode.COOLING
         self._attr_status_attr = "calling_for_work"
 
@@ -435,6 +427,7 @@ class RinnaiZoneFanOperatingBinarySensorEntity(RinnaiZoneStateBinarySensorEntity
 
     def __init__(self, ip_address, zone, name):
         super().__init__(ip_address, zone, name)
+        self._attr_name = name + " Zone " + zone + " Fan Active Sensor"
         self._attr_status_attr = "fan_operating"
 
     @property
