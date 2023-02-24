@@ -1,10 +1,15 @@
 """Advance buttons to move to next schedule"""
-#import logging
+# import logging
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.const import CONF_NAME, CONF_HOST
 
-from pyrinnaitouch import RinnaiSystem, RinnaiSystemMode, RinnaiOperatingMode, RinnaiSystemStatus
+from pyrinnaitouch import (
+    RinnaiSystem,
+    RinnaiSystemMode,
+    RinnaiOperatingMode,
+    RinnaiSystemStatus,
+)
 
 from .const import (
     CONF_ZONE_A,
@@ -12,10 +17,11 @@ from .const import (
     CONF_ZONE_C,
     CONF_ZONE_D,
     CONF_ZONE_COMMON,
-    DEFAULT_NAME
+    DEFAULT_NAME,
 )
 
-#_LOGGER = logging.getLogger(__name__)
+# _LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(
     hass, entry, async_add_entities
@@ -27,21 +33,13 @@ async def async_setup_entry(
         name = DEFAULT_NAME
     async_add_entities([RinnaiAdvanceButton(ip_address, name)])
     if entry.data.get(CONF_ZONE_A):
-        async_add_entities(
-            [RinnaiZoneAdvanceButton(ip_address, "A", name)]
-        )
+        async_add_entities([RinnaiZoneAdvanceButton(ip_address, "A", name)])
     if entry.data.get(CONF_ZONE_B):
-        async_add_entities(
-            [RinnaiZoneAdvanceButton(ip_address, "B", name)]
-        )
+        async_add_entities([RinnaiZoneAdvanceButton(ip_address, "B", name)])
     if entry.data.get(CONF_ZONE_C):
-        async_add_entities(
-            [RinnaiZoneAdvanceButton(ip_address, "C", name)]
-        )
+        async_add_entities([RinnaiZoneAdvanceButton(ip_address, "C", name)])
     if entry.data.get(CONF_ZONE_D):
-        async_add_entities(
-            [RinnaiZoneAdvanceButton(ip_address, "D", name)]
-        )
+        async_add_entities([RinnaiZoneAdvanceButton(ip_address, "D", name)])
     if entry.data.get(CONF_ZONE_COMMON):
         async_add_entities(
             [
@@ -80,7 +78,7 @@ class RinnaiButtonEntity(ButtonEntity):
     def device_info(self):
         """Return device information about this heater."""
         return {
-            #"connections": {(CONNECTION_NETWORK_MAC, self._host)},
+            # "connections": {(CONNECTION_NETWORK_MAC, self._host)},
             "identifiers": {("rinnai_touch", self._host)},
             "model": "Rinnai Touch Wifi",
             "name": self._attr_device_name,
@@ -91,6 +89,7 @@ class RinnaiButtonEntity(ButtonEntity):
     def name(self):
         """Name of the entity."""
         return self._attr_name.replace("Zone U", "Common Zone")
+
 
 class RinnaiAdvanceButton(RinnaiButtonEntity):
     """Main advance button entity."""
@@ -126,6 +125,7 @@ class RinnaiAdvanceButton(RinnaiButtonEntity):
             else:
                 await self._system.unit_advance()
 
+
 class RinnaiZoneAdvanceButton(RinnaiButtonEntity):
     """Advance button entity for a zone."""
 
@@ -160,8 +160,10 @@ class RinnaiZoneAdvanceButton(RinnaiButtonEntity):
     async def async_press(self) -> None:
         """Handle the button press."""
         state: RinnaiSystemStatus = self._system.get_stored_status()
-        if state.mode in (RinnaiSystemMode.HEATING, RinnaiSystemMode.COOLING) \
-            and self._attr_zone in state.unit_status.zones.keys():
+        if (
+            state.mode in (RinnaiSystemMode.HEATING, RinnaiSystemMode.COOLING)
+            and self._attr_zone in state.unit_status.zones.keys()
+        ):
             if state.unit_status.zones[self._attr_zone].advanced:
                 await self._system.unit_zone_advance_cancel(self._attr_zone)
             else:

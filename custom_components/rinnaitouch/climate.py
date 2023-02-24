@@ -16,7 +16,10 @@ Cooling selector (preselected, only available if multiple cooling methods instal
 COOLING_EVAP -> Evap mode
 COOLING_COOL -> Refrigerated mode
 """
+# pylint: disable=too-many-lines
+
 from __future__ import annotations
+import asyncio
 from datetime import timedelta
 
 import logging
@@ -27,22 +30,19 @@ from pyrinnaitouch import (
     TEMP_FAHRENHEIT,
     RinnaiCapabilities,
     RinnaiOperatingMode,
-    RinnaiSystemStatus
+    RinnaiSystemStatus,
 )
 
 from homeassistant.components.climate import ClimateEntity
-from homeassistant.components.climate import (
-    HVACMode,
-    HVACAction,
-    ClimateEntityFeature
-)
+from homeassistant.components.climate import HVACMode, HVACAction, ClimateEntityFeature
 from homeassistant.const import (
     CONF_NAME,
     CONF_HOST,
     UnitOfTemperature,
     ATTR_TEMPERATURE,
 )
-#from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
+from homeassistant.helpers import device_registry as dr, entity_registry as er
+from homeassistant.helpers.entity_registry import async_entries_for_device
 
 from .const import (
     PRESET_AUTO,
@@ -61,7 +61,7 @@ from .const import (
     CONF_ZONE_C,
     CONF_ZONE_D,
     CONF_ZONE_COMMON,
-    DEFAULT_NAME
+    DEFAULT_NAME,
 )
 
 SUPPORT_FLAGS_MAIN = (
@@ -127,6 +127,7 @@ class RinnaiTouch(ClimateEntity):
         self._attr_device_name = name
 
         self._hass = hass
+        self._attr_first_update = True
         self._temerature_entity_name = temperature_entity
         self._sensor_temperature = 0
         self.update_external_temperature()
@@ -144,9 +145,115 @@ class RinnaiTouch(ClimateEntity):
         self.update_external_temperature()
         # this very infrequently fails on startup so wrapping in try except
         try:
+            if self._attr_first_update:
+                self.remove_irrelevant_entities()
+
+            self._attr_first_update = False
             self.schedule_update_ha_state()
         except:  # pylint: disable=bare-except
             pass
+
+    def remove_irrelevant_entities(self):
+        """After first update remove irrelevant entities."""
+        device_registry = dr.async_get(self.hass)
+        entity_registry = er.async_get(self.hass)
+
+        device = device_registry.async_get_device({("rinnai_touch", self._host)}, set())
+
+        if device is None:
+            _LOGGER.warning("Got entities for unknown device : %s", self._host)
+            return
+
+        devices_to_remove = []
+
+        for entry in async_entries_for_device(
+            entity_registry, device.id, include_disabled_entities=True
+        ):
+            if (
+                RinnaiCapabilities.COOLER
+                not in self._system.get_stored_status().capabilities
+            ): # pylint: disable=too-many-boolean-expressions
+                if (
+                    (
+                        entry.domain == "switch"
+                        and "cooling_mode" in entry.entity_id.lower()
+                    )
+                    or (
+                        entry.domain == "binary_sensor"
+                        and "calling_cool" in entry.entity_id.lower()
+                    )
+                    or (
+                        entry.domain == "binary_sensor"
+                        and "compressor_active" in entry.entity_id.lower()
+                    )
+                ):
+                    devices_to_remove.append(entry)
+
+            if (
+                RinnaiCapabilities.HEATER
+                not in self._system.get_stored_status().capabilities
+            ): # pylint: disable=too-many-boolean-expressions
+                if (
+                    (
+                        entry.domain == "switch"
+                        and "heater_mode" in entry.entity_id.lower()
+                    )
+                    or (
+                        entry.domain == "binary_sensor"
+                        and "calling_heat" in entry.entity_id.lower()
+                    )
+                    or (
+                        entry.domain == "binary_sensor"
+                        and "gas_valve_active" in entry.entity_id.lower()
+                    )
+                    or (
+                        entry.domain == "binary_sensor"
+                        and "preheating" in entry.entity_id.lower()
+                    )
+                ):
+                    devices_to_remove.append(entry)
+
+            if (
+                RinnaiCapabilities.EVAP
+                not in self._system.get_stored_status().capabilities
+            ): # pylint: disable=too-many-boolean-expressions
+                if (
+                    (
+                        entry.domain == "switch"
+                        and "evap_mode" in entry.entity_id.lower()
+                    )
+                    or (
+                        entry.domain == "switch"
+                        and "evap_fan" in entry.entity_id.lower()
+                    )
+                    or (
+                        entry.domain == "switch"
+                        and "water_pump" in entry.entity_id.lower()
+                    )
+                    or (
+                        entry.domain == "binary_sensor"
+                        and "cooler_busy" in entry.entity_id.lower()
+                    )
+                    or (
+                        entry.domain == "binary_sensor"
+                        and "pump_operating" in entry.entity_id.lower()
+                    )
+                    or (
+                        entry.domain == "binary_sensor"
+                        and "prewetting" in entry.entity_id.lower()
+                    )
+                ):
+                    devices_to_remove.append(entry)
+
+        asyncio.run_coroutine_threadsafe(
+            self.remove_devices(entity_registry, devices_to_remove), self.hass.loop
+        )
+
+    async def remove_devices(self, entity_registry, devices_to_remove):
+        """Async helper to remove entities from registry."""
+        for entry in devices_to_remove:
+            _LOGGER.debug("Removing entity: %s %s", entry.platform, entry.entity_id)
+            entity_registry.async_remove(entry.entity_id)
 
     @property
     def supported_features(self):
@@ -172,7 +279,7 @@ class RinnaiTouch(ClimateEntity):
     def device_info(self):
         """Return device information about this heater."""
         return {
-            #"connections": {(CONNECTION_NETWORK_MAC, self._host)},
+            # "connections": {(CONNECTION_NETWORK_MAC, self._host)},
             "identifiers": {("rinnai_touch", self._host)},
             "model": "Rinnai Touch Wifi",
             "name": self._attr_device_name,
@@ -436,13 +543,10 @@ class RinnaiTouch(ClimateEntity):
                     )
                 ):
                     return HVACAction.COOLING
-                if (
-                    state.unit_status.fan_operating
-                    and not (
-                        state.unit_status.cooler_busy
-                        or state.unit_status.prewetting
-                        or state.unit_status.pump_operating
-                    )
+                if state.unit_status.fan_operating and not (
+                    state.unit_status.cooler_busy
+                    or state.unit_status.prewetting
+                    or state.unit_status.pump_operating
                 ):
                     return HVACAction.FAN
                 return HVACAction.IDLE
@@ -577,7 +681,7 @@ class RinnaiTouchZone(ClimateEntity):
     def device_info(self):
         """Return device information about this heater."""
         return {
-            #"connections": {(CONNECTION_NETWORK_MAC, self._host)},
+            # "connections": {(CONNECTION_NETWORK_MAC, self._host)},
             "identifiers": {("rinnai_touch", self._host)},
             "model": "Rinnai Touch Wifi",
             "name": self._attr_device_name,
@@ -637,9 +741,7 @@ class RinnaiTouchZone(ClimateEntity):
             if self.cooling_mode == COOLING_COOL:
                 if self.hvac_mode == HVACMode.FAN_ONLY:
                     return state.unit_status.fan_speed
-                return float(
-                    state.unit_status.zones[self._attr_zone].set_temp
-                )
+                return float(state.unit_status.zones[self._attr_zone].set_temp)
 
             if self.cooling_mode == COOLING_EVAP:
                 if self.preset_mode == PRESET_AUTO:
@@ -650,9 +752,7 @@ class RinnaiTouchZone(ClimateEntity):
             if self.cooling_mode == COOLING_NONE:
                 if self.hvac_mode == HVACMode.FAN_ONLY:
                     return state.unit_status.fan_speed
-                return float(
-                    state.unit_status.zones[self._attr_zone].set_temp
-                )
+                return float(state.unit_status.zones[self._attr_zone].set_temp)
 
         if self.cooling_mode == COOLING_COOL:
             if self.hvac_mode == HVACMode.FAN_ONLY:
@@ -796,26 +896,17 @@ class RinnaiTouchZone(ClimateEntity):
         # pylint: disable=too-many-return-statements
         state: RinnaiSystemStatus = self._system.get_stored_status()
         if self.cooling_mode == COOLING_COOL:
-            if (
-                self._attr_zone
-                not in state.unit_status.zones.keys()
-            ):
+            if self._attr_zone not in state.unit_status.zones.keys():
                 return HVACMode.OFF
             return HVACMode.COOL
         if self.cooling_mode == COOLING_NONE:
-            if (
-                self._attr_zone
-                not in state.unit_status.zones.keys()
-            ):
+            if self._attr_zone not in state.unit_status.zones.keys():
                 return HVACMode.OFF
             if state.unit_status.is_on:
                 return HVACMode.HEAT
             return HVACMode.FAN_ONLY
         if self.cooling_mode == COOLING_EVAP:
-            if (
-                self._attr_zone
-                not in state.unit_status.zones.keys()
-            ):
+            if self._attr_zone not in state.unit_status.zones.keys():
                 return HVACMode.OFF
             if state.unit_status.is_on:
                 return HVACMode.COOL
@@ -833,8 +924,10 @@ class RinnaiTouchZone(ClimateEntity):
         if state.is_multi_set_point:
             # return zone actions in zone unit
             if state.mode == RinnaiSystemMode.COOLING:
-                if state.unit_status.is_on \
-                    and self._attr_zone in state.unit_status.zones.keys():
+                if (
+                    state.unit_status.is_on
+                    and self._attr_zone in state.unit_status.zones.keys()
+                ):
                     if (
                         state.unit_status.zones[self._attr_zone].compressor_active
                         or state.unit_status.zones[self._attr_zone].calling_for_work
@@ -848,8 +941,10 @@ class RinnaiTouchZone(ClimateEntity):
                     return HVACAction.FAN
                 return HVACAction.OFF
             if state.mode == RinnaiSystemMode.HEATING:
-                if state.unit_status.is_on \
-                    and self._attr_zone in state.unit_status.zones.keys():
+                if (
+                    state.unit_status.is_on
+                    and self._attr_zone in state.unit_status.zones.keys()
+                ):
                     if (
                         state.unit_status.zones[self._attr_zone].gas_valve_active
                         or state.unit_status.zones[self._attr_zone].calling_for_work
@@ -888,9 +983,11 @@ class RinnaiTouchZone(ClimateEntity):
             return HVACAction.FAN
 
         if state.mode == RinnaiSystemMode.EVAP:
-            if state.unit_status.is_on \
-                and self._attr_zone in state.unit_status.zones.keys() \
-                and state.unit_status.zones[self._attr_zone].user_enabled:
+            if (
+                state.unit_status.is_on
+                and self._attr_zone in state.unit_status.zones.keys()
+                and state.unit_status.zones[self._attr_zone].user_enabled
+            ):
                 if (
                     state.unit_status.prewetting
                     or state.unit_status.cooler_busy
@@ -900,13 +997,10 @@ class RinnaiTouchZone(ClimateEntity):
                     )
                 ):
                     return HVACAction.COOLING
-                if (
-                    state.unit_status.fan_operating
-                    and not (
-                        state.unit_status.cooler_busy
-                        or state.unit_status.prewetting
-                        or state.unit_status.pump_operating
-                    )
+                if state.unit_status.fan_operating and not (
+                    state.unit_status.cooler_busy
+                    or state.unit_status.prewetting
+                    or state.unit_status.pump_operating
                 ):
                     return HVACAction.FAN
                 return HVACAction.IDLE
@@ -975,7 +1069,9 @@ class RinnaiTouchZone(ClimateEntity):
 
     def update_external_temperature(self):
         """Update latest external temperature reading."""
-        _LOGGER.debug("Ext temp sensor (%s): %s",self._attr_zone,self._temerature_entity_name)
+        _LOGGER.debug(
+            "Ext temp sensor (%s): %s", self._attr_zone, self._temerature_entity_name
+        )
         if self._temerature_entity_name is not None and self._hass:
             temperature_entity = self._hass.states.get(self._temerature_entity_name)
             # _LOGGER.debug("External temperature sensor entity: %s", temperature_entity)
