@@ -389,6 +389,8 @@ class RinnaiTouch(ClimateEntity):
     @property
     def hvac_action(self):
         """Return current HVAC action."""
+        # pylint: disable=too-many-return-statements
+
         state = self._system.get_stored_status()
         if not state.system_on:
             return HVACAction.OFF
@@ -405,9 +407,8 @@ class RinnaiTouch(ClimateEntity):
                 ):
                     return HVACAction.COOLING
                 return HVACAction.IDLE
-            else:
-                return HVACAction.FAN
- 
+            return HVACAction.FAN
+
         if state.mode == RinnaiSystemMode.HEATING:
             if state.unit_status.is_on:
                 if (
@@ -418,8 +419,7 @@ class RinnaiTouch(ClimateEntity):
                 ):
                     return HVACAction.HEATING
                 return HVACAction.IDLE
-            else:
-                return HVACAction.FAN
+            return HVACAction.FAN
 
         if state.mode == RinnaiSystemMode.EVAP:
             if state.unit_status.is_on:
