@@ -32,7 +32,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     _LOGGER.debug("Get controller with IP: %s", ip_address)
 
     try:
-        system = RinnaiSystem.get_instance(ip_address)
+        system: RinnaiSystem = RinnaiSystem.get_instance(ip_address)
         #scenes = await system.getSupportedScenes()
         scenes = []
         await hass.async_add_executor_job(system.get_status)

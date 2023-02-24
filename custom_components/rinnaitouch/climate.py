@@ -33,9 +33,8 @@ from pyrinnaitouch import (
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate import (
     HVACMode,
-    ClimateEntityFeature,
-    #    SUPPORT_TARGET_TEMPERATURE,
-    #    SUPPORT_PRESET_MODE,
+    HVACAction,
+    ClimateEntityFeature
 )
 from homeassistant.const import (
     CONF_NAME,
@@ -117,7 +116,7 @@ class RinnaiTouch(ClimateEntity):
     def __init__(self, hass, ip_address, name="Rinnai Touch", temperature_entity=None):
         self._host = ip_address
         _LOGGER.info("Set up RinnaiTouch entity %s", ip_address)
-        self._system = RinnaiSystem.get_instance(ip_address)
+        self._system: RinnaiSystem = RinnaiSystem.get_instance(ip_address)
         device_id = "rinnaitouch_" + str.replace(ip_address, ".", "_")
 
         self._attr_unique_id = device_id
@@ -386,6 +385,64 @@ class RinnaiTouch(ClimateEntity):
         if state.mode == RinnaiSystemMode.EVAP:
             return HVACMode.COOL
         return HVACMode.OFF
+
+    @property
+    def hvac_action(self):
+        """Return current HVAC action."""
+        state = self._system.get_stored_status()
+        if not state.system_on:
+            return HVACAction.OFF
+        if state.is_multi_set_point:
+            # return zone actions in zone unit
+            return HVACAction.IDLE
+        # logic to return the right action for main unit
+        if state.mode == RinnaiSystemMode.COOLING:
+            if state.unit_status.is_on:
+                if (
+                    state.unit_status.compressor_active
+                    or state.unit_status.calling_for_cool
+                    or state.unit_status.fan_operating
+                ):
+                    return HVACAction.COOLING
+                return HVACAction.IDLE
+            else:
+                return HVACAction.FAN
+ 
+        if state.mode == RinnaiSystemMode.HEATING:
+            if state.unit_status.is_on:
+                if (
+                    state.unit_status.gas_valve_active
+                    or state.unit_status.calling_for_heat
+                    or state.unit_status.fan_operating
+                    or state.unit_status.preheating
+                ):
+                    return HVACAction.HEATING
+                return HVACAction.IDLE
+            else:
+                return HVACAction.FAN
+
+        if state.mode == RinnaiSystemMode.EVAP:
+            if state.unit_status.is_on:
+                if (
+                    state.unit_status.prewetting
+                    or state.unit_status.cooler_busy
+                    or (
+                        state.unit_status.fan_operating
+                        and state.unit_status.pump_operating
+                    )
+                ):
+                    return HVACAction.COOLING
+                if (
+                    state.unit_status.fan_operating
+                    and not (
+                        state.unit_status.cooler_busy
+                        or state.unit_status.prewetting
+                        or state.unit_status.pump_operating
+                    )
+                ):
+                    return HVACAction.FAN
+                return HVACAction.IDLE
+        return HVACAction.OFF
 
     @property
     def hvac_modes(self):
