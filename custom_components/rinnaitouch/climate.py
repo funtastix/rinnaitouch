@@ -42,7 +42,7 @@ from homeassistant.const import (
     UnitOfTemperature,
     ATTR_TEMPERATURE,
 )
-from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
+#from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 
 from .const import (
     PRESET_AUTO,
@@ -168,10 +168,10 @@ class RinnaiTouch(ClimateEntity):
     def device_info(self):
         """Return device information about this heater."""
         return {
-            "connections": {(CONNECTION_NETWORK_MAC, self._host)},
-            "identifiers": {("Rinnai Touch", self.unique_id)},
+            #"connections": {(CONNECTION_NETWORK_MAC, self._host)},
+            "identifiers": {("rinnai_touch", self._host)},
             "model": "Rinnai Touch Wifi",
-            "name": self.name,
+            "name": "Rinnai Touch Wifi (" + self._host + ")",
             "manufacturer": "Rinnai/Brivis",
         }
 
@@ -520,6 +520,7 @@ class RinnaiTouchZone(ClimateEntity):
         _LOGGER.debug("Set up RinnaiTouch zone %s entity %s", zone, ip_address)
         self._system: RinnaiSystem = RinnaiSystem.get_instance(ip_address)
         device_id = "rinnaitouch_zone" + zone + "_" + str.replace(ip_address, ".", "_")
+        self._host = ip_address
 
         self._attr_unique_id = device_id
         self._attr_name = name + " Zone " + zone
@@ -566,6 +567,17 @@ class RinnaiTouchZone(ClimateEntity):
     def unique_id(self):
         """Return the unique id for this heater."""
         return self._attr_unique_id
+
+    @property
+    def device_info(self):
+        """Return device information about this heater."""
+        return {
+            #"connections": {(CONNECTION_NETWORK_MAC, self._host)},
+            "identifiers": {("rinnai_touch", self._host)},
+            "model": "Rinnai Touch Wifi",
+            "name": "Rinnai Touch Wifi (" + self._host + ")",
+            "manufacturer": "Rinnai/Brivis",
+        }
 
     @property
     def icon(self):

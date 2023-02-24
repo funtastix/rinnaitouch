@@ -124,6 +124,7 @@ async def async_setup_entry(
 
 class RinnaiTemperatureSensor(SensorEntity):
     """Representation of a Sensor."""
+    # pylint: disable=too-many-instance-attributes
 
     def __init__(self, ip_address, name):
         self._system: RinnaiSystem = RinnaiSystem.get_instance(ip_address)
@@ -131,6 +132,7 @@ class RinnaiTemperatureSensor(SensorEntity):
             str.lower(self.__class__.__name__) + "_" + str.replace(ip_address, ".", "_")
         )
 
+        self._host = ip_address
         self._attr_unique_id = device_id
         self._attr_name = name
 
@@ -146,6 +148,17 @@ class RinnaiTemperatureSensor(SensorEntity):
             self.schedule_update_ha_state()
         except:  # pylint: disable=bare-except
             pass
+
+    @property
+    def device_info(self):
+        """Return device information about this heater."""
+        return {
+            #"connections": {(CONNECTION_NETWORK_MAC, self._host)},
+            "identifiers": {("rinnai_touch", self._host)},
+            "model": "Rinnai Touch Wifi",
+            "name": "Rinnai Touch Wifi (" + self._host + ")",
+            "manufacturer": "Rinnai/Brivis",
+        }
 
     @property
     def name(self):
@@ -286,6 +299,7 @@ class RinnaiPeriodSensor(SensorEntity):
             str.lower(self.__class__.__name__) + "_" + str.replace(ip_address, ".", "_")
         )
 
+        self._host = ip_address
         self._attr_unique_id = device_id
         self._attr_name = name
         self._attr_period = None
@@ -299,6 +313,17 @@ class RinnaiPeriodSensor(SensorEntity):
             self.schedule_update_ha_state()
         except:  # pylint: disable=bare-except
             pass
+
+    @property
+    def device_info(self):
+        """Return device information about this heater."""
+        return {
+            #"connections": {(CONNECTION_NETWORK_MAC, self._host)},
+            "identifiers": {("rinnai_touch", self._host)},
+            "model": "Rinnai Touch Wifi",
+            "name": "Rinnai Touch Wifi (" + self._host + ")",
+            "manufacturer": "Rinnai/Brivis",
+        }
 
     @property
     def name(self):

@@ -137,6 +137,17 @@ class RinnaiBinarySensorEntity(BinarySensorEntity):
             pass
 
     @property
+    def device_info(self):
+        """Return device information about this heater."""
+        return {
+            #"connections": {(CONNECTION_NETWORK_MAC, self._host)},
+            "identifiers": {("rinnai_touch", self._host)},
+            "model": "Rinnai Touch Wifi",
+            "name": "Rinnai Touch Wifi (" + self._host + ")",
+            "manufacturer": "Rinnai/Brivis",
+        }
+
+    @property
     def name(self) -> str:
         """Name of the entity."""
         return self._attr_name
