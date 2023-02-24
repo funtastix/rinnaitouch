@@ -20,7 +20,6 @@ from __future__ import annotations
 from datetime import timedelta
 
 import logging
-import re
 
 from pyrinnaitouch import (
     RinnaiSystem,
@@ -568,18 +567,6 @@ class RinnaiTouchZone(ClimateEntity):
         """Return the unique id for this heater."""
         return self._attr_unique_id
 
-    # not common
-    # @property
-    # def device_info(self):
-    #    """Return device information about this heater."""
-    #    return {
-    #        "connections": {(CONNECTION_NETWORK_MAC, self._host)},
-    #        "identifiers": {("Rinnai Touch Zone", self.unique_id)},
-    #        "model": "Rinnai Touch Wifi Zone",
-    #        "name": self.name,
-    #        "manufacturer": "Rinnai/Brivis",
-    #    }
-
     @property
     def icon(self):
         """Return the icon to use in the frontend for this device."""
@@ -621,7 +608,7 @@ class RinnaiTouchZone(ClimateEntity):
     @property
     def target_temperature(self):
         """Return the temperature we try to reach."""
-        # pylint: disable=too-many-return-statements
+        # pylint: disable=too-many-return-statements,too-many-branches
         if self.hvac_mode == HVACMode.OFF:
             return 0
 
@@ -678,8 +665,9 @@ class RinnaiTouchZone(ClimateEntity):
     def min_temp(self):
         """Return the minimum temperature."""
         if self._system.get_stored_status().is_multi_set_point:
-            if self.cooling_mode in (COOLING_COOL, COOLING_NONE):
-                return self._TEMPERATURE_LIMITS["min"]
+            if self.cooling_mode == COOLING_EVAP or self.hvac_mode == HVACMode.FAN_ONLY:
+                return self.target_temperature
+            return self._TEMPERATURE_LIMITS["min"]
         return self.target_temperature
 
     # not common
@@ -687,8 +675,9 @@ class RinnaiTouchZone(ClimateEntity):
     def max_temp(self):
         """Return the maximum temperature."""
         if self._system.get_stored_status().is_multi_set_point:
-            if self.cooling_mode in (COOLING_COOL, COOLING_NONE):
-                return self._TEMPERATURE_LIMITS["max"]
+            if self.cooling_mode == COOLING_EVAP or self.hvac_mode == HVACMode.FAN_ONLY:
+                return self.target_temperature
+            return self._TEMPERATURE_LIMITS["max"]
         return self.target_temperature
 
     @property
@@ -819,7 +808,7 @@ class RinnaiTouchZone(ClimateEntity):
     @property
     def hvac_action(self):
         """Return current HVAC action."""
-        # pylint: disable=too-many-return-statements
+        # pylint: disable=too-many-return-statements,too-many-branches
 
         state = self._system.get_stored_status()
         if not state.system_on:
@@ -838,10 +827,9 @@ class RinnaiTouchZone(ClimateEntity):
                     if self.target_temperature < 8:
                         return HVACAction.OFF
                     return HVACAction.IDLE
-                elif state.unit_status.zones[self._attr_zone].fan_operating:
+                if state.unit_status.zones[self._attr_zone].fan_operating:
                     return HVACAction.FAN
-                else:
-                    return HVACAction.OFF
+                return HVACAction.OFF
             if state.mode == RinnaiSystemMode.HEATING:
                 if state.unit_status.is_on \
                     and self._attr_zone in state.unit_status.zones.keys():
@@ -854,10 +842,9 @@ class RinnaiTouchZone(ClimateEntity):
                     if self.target_temperature < 8:
                         return HVACAction.OFF
                     return HVACAction.IDLE
-                elif state.unit_status.zones[self._attr_zone].fan_operating:
+                if state.unit_status.zones[self._attr_zone].fan_operating:
                     return HVACAction.FAN
-                else:
-                    return HVACAction.OFF
+                return HVACAction.OFF
 
         # logic to return the right action for main unit
         if state.mode == RinnaiSystemMode.COOLING:
@@ -906,8 +893,7 @@ class RinnaiTouchZone(ClimateEntity):
                 ):
                     return HVACAction.FAN
                 return HVACAction.IDLE
-            else:
-                return HVACAction.OFF
+            return HVACAction.OFF
         return HVACAction.OFF
 
     # not common. Only return the mode that is set on the main
