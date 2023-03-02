@@ -172,7 +172,7 @@ class RinnaiTouch(ClimateEntity):
             if (
                 RinnaiCapabilities.COOLER
                 not in self._system.get_stored_status().capabilities
-            ): # pylint: disable=too-many-boolean-expressions
+            ):  # pylint: disable=too-many-boolean-expressions
                 if (
                     (
                         entry.domain == "switch"
@@ -192,7 +192,7 @@ class RinnaiTouch(ClimateEntity):
             if (
                 RinnaiCapabilities.HEATER
                 not in self._system.get_stored_status().capabilities
-            ): # pylint: disable=too-many-boolean-expressions
+            ):  # pylint: disable=too-many-boolean-expressions
                 if (
                     (
                         entry.domain == "switch"
@@ -216,7 +216,7 @@ class RinnaiTouch(ClimateEntity):
             if (
                 RinnaiCapabilities.EVAP
                 not in self._system.get_stored_status().capabilities
-            ): # pylint: disable=too-many-boolean-expressions
+            ):  # pylint: disable=too-many-boolean-expressions
                 if (
                     (
                         entry.domain == "switch"
@@ -614,6 +614,11 @@ class RinnaiTouch(ClimateEntity):
         if self._system.get_stored_status().mode != RinnaiSystemMode.NONE:
             return True
         return False
+
+    async def async_will_remove_from_hass(self):
+        """Disconnect from the device."""
+        _LOGGER.debug("Shutting down controller connection")
+        self._system.shutdown()
 
 
 class RinnaiTouchZone(ClimateEntity):
