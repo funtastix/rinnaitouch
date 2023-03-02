@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.const import CONF_HOST
+from homeassistant.const import CONF_HOST, EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
 from homeassistant.const import Platform
@@ -36,6 +36,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     try:
         system: RinnaiSystem = RinnaiSystem.get_instance(ip_address)
         # scenes = await system.getSupportedScenes()
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, system.shutdown)
         scenes = []
         await hass.async_add_executor_job(system.get_status)
     except (
@@ -56,6 +57,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Unload a config entry."""
+    ip_address = entry.data.get(CONF_HOST)
+    _LOGGER.debug("Removing controller with IP: %s", ip_address)
+
+    system: RinnaiSystem = RinnaiSystem.get_instance(ip_address)
+    system.shutdown()
+
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         hass.data[DOMAIN].pop(entry.entry_id)
     return unload_ok
