@@ -646,6 +646,7 @@ class RinnaiTouchZone(ClimateEntity):
 
         self._temerature_entity_name = temperature_entity
         self._sensor_temperature = 0
+        self._last_set_temp = 20
         self.update_external_temperature()
 
         self._support_flags = SUPPORT_FLAGS_ZONE
@@ -817,24 +818,42 @@ class RinnaiTouchZone(ClimateEntity):
         """Set new target hvac mode."""
         # pylint: disable=too-many-branches
         # _LOGGER.debug("Setting new HVAC mode from %s to %s", self.hvac_mode, hvac_mode)
+        state: RinnaiSystemStatus = self._system.get_stored_status()
         if not hvac_mode == self.hvac_mode:
             if hvac_mode == HVACMode.HEAT and self.cooling_mode == COOLING_NONE:
-                # turn whatever the preset is on and put it into manual mode
-                await self._system.turn_unit_zone_on(self._attr_zone)
+                if state.is_multi_set_point:
+                    await self._system.set_unit_zone_temp(
+                        self._attr_zone, self._last_set_temp
+                    )
+                else:
+                    # turn whatever the preset is on and put it into manual mode
+                    await self._system.turn_unit_zone_on(self._attr_zone)
             elif hvac_mode == HVACMode.COOL:
                 # turn whatever the preset is on and put it into auto mode
                 if self.preferred_cooling_mode == COOLING_COOL:
-                    await self._system.turn_unit_zone_on(self._attr_zone)
+                    if state.is_multi_set_point:
+                        await self._system.set_unit_zone_temp(
+                            self._attr_zone, self._last_set_temp
+                        )
+                    else:
+                        # turn whatever the preset is on and put it into manual mode
+                        await self._system.turn_unit_zone_on(self._attr_zone)
                 if self.preferred_cooling_mode == COOLING_EVAP:
                     await self._system.turn_evap_zone_on(self._attr_zone)
             elif hvac_mode == HVACMode.OFF:
-                # turn whatever the preset is off
-                if self.cooling_mode == COOLING_COOL:
-                    await self._system.turn_unit_zone_off(self._attr_zone)
-                if self.cooling_mode == COOLING_EVAP:
-                    await self._system.turn_evap_zone_off(self._attr_zone)
-                if self.cooling_mode == COOLING_NONE:
-                    await self._system.turn_unit_zone_off(self._attr_zone)
+                if state.is_multi_set_point:
+                    # turn whatever the preset is off
+                    if self.cooling_mode == COOLING_EVAP:
+                        await self._system.turn_evap_zone_off(self._attr_zone)
+                    else:
+                        self._last_set_temp = state.unit_status.set_temp
+                        await self._system.set_unit_zone_temp(self._attr_zone, 0)
+                else:
+                    # turn whatever the preset is off
+                    if self.cooling_mode == COOLING_EVAP:
+                        await self._system.turn_evap_zone_off(self._attr_zone)
+                    else:
+                        await self._system.turn_unit_zone_off(self._attr_zone)
 
     # not common
     async def async_set_preset_mode(self, preset_mode):
@@ -899,6 +918,8 @@ class RinnaiTouchZone(ClimateEntity):
     def hvac_mode(self):
         """Return current HVAC mode, ie Heat or Off."""
         # pylint: disable=too-many-return-statements
+        if self.hvac_action == HVACAction.OFF:
+            return HVACMode.OFF
         state: RinnaiSystemStatus = self._system.get_stored_status()
         if self.cooling_mode == COOLING_COOL:
             if self._attr_zone not in state.unit_status.zones.keys():
