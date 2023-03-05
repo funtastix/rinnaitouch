@@ -618,7 +618,7 @@ class RinnaiTouch(ClimateEntity):
     async def async_will_remove_from_hass(self):
         """Disconnect from the device."""
         _LOGGER.debug("Shutting down controller connection")
-        self._system.shutdown()
+        self._system.shutdown(None)
 
 
 class RinnaiTouchZone(ClimateEntity):
@@ -736,9 +736,6 @@ class RinnaiTouchZone(ClimateEntity):
     def target_temperature(self):
         """Return the temperature we try to reach."""
         # pylint: disable=too-many-return-statements,too-many-branches
-        if self.hvac_mode == HVACMode.OFF:
-            return 0
-
         state: RinnaiSystemStatus = self._system.get_stored_status()
         if (
             state.is_multi_set_point
@@ -747,7 +744,9 @@ class RinnaiTouchZone(ClimateEntity):
             if self.cooling_mode == COOLING_COOL:
                 if self.hvac_mode == HVACMode.FAN_ONLY:
                     return state.unit_status.fan_speed
-                return float(state.unit_status.zones[self._attr_zone].set_temp)
+                if int(state.unit_status.zones[self._attr_zone].set_temp) > 7:
+                    return float(state.unit_status.zones[self._attr_zone].set_temp)
+                return 0
 
             if self.cooling_mode == COOLING_EVAP:
                 if self.preset_mode == PRESET_AUTO:
@@ -758,7 +757,9 @@ class RinnaiTouchZone(ClimateEntity):
             if self.cooling_mode == COOLING_NONE:
                 if self.hvac_mode == HVACMode.FAN_ONLY:
                     return state.unit_status.fan_speed
-                return float(state.unit_status.zones[self._attr_zone].set_temp)
+                if int(state.unit_status.zones[self._attr_zone].set_temp) > 7:
+                    return float(state.unit_status.zones[self._attr_zone].set_temp)
+                return 0
 
         if self.cooling_mode == COOLING_COOL:
             if self.hvac_mode == HVACMode.FAN_ONLY:
@@ -960,7 +961,7 @@ class RinnaiTouchZone(ClimateEntity):
                         or state.unit_status.zones[self._attr_zone].fan_operating
                     ):
                         return HVACAction.COOLING
-                    if self.target_temperature < 8:
+                    if int(state.unit_status.zones[self._attr_zone].set_temp) < 8:
                         return HVACAction.OFF
                     return HVACAction.IDLE
                 if state.unit_status.zones[self._attr_zone].fan_operating:
@@ -977,7 +978,7 @@ class RinnaiTouchZone(ClimateEntity):
                         or state.unit_status.zones[self._attr_zone].fan_operating
                     ):
                         return HVACAction.HEATING
-                    if self.target_temperature < 8:
+                    if int(state.unit_status.zones[self._attr_zone].set_temp) < 8:
                         return HVACAction.OFF
                     return HVACAction.IDLE
                 if state.unit_status.zones[self._attr_zone].fan_operating:
