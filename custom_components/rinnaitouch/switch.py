@@ -272,6 +272,7 @@ class RinnaiZoneSwitch(RinnaiExtraEntity, SwitchEntity):
         self._is_on = False
         self._attr_name = name + " Zone " + zone + " Switch"
         self._attr_zone = zone
+        self._last_set_temp = 20
         device_id = (
             str.lower(self.__class__.__name__)
             + "_"
@@ -306,22 +307,25 @@ class RinnaiZoneSwitch(RinnaiExtraEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs):
         state: RinnaiSystemStatus = self._system.get_stored_status()
-        if state.mode == RinnaiSystemMode.COOLING:
-            await self._system.turn_unit_zone_on(self._attr_zone)
-        elif state.mode == RinnaiSystemMode.HEATING:
-            await self._system.turn_unit_zone_on(self._attr_zone)
-        elif state.mode == RinnaiSystemMode.EVAP:
+        if state.mode == RinnaiSystemMode.EVAP:
             await self._system.turn_evap_zone_on(self._attr_zone)
+        if state.is_multi_set_point:
+            await self._system.set_unit_zone_temp(self._attr_zone, self._last_set_temp)
+        else:
+            # turn whatever the preset is on and put it into manual mode
+            await self._system.turn_unit_zone_on(self._attr_zone)
 
     async def async_turn_off(self, **kwargs):
         """Turning it off does nothing"""
         state: RinnaiSystemStatus = self._system.get_stored_status()
-        if state.mode == RinnaiSystemMode.COOLING:
-            await self._system.turn_unit_zone_on(self._attr_zone)
-        elif state.mode == RinnaiSystemMode.HEATING:
-            await self._system.turn_unit_zone_on(self._attr_zone)
-        elif state.mode == RinnaiSystemMode.EVAP:
-            await self._system.turn_evap_zone_on(self._attr_zone)
+        if state.mode == RinnaiSystemMode.EVAP:
+            await self._system.turn_evap_zone_off(self._attr_zone)
+        if state.is_multi_set_point:
+            self._last_set_temp = state.unit_status.set_temp
+            await self._system.set_unit_zone_temp(self._attr_zone, 0)
+        else:
+            # turn whatever the preset is on and put it into manual mode
+            await self._system.turn_unit_zone_off(self._attr_zone)
 
 
 class RinnaiWaterpumpSwitch(RinnaiExtraEntity, SwitchEntity):
@@ -469,7 +473,9 @@ class RinnaiCircFanSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def available(self):
         state: RinnaiSystemStatus = self._system.get_stored_status()
-        if not (state.mode in (RinnaiSystemMode.COOLING, RinnaiSystemMode.HEATING)): # pylint: disable=superfluous-parens
+        if not (
+            state.mode in (RinnaiSystemMode.COOLING, RinnaiSystemMode.HEATING)
+        ):  # pylint: disable=superfluous-parens
             return False
         if not state.system_on:
             return True
