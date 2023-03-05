@@ -6,6 +6,6 @@
   "codeowners": [ "@funtastix" ],
   "requirements": [ "pyrinnaitouch>=0.12.7" ],
   "config_flow": true,
-  "version": "0.12.7",
+  "version": "0.12.9",
   "iot_class": "local_push"
 }
