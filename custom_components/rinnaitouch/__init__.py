@@ -60,10 +60,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     ip_address = entry.data.get(CONF_HOST)
     _LOGGER.debug("Removing controller with IP: %s", ip_address)
 
-    system: RinnaiSystem = RinnaiSystem.get_instance(ip_address)
-    if system:
-        system.shutdown(None)
-
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         hass.data[DOMAIN].pop(entry.entry_id)
     return unload_ok
