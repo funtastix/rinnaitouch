@@ -70,7 +70,6 @@ SUPPORT_FLAGS_MAIN = (
 SUPPORT_FLAGS_ZONE = (
     ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE
 )
-SUPPORT_FLAGS_FAN_ONLY = ClimateEntityFeature.FAN_MODE
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -259,8 +258,6 @@ class RinnaiTouch(ClimateEntity):
     @property
     def supported_features(self):
         """Return the list of supported features."""
-        if self.hvac_mode == HVACMode.FAN_ONLY:
-            return SUPPORT_FLAGS_FAN_ONLY
         return self._support_flags
 
     @property
