@@ -617,8 +617,9 @@ class RinnaiTouch(ClimateEntity):
 
     async def async_will_remove_from_hass(self):
         """Disconnect from the device."""
-        _LOGGER.debug("Shutting down controller connection")
-        self._system.shutdown(None)
+        # Doesn't seem to be needed here, as the ha_stop event already shuts down the client
+        # self._system.shutdown(None)
+        _LOGGER.debug("removing entity from hass")
 
 
 class RinnaiTouchZone(ClimateEntity):
