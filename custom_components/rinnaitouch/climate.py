@@ -20,9 +20,10 @@ COOLING_COOL -> Refrigerated mode
 
 from __future__ import annotations
 import asyncio
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 import logging
+from tkinter import CURRENT
 
 from pyrinnaitouch import (
     RinnaiSystem,
@@ -43,6 +44,8 @@ from homeassistant.const import (
 )
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.entity_registry import async_entries_for_device
+from homeassistant.helpers import config_validation as cv, entity_platform, service
+import voluptuous as vol
 
 from .const import (
     PRESET_AUTO,
@@ -62,6 +65,7 @@ from .const import (
     CONF_ZONE_D,
     CONF_ZONE_COMMON,
     DEFAULT_NAME,
+    SET_DATETIME,
 )
 
 SUPPORT_FLAGS_MAIN = (
@@ -74,6 +78,8 @@ SUPPORT_FLAGS_ZONE = (
 _LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL = timedelta(seconds=5)
+
+SERVICE_SET_TIME = "rinnai_set_time"
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -109,6 +115,14 @@ async def async_setup_entry(hass, entry, async_add_entities):
         async_add_entities(
             [RinnaiTouchZone(hass, ip_address, name, "U", temperature_entity_common)]
         )
+    platform = entity_platform.async_get_current_platform()
+    platform.async_register_entity_service(
+        SERVICE_SET_TIME,
+        {
+            vol.Optional(SET_DATETIME): cv.datetime,
+        },
+        "set_system_time"
+    )
     return True
 
 
@@ -428,6 +442,10 @@ class RinnaiTouch(ClimateEntity):
     def set_swing_mode(self, swing_mode):
         """Set new target swing operation."""
         return False
+
+    async def set_system_time(self, set_datetime: datetime = None):
+        """Set the system time."""
+        await self._system.set_system_time(set_datetime)
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
