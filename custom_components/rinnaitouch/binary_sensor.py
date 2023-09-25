@@ -36,6 +36,7 @@ async def async_setup_entry(
             RinnaiPumpOperatingBinarySensorEntity(ip_address, name),
             RinnaiCoolerBusyBinarySensorEntity(ip_address, name),
             RinnaiFanOperatingBinarySensorEntity(ip_address, name),
+            RinnaiTimeSettingSensorEntity(ip_address, name),
         ]
     )
     if entry.data.get(CONF_ZONE_A):
@@ -319,6 +320,38 @@ class RinnaiFanOperatingBinarySensorEntity(RinnaiUnitStateBinarySensorEntity):
         if state.is_multi_set_point:
             return False
         return True
+
+
+class RinnaiTimeSettingSensorEntity(RinnaiBinarySensorEntity):
+    """Binary sensor for signaling the system is in time setting mode."""
+
+    def __init__(self, ip_address, name):
+        super().__init__(ip_address, name)
+        self._attr_name = name + " Time Setting Sensor"
+        self._attr_status_attr = "is_timesetting"
+
+    @property
+    def icon(self):
+        """Return the icon to use in the frontend for this device."""
+        if self.is_on:
+            return "mdi:clock-alert-outline"
+        return "mdi:clock-outline"
+
+    @property
+    def is_on(self):
+        """If the sensor is currently on or off."""
+        state: RinnaiSystemStatus = self._system.get_stored_status()
+        if self.available:
+            return state.is_timesetting
+        return False
+
+    @property
+    def available(self):
+        """If the sensor is currently available."""
+        state: RinnaiSystemStatus = self._system.get_stored_status()
+        if not state.has_fault:
+            return True
+        return False
 
 
 class RinnaiZoneStateBinarySensorEntity(RinnaiBinarySensorEntity):
