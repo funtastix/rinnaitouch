@@ -23,7 +23,6 @@ import asyncio
 from datetime import timedelta, datetime
 
 import logging
-from tkinter import CURRENT
 
 from pyrinnaitouch import (
     RinnaiSystem,
@@ -44,7 +43,7 @@ from homeassistant.const import (
 )
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.entity_registry import async_entries_for_device
-from homeassistant.helpers import config_validation as cv, entity_platform, service
+from homeassistant.helpers import config_validation as cv, entity_platform
 import voluptuous as vol
 
 from .const import (

@@ -335,8 +335,7 @@ class RinnaiTimeSettingSensorEntity(RinnaiBinarySensorEntity):
         """Return the icon to use in the frontend for this device."""
         if self.is_on:
             return "mdi:clock-alert-outline"
-        else:
-            return "mdi:clock-outline"
+        return "mdi:clock-outline"
 
     @property
     def is_on(self):
