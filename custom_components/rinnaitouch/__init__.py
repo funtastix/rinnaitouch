@@ -1,4 +1,5 @@
 """Set up main entity."""
+
 # pylint: disable=duplicate-code
 import logging
 from dataclasses import dataclass
@@ -11,7 +12,7 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.const import Platform
 from homeassistant.helpers.device_registry import DeviceEntry
 
-from pyrinnaitouch import RinnaiSystem
+from .pyrinnaitouch import RinnaiSystem
 
 from .const import DOMAIN
 
@@ -32,7 +33,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     ip_address = entry.data.get(CONF_HOST)
     _LOGGER.debug("Get controller with IP: %s", ip_address)
-
+    _LOGGER.error("Ok initing rinnaitouch now")
     try:
         system: RinnaiSystem = RinnaiSystem.get_instance(ip_address)
         # scenes = await system.getSupportedScenes()
@@ -44,7 +45,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         ConnectionError,
         ConnectionRefusedError,
     ) as err:
-        _LOGGER.debug("Get controller error: %s", err)
+        _LOGGER.error("Get controller error: %s", err)
         raise ConfigEntryNotReady from err
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = RinnaiData(

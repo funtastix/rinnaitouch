@@ -19,59 +19,73 @@ COOLING_COOL -> Refrigerated mode
 # pylint: disable=too-many-lines
 
 from __future__ import annotations
-import asyncio
-from datetime import timedelta, datetime
 
+import asyncio
+from datetime import datetime, timedelta
 import logging
 
-from pyrinnaitouch import (
-    RinnaiSystem,
-    RinnaiSystemMode,
-    TEMP_FAHRENHEIT,
-    RinnaiCapabilities,
-    RinnaiOperatingMode,
-    RinnaiSystemStatus,
-)
-
-from homeassistant.components.climate import ClimateEntity
-from homeassistant.components.climate import HVACMode, HVACAction, ClimateEntityFeature
-from homeassistant.const import (
-    CONF_NAME,
-    CONF_HOST,
-    UnitOfTemperature,
-    ATTR_TEMPERATURE,
-)
-from homeassistant.helpers import device_registry as dr, entity_registry as er
-from homeassistant.helpers.entity_registry import async_entries_for_device
-from homeassistant.helpers import config_validation as cv, entity_platform
 import voluptuous as vol
 
+from homeassistant.components.climate import (
+    ClimateEntity,
+    ClimateEntityFeature,
+    HVACAction,
+    HVACMode,
+)
+from homeassistant.const import (
+    ATTR_TEMPERATURE,
+    CONF_HOST,
+    CONF_NAME,
+    UnitOfTemperature,
+)
+from homeassistant.helpers import (
+    config_validation as cv,
+    device_registry as dr,
+    entity_platform,
+    entity_registry as er,
+)
+from homeassistant.helpers.entity_registry import async_entries_for_device
+
 from .const import (
-    PRESET_AUTO,
-    PRESET_MANUAL,
-    COOLING_EVAP,
-    COOLING_COOL,
-    COOLING_NONE,
     CONF_TEMP_SENSOR,
     CONF_TEMP_SENSOR_A,
     CONF_TEMP_SENSOR_B,
     CONF_TEMP_SENSOR_C,
-    CONF_TEMP_SENSOR_D,
     CONF_TEMP_SENSOR_COMMON,
+    CONF_TEMP_SENSOR_D,
     CONF_ZONE_A,
     CONF_ZONE_B,
     CONF_ZONE_C,
-    CONF_ZONE_D,
     CONF_ZONE_COMMON,
+    CONF_ZONE_D,
+    COOLING_COOL,
+    COOLING_EVAP,
+    COOLING_NONE,
     DEFAULT_NAME,
+    PRESET_AUTO,
+    PRESET_MANUAL,
     SET_DATETIME,
+)
+from .pyrinnaitouch import (
+    TEMP_FAHRENHEIT,
+    RinnaiCapabilities,
+    RinnaiOperatingMode,
+    RinnaiSystem,
+    RinnaiSystemMode,
+    RinnaiSystemStatus,
 )
 
 SUPPORT_FLAGS_MAIN = (
-    ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE
+    ClimateEntityFeature.TARGET_TEMPERATURE
+    | ClimateEntityFeature.PRESET_MODE
+    | ClimateEntityFeature.TURN_ON
+    | ClimateEntityFeature.TURN_OFF
 )
 SUPPORT_FLAGS_ZONE = (
-    ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE
+    ClimateEntityFeature.TARGET_TEMPERATURE
+    | ClimateEntityFeature.PRESET_MODE
+    | ClimateEntityFeature.TURN_ON
+    | ClimateEntityFeature.TURN_OFF
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -120,7 +134,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         {
             vol.Optional(SET_DATETIME): cv.datetime,
         },
-        "set_system_time"
+        "set_system_time",
     )
     return True
 
