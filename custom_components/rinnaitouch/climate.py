@@ -71,7 +71,7 @@ SUPPORT_FLAGS_MAIN = (
     ClimateEntityFeature.TARGET_TEMPERATURE
         | ClimateEntityFeature.PRESET_MODE
         | ClimateEntityFeature.TURN_OFF
-        | ClimateEntityFeature.TURN_O
+        | ClimateEntityFeature.TURN_ON
 )
 SUPPORT_FLAGS_ZONE = (
     ClimateEntityFeature.TARGET_TEMPERATURE
@@ -653,7 +653,7 @@ class RinnaiTouchZone(ClimateEntity):
 
     # some common
     def __init__(self, hass, ip_address, name, zone, temperature_entity=None):
-        # pylint: disable=too-many-positional-arguments
+        # pylint: disable=too-many-positional-arguments,too-many-arguments
 
         _LOGGER.debug("Set up RinnaiTouch zone %s entity %s", zone, ip_address)
         self._system: RinnaiSystem = RinnaiSystem.get_instance(ip_address)
