@@ -68,10 +68,10 @@ from .const import (
 )
 
 SUPPORT_FLAGS_MAIN = (
-    ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE
+    ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE | ClimateEntityFeature.TURN_OFF | ClimateEntityFeature.TURN_ON
 )
 SUPPORT_FLAGS_ZONE = (
-    ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE
+    ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE | ClimateEntityFeature.TURN_OFF | ClimateEntityFeature.TURN_ON 
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -146,6 +146,7 @@ class RinnaiTouch(ClimateEntity):
         self.update_external_temperature()
 
         self._support_flags = SUPPORT_FLAGS_MAIN
+        self._enable_turn_on_off_backwards_compatibility = False
 
         self._TEMPERATURE_STEP = 1
         self._TEMPERATURE_LIMITS = {"min": 8, "max": 30}
@@ -668,6 +669,7 @@ class RinnaiTouchZone(ClimateEntity):
         self.update_external_temperature()
 
         self._support_flags = SUPPORT_FLAGS_ZONE
+        self._enable_turn_on_off_backwards_compatibility = False
 
         self._TEMPERATURE_STEP = 1
         self._TEMPERATURE_LIMITS = {"min": 8, "max": 30}
