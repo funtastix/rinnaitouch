@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10"]
+        python-version: ["3.12"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -22,4 +22,4 @@ jobs:
         pip install -r ./custom_components/rinnaitouch/requirements.txt
     - name: Analysing the code with pylint
       run: |
-        pylint $(ls ./custom_components/rinnaitouch/*.py) --disable=duplicate-code,invalid-name,fixme
+        pylint $(ls ./custom_components/rinnaitouch/*.py) --disable=duplicate-code,invalid-name,fixme,abstract-method

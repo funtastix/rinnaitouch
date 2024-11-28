@@ -68,10 +68,16 @@ from .const import (
 )
 
 SUPPORT_FLAGS_MAIN = (
-    ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE | ClimateEntityFeature.TURN_OFF | ClimateEntityFeature.TURN_ON
+    ClimateEntityFeature.TARGET_TEMPERATURE
+        | ClimateEntityFeature.PRESET_MODE
+        | ClimateEntityFeature.TURN_OFF
+        | ClimateEntityFeature.TURN_ON
 )
 SUPPORT_FLAGS_ZONE = (
-    ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE | ClimateEntityFeature.TURN_OFF | ClimateEntityFeature.TURN_ON 
+    ClimateEntityFeature.TARGET_TEMPERATURE
+        | ClimateEntityFeature.PRESET_MODE
+        | ClimateEntityFeature.TURN_OFF
+        | ClimateEntityFeature.TURN_ON
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -647,7 +653,7 @@ class RinnaiTouchZone(ClimateEntity):
 
     # some common
     def __init__(self, hass, ip_address, name, zone, temperature_entity=None):
-        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-positional-arguments,too-many-arguments
 
         _LOGGER.debug("Set up RinnaiTouch zone %s entity %s", zone, ip_address)
         self._system: RinnaiSystem = RinnaiSystem.get_instance(ip_address)
@@ -927,6 +933,7 @@ class RinnaiTouchZone(ClimateEntity):
     def current_temperature(self):
         """Return the current temperature."""
         state: RinnaiSystemStatus = self._system.get_stored_status()
+        temp = 1000
         if self._attr_zone in state.unit_status.zones.keys():
             temp = state.unit_status.zones[self._attr_zone].temperature
 
