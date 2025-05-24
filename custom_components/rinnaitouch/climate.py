@@ -66,7 +66,7 @@ from .const import (
     PRESET_MANUAL,
     SET_DATETIME,
 )
-from .pyrinnaitouch import (
+from pyrinnaitouch import (
     TEMP_FAHRENHEIT,
     RinnaiCapabilities,
     RinnaiOperatingMode,
@@ -77,15 +77,15 @@ from .pyrinnaitouch import (
 
 SUPPORT_FLAGS_MAIN = (
     ClimateEntityFeature.TARGET_TEMPERATURE
-        | ClimateEntityFeature.PRESET_MODE
-        | ClimateEntityFeature.TURN_OFF
-        | ClimateEntityFeature.TURN_ON
+    | ClimateEntityFeature.PRESET_MODE
+    | ClimateEntityFeature.TURN_OFF
+    | ClimateEntityFeature.TURN_ON
 )
 SUPPORT_FLAGS_ZONE = (
     ClimateEntityFeature.TARGET_TEMPERATURE
-        | ClimateEntityFeature.PRESET_MODE
-        | ClimateEntityFeature.TURN_OFF
-        | ClimateEntityFeature.TURN_ON
+    | ClimateEntityFeature.PRESET_MODE
+    | ClimateEntityFeature.TURN_OFF
+    | ClimateEntityFeature.TURN_ON
 )
 
 _LOGGER = logging.getLogger(__name__)

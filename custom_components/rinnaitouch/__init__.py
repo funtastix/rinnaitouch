@@ -12,7 +12,7 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.const import Platform
 from homeassistant.helpers.device_registry import DeviceEntry
 
-from .pyrinnaitouch import RinnaiSystem
+from pyrinnaitouch import RinnaiSystem
 
 from .const import DOMAIN
 
