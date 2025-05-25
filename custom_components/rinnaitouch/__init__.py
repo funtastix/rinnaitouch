@@ -33,7 +33,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     ip_address = entry.data.get(CONF_HOST)
     _LOGGER.debug("Get controller with IP: %s", ip_address)
-    _LOGGER.error("Ok initing rinnaitouch now")
     try:
         system: RinnaiSystem = RinnaiSystem.get_instance(ip_address)
         # scenes = await system.getSupportedScenes()
