@@ -17,9 +17,7 @@ from .const import (
 # _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(
-    hass, entry, async_add_entities
-):  # pylint: disable=unused-argument
+async def async_setup_entry(hass, entry, async_add_entities):  # pylint: disable=unused-argument
     """Set up the binary sensor entities."""
     ip_address = entry.data.get(CONF_HOST)
     name = entry.data.get(CONF_NAME)
@@ -27,6 +25,7 @@ async def async_setup_entry(
         name = DEFAULT_NAME
     async_add_entities(
         [
+            RinnaiConnectedBinarySensorEntity(ip_address, name),
             RinnaiPreheatBinarySensorEntity(ip_address, name),
             RinnaiGasValveBinarySensorEntity(ip_address, name),
             RinnaiCallingHeatBinarySensorEntity(ip_address, name),
@@ -496,3 +495,43 @@ class RinnaiZoneFanOperatingBinarySensorEntity(RinnaiZoneStateBinarySensorEntity
         if state.is_multi_set_point:
             return True
         return False
+
+
+class RinnaiConnectedBinarySensorEntity(RinnaiBinarySensorEntity):
+    """Binary sensor for Rinnai connection state."""
+
+    def __init__(self, ip_address, name) -> None:
+        super().__init__(ip_address, name)
+        self._attr_name = name + " Connected Sensor"
+        self._attr_unique_id = "connected_" + str.replace(ip_address, ".", "_")
+        self._connected = None
+
+        # Subscribe to connection state changes
+        self._system.register_socket_state_handler(self._connection_state_handler)
+
+    def _connection_state_handler(self, state):
+        """Handle connection state updates from pyrinnaitouch."""
+        # Connected if state is CONNECTED, else not
+        try:
+            # Enum value 3 is CONNECTED, but use name for clarity
+            self._connected = getattr(state, "name", None) == "CONNECTED"
+            self.schedule_update_ha_state()
+        except Exception:
+            pass
+
+    @property
+    def is_on(self) -> bool:
+        """Return True if connected, False otherwise."""
+        return self._connected
+
+    @property
+    def available(self) -> bool:
+        """Sensor is always available."""
+        return True
+
+    @property
+    def icon(self):
+        """Return the icon to use in the frontend for this device."""
+        if self.is_on:
+            return "mdi:lan-connect"
+        return "mdi:lan-disconnect"

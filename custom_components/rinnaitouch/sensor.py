@@ -1,4 +1,5 @@
 """Platform for sensor integration."""
+
 from __future__ import annotations
 
 # import logging
@@ -32,9 +33,7 @@ from .const import (
 # _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(
-    hass, entry, async_add_entities
-):  # pylint: disable=unused-argument
+async def async_setup_entry(hass, entry, async_add_entities):  # pylint: disable=unused-argument
     """Set up the sensor entities."""
     ip_address = entry.data.get(CONF_HOST)
     name = entry.data.get(CONF_NAME)
@@ -46,6 +45,7 @@ async def async_setup_entry(
             RinnaiMainTemperatureSensor(ip_address, name, "set_temp"),
             RinnaiSchedulePeriodSensor(ip_address, name),
             RinnaiAdvancePeriodSensor(ip_address, name),
+            RinnaiConnectionStateSensor(ip_address, name),
         ]
     )
     if entry.data.get(CONF_ZONE_A):
@@ -356,3 +356,61 @@ class RinnaiAdvancePeriodSensor(RinnaiPeriodSensor):
         if self._system.get_stored_status().unit_status.advanced:
             return super().native_value
         return "N/A"
+
+
+class RinnaiConnectionStateSensor(SensorEntity):
+    """Sensor for reporting the latest connection state."""
+
+    def __init__(self, ip_address, name):
+        self._system: RinnaiSystem = RinnaiSystem.get_instance(ip_address)
+        self._host = ip_address
+        self._attr_unique_id = f"connection_state_{str.replace(ip_address, '.', '_')}"
+        self._attr_name = f"{name} Connection State"
+        self._attr_device_name = name
+        self._connection_state = None
+        self._system.register_socket_state_handler(self._connection_state_handler)
+
+    def _connection_state_handler(self, state):
+        """Handle connection state updates from pyrinnaitouch."""
+        try:
+            self._connection_state = getattr(state, "name", str(state))
+            self.schedule_update_ha_state()
+        except Exception:
+            pass
+
+    @property
+    def device_info(self):
+        """Return device information about this heater."""
+        return {
+            "identifiers": {("rinnai_touch", self._host)},
+            "model": "Rinnai Touch Wifi",
+            "name": self._attr_device_name,
+            "manufacturer": "Rinnai/Brivis",
+        }
+
+    @property
+    def name(self):
+        """Name of the entity."""
+        return self._attr_name
+
+    @property
+    def icon(self):
+        """Return the icon to use in the frontend for this device."""
+        state = (self._connection_state or "").upper()
+        if state == "CONNECTED":
+            return "mdi:lan-connect"
+        if state == "CONNECTING":
+            return "mdi:lan-pending"
+        if state in ("REFUSED", "TIMEOUT", "ERROR"):
+            return "mdi:lan-disconnect"
+        return "mdi:lan"
+
+    @property
+    def native_value(self):
+        """Return the latest connection state as a string."""
+        return self._connection_state
+
+    @property
+    def available(self):
+        """Sensor is always available."""
+        return True
