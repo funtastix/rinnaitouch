@@ -1,4 +1,5 @@
 """Set up main entity."""
+
 # pylint: disable=duplicate-code
 import logging
 from dataclasses import dataclass
@@ -32,7 +33,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     ip_address = entry.data.get(CONF_HOST)
     _LOGGER.debug("Get controller with IP: %s", ip_address)
-
     try:
         system: RinnaiSystem = RinnaiSystem.get_instance(ip_address)
         # scenes = await system.getSupportedScenes()
@@ -44,7 +44,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         ConnectionError,
         ConnectionRefusedError,
     ) as err:
-        _LOGGER.debug("Get controller error: %s", err)
+        _LOGGER.error("Get controller error: %s", err)
         raise ConfigEntryNotReady from err
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = RinnaiData(
@@ -62,6 +62,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         hass.data[DOMAIN].pop(entry.entry_id)
+
+    RinnaiSystem.remove_instance(ip_address)
+    _LOGGER.debug("Controller with IP: %s removed", ip_address)
+
     return unload_ok
 
 

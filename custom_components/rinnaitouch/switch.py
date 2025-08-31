@@ -22,12 +22,8 @@ from .const import (
     DEFAULT_NAME,
 )
 
-# _LOGGER = logging.getLogger(__name__)
 
-
-async def async_setup_entry(
-    hass, entry, async_add_entities
-):  # pylint: disable=unused-argument
+async def async_setup_entry(hass, entry, async_add_entities):  # pylint: disable=unused-argument
     """Set up the switch entities."""
     ip_address = entry.data.get(CONF_HOST)
     name = entry.data.get(CONF_NAME)
@@ -473,9 +469,7 @@ class RinnaiCircFanSwitch(RinnaiExtraEntity, SwitchEntity):
     @property
     def available(self):
         state: RinnaiSystemStatus = self._system.get_stored_status()
-        if not (
-            state.mode in (RinnaiSystemMode.COOLING, RinnaiSystemMode.HEATING)
-        ):  # pylint: disable=superfluous-parens
+        if not (state.mode in (RinnaiSystemMode.COOLING, RinnaiSystemMode.HEATING)):  # pylint: disable=superfluous-parens
             return False
         if not state.system_on:
             return True
