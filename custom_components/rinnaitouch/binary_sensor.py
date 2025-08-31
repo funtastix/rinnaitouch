@@ -516,7 +516,7 @@ class RinnaiConnectedBinarySensorEntity(RinnaiBinarySensorEntity):
             # Enum value 3 is CONNECTED, but use name for clarity
             self._connected = getattr(state, "name", None) == "CONNECTED"
             self.schedule_update_ha_state()
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             pass
 
     @property

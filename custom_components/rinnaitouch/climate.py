@@ -46,6 +46,15 @@ from homeassistant.helpers import (
 )
 from homeassistant.helpers.entity_registry import async_entries_for_device
 
+from pyrinnaitouch import (
+    TEMP_FAHRENHEIT,
+    RinnaiCapabilities,
+    RinnaiOperatingMode,
+    RinnaiSystem,
+    RinnaiSystemMode,
+    RinnaiSystemStatus,
+)
+
 from .const import (
     CONF_TEMP_SENSOR,
     CONF_TEMP_SENSOR_A,
@@ -66,14 +75,7 @@ from .const import (
     PRESET_MANUAL,
     SET_DATETIME,
 )
-from pyrinnaitouch import (
-    TEMP_FAHRENHEIT,
-    RinnaiCapabilities,
-    RinnaiOperatingMode,
-    RinnaiSystem,
-    RinnaiSystemMode,
-    RinnaiSystemStatus,
-)
+
 
 SUPPORT_FLAGS_MAIN = (
     ClimateEntityFeature.TARGET_TEMPERATURE

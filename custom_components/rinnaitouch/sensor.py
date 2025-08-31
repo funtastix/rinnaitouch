@@ -375,7 +375,7 @@ class RinnaiConnectionStateSensor(SensorEntity):
         try:
             self._connection_state = getattr(state, "name", str(state))
             self.schedule_update_ha_state()
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             pass
 
     @property
