@@ -1,4 +1,4 @@
 async_timeout>=3.0.1
 asyncio>=3.4.3
-pyrinnaitouch>=0.13,<0.14
+pyrinnaitouch==0.13.2b1
 homeassistant>=2024.2.0
