@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.const import CONF_HOST, EVENT_HOMEASSISTANT_STOP
-from homeassistant.core import HomeAssistant
+from homeassistant.core import Event, HomeAssistant
 from homeassistant.helpers.entity import Entity
 from homeassistant.const import Platform
 from homeassistant.helpers.device_registry import DeviceEntry
@@ -36,7 +36,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     try:
         system: RinnaiSystem = RinnaiSystem.get_instance(ip_address)
         # scenes = await system.getSupportedScenes()
-        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, system.shutdown)
+
+        async def async_shutdown(_event: Event) -> None:
+            # shutdown() takes no event and joins the connection thread, so
+            # run it in the executor rather than on the event loop.
+            await hass.async_add_executor_job(system.shutdown)
+
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, async_shutdown)
         scenes = []
         await hass.async_add_executor_job(system.get_status)
     except (
