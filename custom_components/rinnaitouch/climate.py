@@ -92,6 +92,11 @@ SUPPORT_FLAGS_ZONE = (
 
 _LOGGER = logging.getLogger(__name__)
 
+# How long to wait for the controller to report a mode change (15 s). It
+# usually takes about 5 s.
+MODE_CHANGE_POLLS = 30
+MODE_CHANGE_POLL_SECONDS = 0.5
+
 SCAN_INTERVAL = timedelta(seconds=5)
 
 SERVICE_SET_TIME = "rinnai_set_time"
@@ -412,6 +417,23 @@ class RinnaiTouch(ClimateEntity):
             return COOLING_EVAP
         return COOLING_NONE
 
+    async def _async_switch_mode(self, mode, set_mode) -> None:
+        """Switch the system to mode and wait for the controller to report it.
+
+        The controller loses a command that arrives straight after a mode
+        change, so the unit can only be turned on once the new mode shows up
+        in the status. The controller also restores the unit's last on/off
+        state for that mode, so the caller checks before turning it on.
+        """
+        if self._system.get_stored_status().mode == mode:
+            return
+        await set_mode()
+        for _ in range(MODE_CHANGE_POLLS):
+            await asyncio.sleep(MODE_CHANGE_POLL_SECONDS)
+            if self._system.get_stored_status().mode == mode:
+                return
+        _LOGGER.warning("Controller did not report mode %s after switching", mode)
+
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
         # pylint: disable=too-many-branches
@@ -419,16 +441,27 @@ class RinnaiTouch(ClimateEntity):
         if not hvac_mode == self.hvac_mode:
             if hvac_mode == HVACMode.HEAT:
                 # turn whatever the preset is on and put it into manual mode
-                await self._system.turn_heater_on()
-                await self._system.set_heater_mode()
+                await self._async_switch_mode(
+                    RinnaiSystemMode.HEATING, self._system.set_heater_mode
+                )
+                if self.hvac_mode != HVACMode.HEAT:
+                    await self._system.turn_heater_on()
             elif hvac_mode == HVACMode.COOL:
                 # turn whatever the preset is on and put it into auto mode
                 if self.preferred_cooling_mode == COOLING_COOL:
-                    await self._system.turn_cooler_on()
-                    await self._system.set_cooling_mode()
+                    await self._async_switch_mode(
+                        RinnaiSystemMode.COOLING, self._system.set_cooling_mode
+                    )
+                    if self.hvac_mode != HVACMode.COOL:
+                        await self._system.turn_cooler_on()
                 if self.preferred_cooling_mode == COOLING_EVAP:
-                    await self._system.set_evap_mode()
-                    await self._system.turn_evap_on()
+                    await self._async_switch_mode(
+                        RinnaiSystemMode.EVAP, self._system.set_evap_mode
+                    )
+                    # hvac_mode reports COOL for evap mode even when the unit
+                    # is off, so check the unit itself.
+                    if not self._system.get_stored_status().unit_status.is_on:
+                        await self._system.turn_evap_on()
             elif hvac_mode == HVACMode.OFF:
                 # turn whatever the preset is off
                 if self.cooling_mode == COOLING_EVAP:
